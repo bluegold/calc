@@ -71,7 +71,7 @@ class ExecuterTest < Minitest::Test
     define_ast = @parser.parse("(define (square x) (* x x))").first
     call_ast = @parser.parse("(square 4)").first
 
-    assert_equal({ params: ["x"], body: define_ast.children[2], namespace: nil, local: false }, @executer.evaluate(define_ast))
+    assert_equal "defined function square(x)", @executer.evaluate(define_ast)
     assert_equal BigDecimal("16"), @executer.evaluate(call_ast)
   end
 

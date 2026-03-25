@@ -91,7 +91,8 @@ module Calc
       }
 
       @namespaces.define_function(@current_namespace, name_node.name, function_entry, local: function_entry[:local])
-      function_entry
+      function_label = [@current_namespace, name_node.name].compact.join(".")
+      "defined function #{function_label}(#{params.join(', ')})"
     end
 
     def evaluate_namespace(children)

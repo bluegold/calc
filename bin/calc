@@ -140,9 +140,11 @@ else
         next
       end
 
-      parser.parse(source).each do |node|
-        puts Calc.format_value(executer.evaluate(node))
+      results = parser.parse(source).map do |node|
+        executer.evaluate(node)
       end
+
+      puts Calc.format_value(results.last) unless results.empty?
 
       Reline::HISTORY << source
     rescue StandardError => e
