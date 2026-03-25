@@ -13,21 +13,13 @@ module Calc
     def initialize
       @functions = {}
 
-      register("+", min_arity: 0) do |args|
-        args.reduce(BigDecimal("0"), :+)
-      end
+      register("+", min_arity: 0) { |args| args.reduce(BigDecimal("0"), :+) }
+      register("-", min_arity: 1) { |args| args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v } }
+      register("*", min_arity: 0) { |args| args.reduce(BigDecimal("1"), :*) }
+      register("/", min_arity: 1) { |args| args.reduce { |memo, v| memo / v } }
 
-      register("-", min_arity: 1) do |args|
-        args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v }
-      end
-
-      register("*", min_arity: 0) do |args|
-        args.reduce(BigDecimal("1"), :*)
-      end
-
-      register("/", min_arity: 1) do |args|
-        args.reduce { |memo, v| memo / v }
-      end
+      Functions::Pow.register(self)
+      Functions::Sqrt.register(self)
     end
 
     def register(name, min_arity: 0, max_arity: nil, &block)

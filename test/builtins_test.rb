@@ -40,4 +40,16 @@ class BuiltinsTest < Minitest::Test
 
     assert_equal BigDecimal("16"), result
   end
+
+  def test_calls_pow
+    result = @builtins.call("pow", [BigDecimal("2"), BigDecimal("3")])
+
+    assert_equal BigDecimal("8"), result
+  end
+
+  def test_calls_sqrt
+    result = @builtins.call("sqrt", [BigDecimal("9")])
+
+    assert_equal BigDecimal("3"), result
+  end
 end
