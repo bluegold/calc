@@ -67,4 +67,19 @@ class ParserTest < Minitest::Test
 
     assert_match "unexpected ')'", error.message
   end
+
+  def test_parses_sample_with_shebang_and_comments
+    source = <<~CALC
+      #!/usr/bin/env calc
+      ; sample program
+      (define x 1)
+      (+ x 2) ; trailing comment
+    CALC
+
+    ast = @parser.parse(source)
+
+    assert_equal 2, ast.size
+    assert_equal "define", ast.first.children.first.name
+    assert_equal "+", ast.last.children.first.name
+  end
 end
