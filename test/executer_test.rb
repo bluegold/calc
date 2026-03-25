@@ -117,4 +117,18 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("4"), @executer.evaluate(ast)
   end
 
+  def test_recursive_fibonacci_function
+    ast = @parser.parse("(define (fib n) (if (<= n 1) n (+ (fib (- n 1)) (fib (- n 2)))))").first
+    call_ast = @parser.parse("(fib 10)").first
+
+    @executer.evaluate(ast)
+    assert_equal BigDecimal("55"), @executer.evaluate(call_ast)
+  end
+
+  def test_namespaced_recursive_fibonacci_function
+    ast = @parser.parse("(namespace crypto (define (fib n) (if (<= n 1) n (+ (fib (- n 1)) (fib (- n 2))))) (fib 10))").first
+
+    assert_equal BigDecimal("55"), @executer.evaluate(ast)
+  end
+
 end
