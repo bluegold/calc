@@ -8,6 +8,7 @@ require "reline"
 
 parser = Calc::Parser.new
 executer = Calc::Executer.new
+builtins = executer.instance_variable_get(:@builtins)
 history_path = File.join(Dir.home, ".calc_history")
 
 if File.file?(history_path)
@@ -40,7 +41,7 @@ elsif File.exist?(history_path)
   warn "ignoring non-regular history file: #{history_path}"
 end
 
-def handle_repl_command(line, parser, executer)
+def handle_repl_command(line, parser, executer, builtins)
   command, payload = line[1..].split(/\s+/, 2)
 
   case command
@@ -49,9 +50,27 @@ def handle_repl_command(line, parser, executer)
     parser.parse(source).each do |node|
       puts Calc::ASTPrinter.pretty(node)
     end
+    true
+  when "help"
+    puts "Commands:"
+    puts "  :ast <expr>   Print the AST for an expression"
+    puts "  :help         Show this help"
+    puts
+    puts "Builtins:"
+    builtins.each_builtin.each do |builtin|
+      line = "  #{builtin.name}"
+      line += " - #{builtin.description}" if builtin.description
+      puts line
+      puts "    example: #{builtin.example}" if builtin.example
+    end
+    true
   else
     warn "unknown command: :#{command}"
+    false
   end
+rescue StandardError => e
+  warn "#{e.class}: #{e.message}"
+  false
 end
 
 def paren_depth(source)
@@ -93,39 +112,43 @@ else
   buffer = +""
 
   loop do
-    line = Reline.readline(prompt_for(buffer), false)
-    break unless line
+    begin
+      line = Reline.readline(prompt_for(buffer), false)
+      break unless line
 
-    if buffer.empty? && line.strip.empty?
-      next
-    end
+      if buffer.empty? && line.strip.empty?
+        next
+      end
 
-    buffer << line << "\n"
+      buffer << line << "\n"
 
-    if unmatched_closing_paren?(buffer)
-      warn "unexpected ')'"
+      if unmatched_closing_paren?(buffer)
+        warn "unexpected ')'"
+        buffer.clear
+        next
+      end
+
+      next unless balanced_parens?(buffer)
+
+      source = buffer.strip
       buffer.clear
-      next
+
+      next if source.empty?
+
+      if source.start_with?(":")
+        Reline::HISTORY << source if handle_repl_command(source, parser, executer, builtins)
+        next
+      end
+
+      parser.parse(source).each do |node|
+        puts Calc.format_value(executer.evaluate(node))
+      end
+
+      Reline::HISTORY << source
+    rescue StandardError => e
+      warn "#{e.class}: #{e.message}"
+      buffer.clear
     end
-
-    next unless balanced_parens?(buffer)
-
-    source = buffer.strip
-    buffer.clear
-
-    next if source.empty?
-
-    if source.start_with?(":")
-      handle_repl_command(source, parser, executer)
-      Reline::HISTORY << source unless source.strip.empty?
-      next
-    end
-
-    parser.parse(source).each do |node|
-      puts Calc.format_value(executer.evaluate(node))
-    end
-
-    Reline::HISTORY << source unless source.strip.empty?
   end
 
   begin
