@@ -56,10 +56,46 @@ class BuiltinsTest < Minitest::Test
     assert_equal BigDecimal("3"), result
   end
 
+  def test_calls_less_than_or_equal
+    assert_equal true, @builtins.call("<=", [BigDecimal("1"), BigDecimal("2")])
+    assert_equal false, @builtins.call("<=", [BigDecimal("3"), BigDecimal("2")])
+  end
+
+  def test_calls_less_than
+    assert_equal true, @builtins.call("<", [BigDecimal("1"), BigDecimal("2")])
+    assert_equal false, @builtins.call("<", [BigDecimal("2"), BigDecimal("2")])
+  end
+
+  def test_calls_greater_than
+    assert_equal true, @builtins.call(">", [BigDecimal("3"), BigDecimal("2")])
+    assert_equal false, @builtins.call(">", [BigDecimal("2"), BigDecimal("2")])
+  end
+
+  def test_calls_greater_than_or_equal
+    assert_equal true, @builtins.call(">=", [BigDecimal("3"), BigDecimal("2")])
+    assert_equal false, @builtins.call(">=", [BigDecimal("1"), BigDecimal("2")])
+  end
+
+  def test_calls_equal
+    assert_equal true, @builtins.call("==", [BigDecimal("2"), BigDecimal("2")])
+    assert_equal false, @builtins.call("==", [BigDecimal("1"), BigDecimal("2")])
+  end
+
+  def test_calls_not_equal
+    assert_equal true, @builtins.call("!=", [BigDecimal("1"), BigDecimal("2")])
+    assert_equal false, @builtins.call("!=", [BigDecimal("2"), BigDecimal("2")])
+  end
+
   def test_enumerates_builtins
     names = @builtins.each_builtin.map(&:name)
 
     assert_includes names, "+"
+    assert_includes names, "<="
+    assert_includes names, "<"
+    assert_includes names, ">"
+    assert_includes names, ">="
+    assert_includes names, "=="
+    assert_includes names, "!="
     assert_includes names, "pow"
     assert_includes names, "sqrt"
   end

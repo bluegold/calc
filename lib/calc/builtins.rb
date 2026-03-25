@@ -17,6 +17,14 @@ module Calc
       register("-", min_arity: 1, description: "Subtract numbers", example: "(- 5 2)") { |args| args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v } }
       register("*", min_arity: 0, description: "Multiply numbers", example: "(* 2 3 4)") { |args| args.reduce(BigDecimal("1"), :*) }
       register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") { |args| args.reduce { |memo, v| memo / v } }
+      register("<", min_arity: 2, max_arity: 2, description: "Less than", example: "(< 1 2)") { |args| args[0] < args[1] }
+      register("<=", min_arity: 2, max_arity: 2, description: "Less than or equal", example: "(<= 1 2)") do |args|
+        args[0] <= args[1]
+      end
+      register(">", min_arity: 2, max_arity: 2, description: "Greater than", example: "(> 2 1)") { |args| args[0] > args[1] }
+      register(">=", min_arity: 2, max_arity: 2, description: "Greater than or equal", example: "(>= 2 1)") { |args| args[0] >= args[1] }
+      register("==", min_arity: 2, max_arity: 2, description: "Equal", example: "(== 1 1)") { |args| args[0] == args[1] }
+      register("!=", min_arity: 2, max_arity: 2, description: "Not equal", example: "(!= 1 2)") { |args| args[0] != args[1] }
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
