@@ -2,9 +2,18 @@ require "pp"
 require "bigdecimal"
 
 module Calc
+  def self.format_value(value)
+    case value
+    when BigDecimal
+      value.to_s("F").sub(/\.0+\z/, "")
+    else
+      value.to_s
+    end
+  end
+
   NumberNode = Struct.new(:value, keyword_init: true) do
     def pretty_print(q)
-      q.text(value.to_s("F").sub(/\.0+\z/, ""))
+      q.text(Calc.format_value(value))
     end
   end
 

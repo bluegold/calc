@@ -11,3 +11,5 @@
 - Updated parser and executor tests to cover the new behavior.
 - Added AST pretty printing and a `:ast` REPL debug command.
 - Added REPL history support via `Readline` and persistent history storage.
+- Added multiline REPL input with separate primary and continuation prompts.
+- Hardened REPL history loading and saving so filesystem failures do not crash the shell.

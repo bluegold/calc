@@ -9,10 +9,12 @@ parser = Calc::Parser.new
 executer = Calc::Executer.new
 history_path = File.join(Dir.home, ".calc_history")
 
-if File.exist?(history_path)
+if File.file?(history_path)
   File.readlines(history_path, chomp: true).each do |entry|
     Reline::HISTORY << entry unless entry.strip.empty?
   end
+elsif File.exist?(history_path)
+  warn "ignoring non-regular history file: #{history_path}"
 end
 
 def handle_repl_command(line, parser, executer)
@@ -29,25 +31,83 @@ def handle_repl_command(line, parser, executer)
   end
 end
 
+def paren_depth(source)
+  depth = 0
+
+  source.each_line do |line|
+    code = line.sub(/;.*$/, "")
+
+    code.each_char do |char|
+      case char
+      when "("
+        depth += 1
+      when ")"
+        depth -= 1
+        return depth if depth.negative?
+      end
+    end
+  end
+
+  depth
+end
+
+def balanced_parens?(source)
+  paren_depth(source).zero?
+end
+
+def unmatched_closing_paren?(source)
+  paren_depth(source).negative?
+end
+
+def prompt_for(buffer)
+  buffer.empty? ? "> " : "... "
+end
+
 if ARGV.first
   source = File.read(ARGV.first)
   parser.parse(source).each { |node| executer.evaluate(node) }
 else
+  buffer = +""
+
   loop do
-    line = Reline.readline("> ", true)
+    line = Reline.readline(prompt_for(buffer), false)
     break unless line
 
-    next if line.strip.empty?
-
-    if line.start_with?(":")
-      handle_repl_command(line, parser, executer)
+    if buffer.empty? && line.strip.empty?
       next
     end
 
-    parser.parse(line).each do |node|
-      puts executer.evaluate(node)
+    buffer << line << "\n"
+
+    if unmatched_closing_paren?(buffer)
+      warn "unexpected ')'"
+      buffer.clear
+      next
     end
+
+    next unless balanced_parens?(buffer)
+
+    source = buffer.strip
+    buffer.clear
+
+    next if source.empty?
+
+    if source.start_with?(":")
+      handle_repl_command(source, parser, executer)
+      Reline::HISTORY << source unless source.strip.empty?
+      next
+    end
+
+    parser.parse(source).each do |node|
+      puts Calc.format_value(executer.evaluate(node))
+    end
+
+    Reline::HISTORY << source unless source.strip.empty?
   end
 
-  File.write(history_path, Reline::HISTORY.to_a.join("\n") + "\n")
+  begin
+    File.write(history_path, Reline::HISTORY.to_a.join("\n") + "\n")
+  rescue SystemCallError => e
+    warn "failed to write history: #{e.message}"
+  end
 end
