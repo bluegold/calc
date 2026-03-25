@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+require "calc"
+
+parser = Calc::Parser.new
+executer = Calc::Executer.new
+
+if ARGV.first
+  source = File.read(ARGV.first)
+  parser.parse(source).each { |node| executer.evaluate(node) }
+else
+  loop do
+    print "> "
+    line = STDIN.gets
+    break unless line
+
+    next if line.strip.empty?
+
+    parser.parse(line).each do |node|
+      puts executer.evaluate(node)
+    end
+  end
+end
