@@ -52,4 +52,12 @@ class NamespaceRegistryTest < Minitest::Test
 
     assert_equal 11, @registry.resolve_variable(nil, "_root_tmp")[:value]
   end
+
+  def test_qualified_lookup_stays_within_target_namespace
+    @registry.ensure_namespace("crypto")
+    @registry.ensure_namespace("crypto.cipher")
+    @registry.define_function("crypto", "twice", :crypto_twice)
+
+    assert_nil @registry.resolve_function("crypto.cipher", "crypto.cipher.twice")
+  end
 end

@@ -89,6 +89,14 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("8"), @executer.evaluate(call_ast)
   end
 
+  def test_builtin_function_is_not_shadowed_by_namespace_function_call
+    ast = @parser.parse("(namespace crypto (define (pow x y) (* x y)))").first
+    call_ast = @parser.parse("(pow 2 3)").first
+
+    @executer.evaluate(ast)
+    assert_equal BigDecimal("8"), @executer.evaluate(call_ast)
+  end
+
   def test_plain_symbol_prefers_variable_over_function
     ast = @parser.parse("(namespace crypto (define twice 7) (define (twice x) (+ x x)) twice)").first
 

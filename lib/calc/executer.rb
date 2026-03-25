@@ -129,6 +129,8 @@ module Calc
     def call_function(name, args)
       values = args.map { |arg| evaluate(arg) }
 
+      return @builtins.call(name, values) if @builtins.registered?(name)
+
       resolved_function = @namespaces.resolve_function(@current_namespace, name)
       return call_user_function(resolved_function[:value], values) if resolved_function
 

@@ -18,3 +18,4 @@
 - Added a first-pass `NamespaceRegistry` for nested namespaces and local-name tracking.
 - Unified namespace-qualified function lookup, lexical scope precedence, and qualified names like `crypto.twice`.
 - Updated docs and tests to reflect namespace-local variables, local-only `_` names, and namespace-aware resolution.
+- Refined resolution order so lexical bindings shadow namespace bindings and qualified lookups stay within their target namespace.

@@ -80,6 +80,7 @@ module Calc
         dot_index = name_string.rindex(".")
         namespace_path = name_string[0...dot_index]
         name = name_string[(dot_index + 1)..]
+        return exact_namespace_lookup(namespace_path, name, bucket)
       end
 
       namespace = namespace_or_nil(namespace_path)
@@ -93,6 +94,19 @@ module Calc
 
       builtin = @root.children["builtin"]
       return builtin.public_send(bucket)[name] if builtin && builtin.public_send(bucket).key?(name)
+
+      nil
+    end
+
+    def exact_namespace_lookup(namespace_path, name, bucket)
+      namespace = namespace_or_nil(namespace_path)
+      return nil unless namespace
+
+      entry = namespace.public_send(bucket)[name]
+      return entry if entry
+
+      builtin = @root.children["builtin"]
+      return builtin.public_send(bucket)[name] if namespace_path == "builtin" && builtin && builtin.public_send(bucket).key?(name)
 
       nil
     end
