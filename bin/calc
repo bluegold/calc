@@ -140,11 +140,12 @@ else
         next
       end
 
-      results = parser.parse(source).map do |node|
-        executer.evaluate(node)
+      last_result = nil
+      parser.parse(source).each do |node|
+        last_result = executer.evaluate(node)
       end
 
-      puts Calc.format_value(results.last) unless results.empty?
+      puts Calc.format_value(last_result) unless last_result.nil?
 
       Reline::HISTORY << source
     rescue StandardError => e
