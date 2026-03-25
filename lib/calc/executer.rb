@@ -1,8 +1,11 @@
 module Calc
   class Executer
-    def initialize(environment = Environment.new, builtins = Builtins.new)
+    def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new, current_namespace: nil)
       @environment = environment
       @builtins = builtins
+      @namespaces = namespaces
+      @current_namespace = current_namespace
+      @namespace_stack = [current_namespace]
     end
 
     def evaluate(node)
@@ -10,8 +13,16 @@ module Calc
       when NumberNode
         node.value
       when SymbolNode
+        return @environment.get_local(node.name) if @environment.bound_local?(node.name)
+
         found, builtin = @builtins.resolve(node.name)
         return builtin if found
+
+        resolved_variable = @namespaces.resolve_variable(@current_namespace, node.name)
+        return resolved_variable[:value] if resolved_variable
+
+        resolved_function = @namespaces.resolve_function(@current_namespace, node.name)
+        return resolved_function[:value] if resolved_function
 
         @environment.get(node.name)
       when ListNode
@@ -28,9 +39,11 @@ module Calc
       case head
       when SymbolNode
         if head.name == "define"
-          define_variable(node.children)
+          function_definition?(node.children) ? define_function(node.children) : define_variable(node.children)
         elsif head.name == "if"
           evaluate_if(node.children)
+        elsif head.name == "namespace"
+          evaluate_namespace(node.children)
         else
           call_function(head.name, node.children.drop(1))
         end
@@ -46,8 +59,57 @@ module Calc
       raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
 
       value = evaluate(value_node)
-      @environment.set(name_node.name, value)
+      @environment.set(name_node.name, value) if @current_namespace.nil?
+      @namespaces.define_variable(@current_namespace, name_node.name, value, local: name_node.name.start_with?("_"))
       value
+    end
+
+    def function_definition?(children)
+      children[1].is_a?(ListNode)
+    end
+
+    def define_function(children)
+      signature = children[1]
+      name_node = signature.children.first
+      param_nodes = signature.children.drop(1)
+      body_node = children[2]
+
+      raise ArgumentError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
+      raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
+
+      params = param_nodes.map do |param|
+        raise ArgumentError, "invalid function parameter" unless param.is_a?(SymbolNode)
+
+        param.name
+      end
+
+      function_entry = {
+        params: params,
+        body: body_node,
+        namespace: @current_namespace,
+        local: name_node.name.start_with?("_"),
+      }
+
+      @namespaces.define_function(@current_namespace, name_node.name, function_entry, local: function_entry[:local])
+      function_entry
+    end
+
+    def evaluate_namespace(children)
+      namespace_node = children[1]
+      body_nodes = children.drop(2)
+      raise ArgumentError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
+
+      previous_namespace = @current_namespace
+      next_namespace = namespace_path(namespace_node.name)
+      @current_namespace = next_namespace
+      @namespace_stack << next_namespace
+      @namespaces.ensure_namespace(@current_namespace)
+
+      result = body_nodes.reduce(nil) { |_memo, body_node| evaluate(body_node) }
+      result
+    ensure
+      @namespace_stack.pop
+      @current_namespace = previous_namespace
     end
 
     def evaluate_if(children)
@@ -67,7 +129,35 @@ module Calc
     def call_function(name, args)
       values = args.map { |arg| evaluate(arg) }
 
+      resolved_function = @namespaces.resolve_function(@current_namespace, name)
+      return call_user_function(resolved_function[:value], values) if resolved_function
+
       @builtins.call(name, values)
+    end
+
+    def call_user_function(function_entry, values)
+      params = function_entry[:params]
+      raise ArgumentError, "wrong number of arguments" unless params.length == values.length
+
+      previous_environment = @environment
+      previous_namespace = @current_namespace
+      @environment = Environment.new(previous_environment)
+      params.zip(values).each { |param, value| @environment.set(param, value) }
+      @current_namespace = function_entry[:namespace]
+      @namespace_stack << @current_namespace
+
+      evaluate(function_entry[:body])
+    ensure
+      @namespace_stack.pop
+      @environment = previous_environment
+      @current_namespace = previous_namespace
+    end
+
+    def namespace_path(name)
+      return name if name.include?(".")
+
+      parent = @namespace_stack.last
+      parent.nil? ? name : [parent, name].join(".")
     end
   end
 end

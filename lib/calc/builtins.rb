@@ -8,25 +8,27 @@ module Calc
       "nil" => nil,
     }.freeze
 
-    Builtin = Struct.new(:name, :min_arity, :max_arity, :callable, keyword_init: true)
+    Builtin = Struct.new(:name, :min_arity, :max_arity, :description, :example, :callable, keyword_init: true)
 
     def initialize
       @functions = {}
 
-      register("+", min_arity: 0) { |args| args.reduce(BigDecimal("0"), :+) }
-      register("-", min_arity: 1) { |args| args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v } }
-      register("*", min_arity: 0) { |args| args.reduce(BigDecimal("1"), :*) }
-      register("/", min_arity: 1) { |args| args.reduce { |memo, v| memo / v } }
+      register("+", min_arity: 0, description: "Add numbers", example: "(+ 1 2 3)") { |args| args.reduce(BigDecimal("0"), :+) }
+      register("-", min_arity: 1, description: "Subtract numbers", example: "(- 5 2)") { |args| args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v } }
+      register("*", min_arity: 0, description: "Multiply numbers", example: "(* 2 3 4)") { |args| args.reduce(BigDecimal("1"), :*) }
+      register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") { |args| args.reduce { |memo, v| memo / v } }
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
     end
 
-    def register(name, min_arity: 0, max_arity: nil, &block)
+    def register(name, min_arity: 0, max_arity: nil, description: nil, example: nil, &block)
       @functions[name] = Builtin.new(
         name: name,
         min_arity: min_arity,
         max_arity: max_arity,
+        description: description,
+        example: example,
         callable: block,
       )
     end
@@ -47,6 +49,16 @@ module Calc
 
     def registered?(name)
       @functions.key?(name)
+    end
+
+    def builtin(name)
+      @functions[name]
+    end
+
+    def each_builtin(&block)
+      return enum_for(:each_builtin) unless block
+
+      @functions.values.each(&block)
     end
 
     def call(name, args)

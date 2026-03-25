@@ -15,3 +15,6 @@
 - Hardened REPL history loading and saving so filesystem failures do not crash the shell.
 - Switched REPL history persistence to JSON so multiline entries survive restarts intact.
 - Added a `rake test` entrypoint for running the full test suite.
+- Added a first-pass `NamespaceRegistry` for nested namespaces and local-name tracking.
+- Unified namespace-qualified function lookup, lexical scope precedence, and qualified names like `crypto.twice`.
+- Updated docs and tests to reflect namespace-local variables, local-only `_` names, and namespace-aware resolution.

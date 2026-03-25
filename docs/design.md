@@ -10,7 +10,8 @@ The program should be organized around these core parts:
 Additional useful components:
 
 - `Lexer`: optional helper for turning text into tokens before parsing
-- `Environment`: stores variable bindings and built-in functions
+- `Environment`: stores lexical bindings for variables and function parameters
+- `NamespaceRegistry`: resolves namespace-scoped variables and functions across the current namespace chain
 - `AST nodes`: represent numbers, symbols, calls, and special forms such as variable definition
 - `Error types`: separate syntax, name, and runtime errors
 
@@ -27,16 +28,22 @@ Comments beginning with `;` should be stripped during tokenization.
 
 This keeps parsing simple and lets the executer decide whether a list is a function call or a special form such as `define` or `if`.
 
+Namespaces should be treated as a runtime concern, not a parsing concern. The parser only needs to recognize the `namespace` special form as a list.
+
+Namespace resolution should respect lexical scope first. `Environment` bindings for function parameters and local values must shadow namespace lookups. Functions and variables whose names start with `_` are local to their defining namespace and are not visible outside it.
+
 ## Evaluation Flow
 1. Read source text from stdin or a file
 2. Strip a leading shebang line if present
 3. Tokenize, ignoring `;` comments
 4. Parse text into AST nodes
-5. Evaluate each top-level form in a shared environment
+5. Evaluate each top-level form in a shared lexical environment
 6. Print the final result in REPL mode
 
 ## Notes
 - Keep parsing and evaluation separate
 - Special forms such as variable definition should be handled by the executer, not by the parser
 - `if` should be implemented as a special form, not a regular function
+- `namespace` should also be implemented as a special form, with resolution order of current namespace, parent namespaces, then `builtin`
+- Qualified names such as `crypto.twice` should resolve directly through `NamespaceRegistry`
 - Use `minitest` for unit and integration tests

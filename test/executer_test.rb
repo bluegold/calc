@@ -52,4 +52,61 @@ class ExecuterTest < Minitest::Test
 
     assert_equal BigDecimal("1"), @executer.evaluate(ast)
   end
+
+  def test_namespace_keeps_defined_variables
+    ast = @parser.parse("(namespace crypto (define _tmp 7))").first
+
+    assert_equal BigDecimal("7"), @executer.evaluate(ast)
+    assert_equal BigDecimal("7"), @executer.instance_variable_get(:@namespaces).resolve_variable("crypto", "_tmp")[:value]
+  end
+
+  def test_namespace_nested_dotted_path
+    ast = @parser.parse("(namespace crypto.cipher (define _tmp 3))").first
+
+    assert_equal BigDecimal("3"), @executer.evaluate(ast)
+    assert_equal BigDecimal("3"), @executer.instance_variable_get(:@namespaces).resolve_variable("crypto.cipher", "_tmp")[:value]
+  end
+
+  def test_defines_and_calls_user_functions
+    define_ast = @parser.parse("(define (square x) (* x x))").first
+    call_ast = @parser.parse("(square 4)").first
+
+    assert_equal({ params: ["x"], body: define_ast.children[2], namespace: nil, local: false }, @executer.evaluate(define_ast))
+    assert_equal BigDecimal("16"), @executer.evaluate(call_ast)
+  end
+
+  def test_user_function_can_see_namespace_variable
+    ast = @parser.parse("(namespace crypto (define shared 5) (define (twice x) (+ x shared)) (twice 3))").first
+
+    assert_equal BigDecimal("8"), @executer.evaluate(ast)
+  end
+
+  def test_can_call_namespaced_function_with_qualified_name
+    ast = @parser.parse("(namespace crypto (define (twice x) (+ x x)))").first
+    call_ast = @parser.parse("(crypto.twice 4)").first
+
+    @executer.evaluate(ast)
+    assert_equal BigDecimal("8"), @executer.evaluate(call_ast)
+  end
+
+  def test_plain_symbol_prefers_variable_over_function
+    ast = @parser.parse("(namespace crypto (define twice 7) (define (twice x) (+ x x)) twice)").first
+
+    assert_equal BigDecimal("7"), @executer.evaluate(ast)
+  end
+
+  def test_namespace_local_variable_does_not_leak_to_root
+    ast = @parser.parse("(namespace crypto (define _tmp 5))").first
+
+    @executer.evaluate(ast)
+    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("_tmp").first) }
+    assert_match "unknown variable", error.message
+  end
+
+  def test_function_parameter_beats_namespace_binding
+    ast = @parser.parse("(namespace crypto (define x 10) (define (echo x) x) (echo 4))").first
+
+    assert_equal BigDecimal("4"), @executer.evaluate(ast)
+  end
+
 end

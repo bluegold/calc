@@ -32,13 +32,16 @@ class BuiltinsTest < Minitest::Test
   end
 
   def test_registers_custom_function
-    @builtins.register("square", min_arity: 1, max_arity: 1) do |args|
+    @builtins.register("square", min_arity: 1, max_arity: 1, description: "Square a number", example: "(square 4)") do |args|
       args.first * args.first
     end
 
     result = @builtins.call("square", [BigDecimal("4")])
 
     assert_equal BigDecimal("16"), result
+    builtin = @builtins.builtin("square")
+    assert_equal "Square a number", builtin.description
+    assert_equal "(square 4)", builtin.example
   end
 
   def test_calls_pow
@@ -51,5 +54,13 @@ class BuiltinsTest < Minitest::Test
     result = @builtins.call("sqrt", [BigDecimal("9")])
 
     assert_equal BigDecimal("3"), result
+  end
+
+  def test_enumerates_builtins
+    names = @builtins.each_builtin.map(&:name)
+
+    assert_includes names, "+"
+    assert_includes names, "pow"
+    assert_includes names, "sqrt"
   end
 end

@@ -15,5 +15,22 @@ module Calc
 
       raise NameError, "unknown variable: #{name}"
     end
+
+    def bound?(name)
+      return true if @bindings.key?(name)
+      return @parent.bound?(name) if @parent
+
+      false
+    end
+
+    def bound_local?(name)
+      @bindings.key?(name)
+    end
+
+    def get_local(name)
+      return @bindings[name] if @bindings.key?(name)
+
+      raise NameError, "unknown variable: #{name}"
+    end
   end
 end

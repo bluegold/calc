@@ -12,7 +12,12 @@
 - [x] 四則演算を評価する
 - [x] 変数定義を扱う
 - [x] `if` を special form として扱う
-- [ ] 組み込み関数を登録しやすい構造にする
+- [x] namespace の special form を実装する
+- [ ] `builtin` を予約 namespace として完全に扱う
+- [x] namespace 解決順を実装する
+- [x] `_` で始まるローカル関数を扱う
+- [x] 跨ぎ namespace 参照を qualified name で扱う
+- [x] 組み込み関数を登録しやすい構造にする
 - [ ] `division by zero` の専用エラーを整える
 - [ ] エラー型を syntax / name / runtime に分ける
 
@@ -25,6 +30,7 @@
 ## Tests
 - [x] Parser の基本テストを追加する
 - [x] Executor の基本テストを追加する
+- [x] NamespaceRegistry の基本テストを追加する
 - [ ] コメント付きサンプルのテストを追加する
 - [x] `if` のテストを追加する
 - [ ] `:ast` コマンドのテストを追加する
