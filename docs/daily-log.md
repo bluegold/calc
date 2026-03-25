@@ -14,3 +14,4 @@
 - Added multiline REPL input with separate primary and continuation prompts.
 - Hardened REPL history loading and saving so filesystem failures do not crash the shell.
 - Switched REPL history persistence to JSON so multiline entries survive restarts intact.
+- Added a `rake test` entrypoint for running the full test suite.

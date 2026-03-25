@@ -49,4 +49,22 @@ class ParserTest < Minitest::Test
 
     assert_equal "(+ 1 (* 2 3))", Calc::ASTPrinter.pretty(ast)
   end
+
+  def test_rejects_empty_list
+    error = assert_raises(SyntaxError) { @parser.parse("()") }
+
+    assert_match "empty list", error.message
+  end
+
+  def test_rejects_missing_closing_paren
+    error = assert_raises(SyntaxError) { @parser.parse("(+ 1 2") }
+
+    assert_match "missing ')'", error.message
+  end
+
+  def test_rejects_unexpected_closing_paren
+    error = assert_raises(SyntaxError) { @parser.parse(")") }
+
+    assert_match "unexpected ')'", error.message
+  end
 end

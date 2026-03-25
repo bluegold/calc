@@ -23,7 +23,11 @@ if File.file?(history_path)
         Reline::HISTORY << entry
       end
     else
-      warn "ignoring malformed history file: #{history_path}"
+      contents.each_line(chomp: true).each do |entry|
+        next if entry.strip.empty?
+
+        Reline::HISTORY << entry
+      end
     end
   rescue JSON::ParserError
     contents.each_line(chomp: true).each do |entry|

@@ -76,6 +76,7 @@ module Calc
           raise SyntaxError, "missing ')'" if tokens.empty?
           children << parse_expression(tokens)
         end
+        raise SyntaxError, "empty list" if children.empty?
         tokens.shift
         ListNode.new(children: children)
       when ")"

@@ -15,6 +15,7 @@ Prefer `bundle exec` for all Ruby commands once a `Gemfile` exists.
 
 - `bundle exec ruby -Itest test/parser_test.rb` - run a single test file
 - `bundle exec ruby -Itest test/executer_test.rb` - run a single test file
+- `bundle exec rake` - run the full test suite
 - `bundle exec ruby bin/calc` - run the calculator CLI
 - `bundle exec irb -I lib -r calc` - experiment interactively
 

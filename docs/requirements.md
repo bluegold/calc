@@ -13,6 +13,7 @@ This project is a Ruby-based S-expression calculator. It runs as a REPL by defau
 - Built-in functions: numeric and utility helpers to be registered in an extensible way
 - Variables: users can define and reuse names across expressions in the same session
 - Conditionals: `if` as a special form
+- Boolean literals: `true`, `false`, and `nil`
 
 ## Syntax
 - Input uses S-expressions such as `(+ 1 2)`
@@ -24,6 +25,7 @@ This project is a Ruby-based S-expression calculator. It runs as a REPL by defau
 - Invalid syntax should produce a clear parser error
 - Runtime errors, such as division by zero or unknown variables, should be reported clearly
 - Use distinct error classes for syntax, name, and runtime failures
+- In `if`, only `false` and `nil` are treated as false
 
 ## Testing
 - Use `minitest` for automated tests

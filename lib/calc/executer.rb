@@ -1,9 +1,8 @@
-require "bigdecimal"
-
 module Calc
   class Executer
-    def initialize(environment = Environment.new)
+    def initialize(environment = Environment.new, builtins = Builtins.new)
       @environment = environment
+      @builtins = builtins
     end
 
     def evaluate(node)
@@ -11,6 +10,9 @@ module Calc
       when NumberNode
         node.value
       when SymbolNode
+        found, builtin = @builtins.resolve(node.name)
+        return builtin if found
+
         @environment.get(node.name)
       when ListNode
         evaluate_list(node)
@@ -27,6 +29,8 @@ module Calc
       when SymbolNode
         if head.name == "define"
           define_variable(node.children)
+        elsif head.name == "if"
+          evaluate_if(node.children)
         else
           call_function(head.name, node.children.drop(1))
         end
@@ -39,23 +43,31 @@ module Calc
       name_node = children[1]
       value_node = children[2]
       raise ArgumentError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
+      raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
 
       value = evaluate(value_node)
       @environment.set(name_node.name, value)
       value
     end
 
+    def evaluate_if(children)
+      condition_node = children[1]
+      then_node = children[2]
+      else_node = children[3]
+      raise ArgumentError, "invalid if" unless children.length == 4 && condition_node && then_node && else_node
+
+      condition = evaluate(condition_node)
+      truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
+    end
+
+    def truthy?(value)
+      value != false && !value.nil?
+    end
+
     def call_function(name, args)
       values = args.map { |arg| evaluate(arg) }
 
-      case name
-      when "+" then values.reduce(BigDecimal("0"), :+)
-      when "-" then values.length == 1 ? -values.first : values.reduce { |memo, v| memo - v }
-      when "*" then values.reduce(BigDecimal("1"), :*)
-      when "/" then values.reduce { |memo, v| memo / v }
-      else
-        raise NameError, "unknown function: #{name}"
-      end
+      @builtins.call(name, values)
     end
   end
 end

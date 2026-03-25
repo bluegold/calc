@@ -28,4 +28,28 @@ class ExecuterTest < Minitest::Test
     error = assert_raises(NameError) { @executer.evaluate(ast) }
     assert_match "unknown variable", error.message
   end
+
+  def test_reserved_literals_cannot_be_redefined
+    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("(define true 1)").first) }
+
+    assert_match "cannot redefine reserved literal", error.message
+  end
+
+  def test_if_evaluates_then_branch_for_truthy_values
+    ast = @parser.parse("(if true 1 2)").first
+
+    assert_equal BigDecimal("1"), @executer.evaluate(ast)
+  end
+
+  def test_if_evaluates_else_branch_for_false
+    ast = @parser.parse("(if false 1 2)").first
+
+    assert_equal BigDecimal("2"), @executer.evaluate(ast)
+  end
+
+  def test_if_does_not_evaluate_unselected_branch
+    ast = @parser.parse("(if true 1 unknown)").first
+
+    assert_equal BigDecimal("1"), @executer.evaluate(ast)
+  end
 end
