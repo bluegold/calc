@@ -1,3 +1,5 @@
+require "bigdecimal"
+
 module Calc
   class Executer
     def initialize(environment = Environment.new)
@@ -47,9 +49,9 @@ module Calc
       values = args.map { |arg| evaluate(arg) }
 
       case name
-      when "+" then values.sum
+      when "+" then values.reduce(BigDecimal("0"), :+)
       when "-" then values.length == 1 ? -values.first : values.reduce { |memo, v| memo - v }
-      when "*" then values.reduce(1, :*)
+      when "*" then values.reduce(BigDecimal("1"), :*)
       when "/" then values.reduce { |memo, v| memo / v }
       else
         raise NameError, "unknown function: #{name}"

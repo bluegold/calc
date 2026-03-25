@@ -44,3 +44,6 @@ Pull requests should include a short summary, test results, and examples of eval
 
 ## Security & Configuration Tips
 Do not commit secrets, tokens, or machine-specific config. Use environment files such as `.env` only if the project later adds them, and document required variables in `README.md`.
+
+## Work Tracking
+Keep `docs/TODO.md` up to date by checking items off as they are completed. Append a short entry to `docs/daily-log.md` when work is finished for the day.

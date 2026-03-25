@@ -7,6 +7,20 @@ require "calc"
 parser = Calc::Parser.new
 executer = Calc::Executer.new
 
+def handle_repl_command(line, parser, executer)
+  command, payload = line[1..].split(/\s+/, 2)
+
+  case command
+  when "ast"
+    source = payload.to_s.strip
+    parser.parse(source).each do |node|
+      puts Calc::ASTPrinter.pretty(node)
+    end
+  else
+    warn "unknown command: :#{command}"
+  end
+end
+
 if ARGV.first
   source = File.read(ARGV.first)
   parser.parse(source).each { |node| executer.evaluate(node) }
@@ -17,6 +31,11 @@ else
     break unless line
 
     next if line.strip.empty?
+
+    if line.start_with?(":")
+      handle_repl_command(line, parser, executer)
+      next
+    end
 
     parser.parse(line).each do |node|
       puts executer.evaluate(node)
