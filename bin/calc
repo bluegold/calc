@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 require "calc"
+require "json"
 require "reline"
 
 parser = Calc::Parser.new
@@ -10,8 +11,26 @@ executer = Calc::Executer.new
 history_path = File.join(Dir.home, ".calc_history")
 
 if File.file?(history_path)
-  File.readlines(history_path, chomp: true).each do |entry|
-    Reline::HISTORY << entry unless entry.strip.empty?
+  contents = File.read(history_path)
+
+  begin
+    entries = JSON.parse(contents)
+    if entries.is_a?(Array)
+      entries.each do |entry|
+        next unless entry.is_a?(String)
+        next if entry.strip.empty?
+
+        Reline::HISTORY << entry
+      end
+    else
+      warn "ignoring malformed history file: #{history_path}"
+    end
+  rescue JSON::ParserError
+    contents.each_line(chomp: true).each do |entry|
+      next if entry.strip.empty?
+
+      Reline::HISTORY << entry
+    end
   end
 elsif File.exist?(history_path)
   warn "ignoring non-regular history file: #{history_path}"
@@ -106,7 +125,7 @@ else
   end
 
   begin
-    File.write(history_path, Reline::HISTORY.to_a.join("\n") + "\n")
+    File.write(history_path, JSON.pretty_generate(Reline::HISTORY.to_a))
   rescue SystemCallError => e
     warn "failed to write history: #{e.message}"
   end
