@@ -50,6 +50,8 @@ bin/calc
 defined function fibonacchi.fib(n)
 > (fibonacchi.fib 10)
 55
+> ((lambda (x) (+ x 1)) 4)
+5
 > (+ 1 2 3)
 6
 > (define x 10)
