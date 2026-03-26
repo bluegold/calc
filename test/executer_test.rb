@@ -32,18 +32,18 @@ class ExecuterTest < Minitest::Test
   def test_unknown_variable_raises
     ast = @parser.parse("x").first
 
-    error = assert_raises(NameError) { @executer.evaluate(ast) }
+    error = assert_raises(Calc::NameError) { @executer.evaluate(ast) }
     assert_match "unknown variable", error.message
   end
 
   def test_reserved_literals_cannot_be_redefined
-    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("(define true 1)").first) }
+    error = assert_raises(Calc::NameError) { @executer.evaluate(@parser.parse("(define true 1)").first) }
 
     assert_match "cannot redefine reserved literal", error.message
   end
 
   def test_builtin_namespace_is_reserved
-    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("(namespace builtin (define x 1))").first) }
+    error = assert_raises(Calc::NameError) { @executer.evaluate(@parser.parse("(namespace builtin (define x 1))").first) }
 
     assert_match "cannot modify reserved namespace", error.message
   end
@@ -130,7 +130,7 @@ class ExecuterTest < Minitest::Test
     ast = @parser.parse("(namespace crypto (define _tmp 5))").first
 
     @executer.evaluate(ast)
-    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("_tmp").first) }
+    error = assert_raises(Calc::NameError) { @executer.evaluate(@parser.parse("_tmp").first) }
     assert_match "unknown variable", error.message
   end
 

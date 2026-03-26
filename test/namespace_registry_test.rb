@@ -39,7 +39,7 @@ class NamespaceRegistryTest < Minitest::Test
   end
 
   def test_rejects_definitions_in_builtin_namespace
-    error = assert_raises(NameError) { @registry.define_variable("builtin", "x", 1) }
+    error = assert_raises(Calc::NameError) { @registry.define_variable("builtin", "x", 1) }
 
     assert_match "cannot modify reserved namespace", error.message
   end

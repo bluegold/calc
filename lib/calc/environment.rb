@@ -13,7 +13,7 @@ module Calc
       return @bindings[name] if @bindings.key?(name)
       return @parent.get(name) if @parent
 
-      raise NameError, "unknown variable: #{name}"
+      raise Calc::NameError, "unknown variable: #{name}"
     end
 
     def bound?(name)
@@ -30,7 +30,7 @@ module Calc
     def get_local(name)
       return @bindings[name] if @bindings.key?(name)
 
-      raise NameError, "unknown variable: #{name}"
+      raise Calc::NameError, "unknown variable: #{name}"
     end
   end
 end

@@ -66,19 +66,19 @@ class ParserTest < Minitest::Test
   end
 
   def test_rejects_empty_list
-    error = assert_raises(SyntaxError) { @parser.parse("()") }
+    error = assert_raises(Calc::SyntaxError) { @parser.parse("()") }
 
     assert_match "empty list", error.message
   end
 
   def test_rejects_missing_closing_paren
-    error = assert_raises(SyntaxError) { @parser.parse("(+ 1 2") }
+    error = assert_raises(Calc::SyntaxError) { @parser.parse("(+ 1 2") }
 
     assert_match "missing ')'", error.message
   end
 
   def test_rejects_unexpected_closing_paren
-    error = assert_raises(SyntaxError) { @parser.parse(")") }
+    error = assert_raises(Calc::SyntaxError) { @parser.parse(")") }
 
     assert_match "unexpected ')'", error.message
   end

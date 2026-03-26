@@ -76,22 +76,22 @@ module Calc
 
     def parse_expression(tokens)
       token = tokens.shift
-      raise SyntaxError, "unexpected end of input" if token.nil?
+      raise Calc::SyntaxError, "unexpected end of input" if token.nil?
 
       case token
       when "("
         children = []
         until tokens.first == ")"
-          raise SyntaxError, "missing ')'" if tokens.empty?
+          raise Calc::SyntaxError, "missing ')'" if tokens.empty?
 
           children << parse_expression(tokens)
         end
-        raise SyntaxError, "empty list" if children.empty?
+        raise Calc::SyntaxError, "empty list" if children.empty?
 
         tokens.shift
         ListNode.new(children: children)
       when ")"
-        raise SyntaxError, "unexpected ')'"
+        raise Calc::SyntaxError, "unexpected ')'"
       else
         atom(token)
       end

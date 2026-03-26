@@ -100,9 +100,9 @@ module Calc
 
     def call(name, args)
       builtin = @functions[name]
-      raise NameError, "unknown function: #{name}" unless builtin
-      raise ArgumentError, "wrong number of arguments for #{name}" if args.length < builtin.min_arity
-      raise ArgumentError, "wrong number of arguments for #{name}" if builtin.max_arity && args.length > builtin.max_arity
+      raise Calc::NameError, "unknown function: #{name}" unless builtin
+      raise Calc::RuntimeError, "wrong number of arguments for #{name}" if args.length < builtin.min_arity
+      raise Calc::RuntimeError, "wrong number of arguments for #{name}" if builtin.max_arity && args.length > builtin.max_arity
 
       builtin.callable.call(args)
     end

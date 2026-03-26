@@ -12,6 +12,7 @@
 - Added AST pretty printing and a `:ast` REPL debug command.
 - Switched `:ast` output to a YAML-like indented representation for readability.
 - Added REPL history support via `Readline` and persistent history storage.
+- Split Calc exceptions into syntax, name, and runtime classes, and added a dedicated division-by-zero error.
 - Added multiline REPL input with separate primary and continuation prompts.
 - Hardened REPL history loading and saving so filesystem failures do not crash the shell.
 - Switched REPL history persistence to JSON so multiline entries survive restarts intact.

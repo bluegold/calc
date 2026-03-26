@@ -29,7 +29,7 @@ module Calc
       when ListNode
         evaluate_list(node)
       else
-        raise ArgumentError, "unknown node: #{node.class}"
+        raise Calc::RuntimeError, "unknown node: #{node.class}"
       end
     end
 
@@ -50,16 +50,16 @@ module Calc
           call_function(head.name, node.children.drop(1))
         end
       else
-        raise ArgumentError, "invalid expression"
+        raise Calc::SyntaxError, "invalid expression"
       end
     end
 
     def define_variable(children)
       name_node = children[1]
       value_node = children[2]
-      raise ArgumentError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
-      raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
-      raise NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
+      raise Calc::SyntaxError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
+      raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
       value = evaluate(value_node)
       @environment.set(name_node.name, value) if @current_namespace.nil?
@@ -77,12 +77,12 @@ module Calc
       param_nodes = signature.children.drop(1)
       body_node = children[2]
 
-      raise ArgumentError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
-      raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
-      raise NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
+      raise Calc::SyntaxError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
+      raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
       params = param_nodes.map do |param|
-        raise ArgumentError, "invalid function parameter" unless param.is_a?(SymbolNode)
+        raise Calc::SyntaxError, "invalid function parameter" unless param.is_a?(SymbolNode)
 
         param.name
       end
@@ -102,7 +102,7 @@ module Calc
     def evaluate_namespace(children)
       namespace_node = children[1]
       body_nodes = children.drop(2)
-      raise ArgumentError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
+      raise Calc::SyntaxError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
 
       previous_namespace = @current_namespace
       next_namespace = namespace_path(namespace_node.name)
@@ -121,7 +121,7 @@ module Calc
       condition_node = children[1]
       then_node = children[2]
       else_node = children[3]
-      raise ArgumentError, "invalid if" unless children.length == 4 && condition_node && then_node && else_node
+      raise Calc::SyntaxError, "invalid if" unless children.length == 4 && condition_node && then_node && else_node
 
       condition = evaluate(condition_node)
       truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
@@ -144,7 +144,7 @@ module Calc
 
     def call_user_function(function_entry, values)
       params = function_entry[:params]
-      raise ArgumentError, "wrong number of arguments" unless params.length == values.length
+      raise Calc::RuntimeError, "wrong number of arguments" unless params.length == values.length
 
       previous_environment = @environment
       previous_namespace = @current_namespace

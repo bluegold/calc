@@ -19,7 +19,7 @@
 - [x] 跨ぎ namespace 参照を qualified name で扱う
 - [x] 組み込み関数を登録しやすい構造にする
 - [ ] `division by zero` の専用エラーを整える
-- [ ] エラー型を syntax / name / runtime に分ける
+- [x] エラー型を syntax / name / runtime に分ける
 
 ## REPL / File
 - [x] ファイル指定で実行する入口を作る

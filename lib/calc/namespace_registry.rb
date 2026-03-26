@@ -47,19 +47,19 @@ module Calc
 
       names = path.to_s.split(".")
       names.reduce(@root) do |namespace, name|
-        namespace.children[name] || raise(NameError, "unknown namespace: #{path}")
+        namespace.children[name] || raise(Calc::NameError, "unknown namespace: #{path}")
       end
     end
 
     def define_variable(namespace_path, name, value, local: false)
-      raise NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
 
       namespace = ensure_namespace(namespace_path)
       namespace.variables[name] = { value: value, local: local || namespace.local_name?(name) }
     end
 
     def define_function(namespace_path, name, value, local: false)
-      raise NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
 
       namespace = ensure_namespace(namespace_path)
       namespace.functions[name] =
@@ -120,7 +120,7 @@ module Calc
 
     def namespace_or_nil(path)
       namespace(path)
-    rescue NameError
+    rescue Calc::NameError
       nil
     end
   end
