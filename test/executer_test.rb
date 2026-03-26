@@ -20,6 +20,34 @@ class ExecuterTest < Minitest::Test
     assert_equal "hello", @executer.evaluate(ast)
   end
 
+  def test_lambda_returns_callable_value
+    ast = @parser.parse("(lambda (x) (+ x 1))").first
+
+    value = @executer.evaluate(ast)
+
+    assert_instance_of Calc::LambdaValue, value
+    assert_equal ["x"], value.params
+  end
+
+  def test_lambda_can_be_called_directly
+    ast = @parser.parse("((lambda (x) (+ x 1)) 4)").first
+
+    assert_equal BigDecimal("5"), @executer.evaluate(ast)
+  end
+
+  def test_define_uses_lambda_sugar
+    ast = @parser.parse("(define (square x) (* x x))").first
+
+    assert_equal "defined function square(x)", @executer.evaluate(ast)
+    assert_equal BigDecimal("16"), @executer.evaluate(@parser.parse("(square 4)").first)
+  end
+
+  def test_lambda_closes_over_local_environment
+    ast = @parser.parse("(do (define x 10) (define f (lambda (y) (+ x y))) (define x 20) (f 5))").first
+
+    assert_equal BigDecimal("15"), @executer.evaluate(ast)
+  end
+
   def test_division_by_zero_raises_custom_error
     ast = @parser.parse("(/ 8 0)").first
 

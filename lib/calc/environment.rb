@@ -5,6 +5,12 @@ module Calc
       @bindings = {}
     end
 
+    def snapshot
+      copy = Environment.new(@parent&.snapshot)
+      @bindings.each { |name, value| copy.set(name, value) }
+      copy
+    end
+
     def set(name, value)
       @bindings[name] = value
     end

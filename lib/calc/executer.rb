@@ -1,4 +1,10 @@
 module Calc
+  LambdaValue = Struct.new(:params, :body, :environment, :namespace) do
+    def pretty_print(q)
+      q.text(Calc::ASTPrinter.pretty([LambdaNode.new(params, body)]).strip)
+    end
+  end
+
   class Executer
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
                    current_namespace: nil)
@@ -19,6 +25,8 @@ module Calc
         found, builtin = @builtins.resolve(node.name)
         return builtin if found
 
+        return @environment.get(node.name) if @environment.bound?(node.name)
+
         resolved_variable = @namespaces.resolve_variable(@current_namespace, node.name)
         return resolved_variable[:value] if resolved_variable
 
@@ -28,6 +36,8 @@ module Calc
         @environment.get(node.name)
       when ListNode
         evaluate_list(node)
+      when LambdaNode
+        LambdaValue.new(node.params, node.body, @environment.snapshot, @current_namespace)
       else
         raise Calc::RuntimeError, "unknown node: #{node.class}"
       end
@@ -46,10 +56,19 @@ module Calc
           evaluate_if(node.children)
         when "namespace"
           evaluate_namespace(node.children)
+        when "lambda"
+          evaluate_lambda(node.children)
+        when "do"
+          evaluate_do(node.children)
         else
           call_function(head.name, node.children.drop(1))
         end
       else
+        callable = evaluate(head)
+        args = node.children.drop(1).map { |child| evaluate(child) }
+
+        return call_lambda(callable, args) if callable.is_a?(LambdaValue)
+
         raise Calc::SyntaxError, "invalid expression"
       end
     end
@@ -81,22 +100,26 @@ module Calc
       raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
       raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
-      params = param_nodes.map do |param|
-        raise Calc::SyntaxError, "invalid function parameter" unless param.is_a?(SymbolNode)
+      lambda_value = build_lambda_value(param_nodes, body_node)
 
-        param.name
-      end
-
-      function_entry = {
-        params: params,
-        body: body_node,
-        namespace: @current_namespace,
-        local: name_node.name.start_with?("_")
-      }
-
-      @namespaces.define_function(@current_namespace, name_node.name, function_entry, local: function_entry[:local])
+      @namespaces.define_function(@current_namespace, name_node.name, lambda_value, local: name_node.name.start_with?("_"))
       function_label = [@current_namespace, name_node.name].compact.join(".")
-      "defined function #{function_label}(#{params.join(', ')})"
+      "defined function #{function_label}(#{lambda_value.params.join(', ')})"
+    end
+
+    def evaluate_lambda(children)
+      params_node = children[1]
+      body_node = children[2]
+      raise Calc::SyntaxError, "invalid lambda" unless params_node.is_a?(ListNode) && body_node
+
+      param_nodes = params_node.children
+      build_lambda_value(param_nodes, body_node)
+    end
+
+    def evaluate_do(children)
+      raise Calc::SyntaxError, "invalid do" if children.length < 2
+
+      children.drop(1).reduce(nil) { |_memo, node| evaluate(node) }
     end
 
     def evaluate_namespace(children)
@@ -136,28 +159,44 @@ module Calc
 
       return @builtins.call(name, values) if @builtins.registered?(name)
 
+      return call_lambda(@environment.get(name), values) if @environment.bound?(name) && @environment.get(name).is_a?(LambdaValue)
+
       resolved_function = @namespaces.resolve_function(@current_namespace, name)
       return call_user_function(resolved_function[:value], values) if resolved_function
 
       @builtins.call(name, values)
     end
 
-    def call_user_function(function_entry, values)
-      params = function_entry[:params]
+    def call_lambda(callable, values)
+      params = callable.params
       raise Calc::RuntimeError, "wrong number of arguments" unless params.length == values.length
 
       previous_environment = @environment
       previous_namespace = @current_namespace
-      @environment = Environment.new(previous_environment)
+      @environment = Environment.new(callable.environment)
       params.zip(values).each { |param, value| @environment.set(param, value) }
-      @current_namespace = function_entry[:namespace]
+      @current_namespace = callable.namespace
       @namespace_stack << @current_namespace
 
-      evaluate(function_entry[:body])
+      evaluate(callable.body)
     ensure
       @namespace_stack.pop
       @environment = previous_environment
       @current_namespace = previous_namespace
+    end
+
+    def call_user_function(function_entry, values)
+      call_lambda(function_entry, values)
+    end
+
+    def build_lambda_value(param_nodes, body_node)
+      params = param_nodes.map do |param|
+        raise Calc::SyntaxError, "invalid function parameter" unless param.is_a?(SymbolNode)
+
+        param.name
+      end
+
+      LambdaValue.new(params, body_node, @environment.snapshot, @current_namespace)
     end
 
     def namespace_path(name)

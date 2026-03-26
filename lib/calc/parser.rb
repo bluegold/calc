@@ -40,6 +40,23 @@ module Calc
     end
   end
 
+  LambdaNode = Struct.new(:params, :body) do
+    def pretty_print(q)
+      q.group(1, "(", ")") do
+        q.text("lambda")
+        q.breakable(" ")
+        q.group(1, "(", ")") do
+          params.each_with_index do |param, index|
+            q.breakable(" ") unless index.zero?
+            q.text(param)
+          end
+        end
+        q.breakable(" ")
+        body.pretty_print(q)
+      end
+    end
+  end
+
   class ASTPrinter
     def self.pretty(nodes)
       normalized_nodes = nodes.is_a?(Array) ? nodes : [nodes]
@@ -55,6 +72,8 @@ module Calc
         { "type" => "symbol", "name" => node.name }
       when StringNode
         { "type" => "string", "value" => node.value }
+      when LambdaNode
+        { "type" => "lambda", "params" => node.params, "body" => render(node.body) }
       when ListNode
         { "type" => "list", "children" => node.children.map { |child| render(child) } }
       else
