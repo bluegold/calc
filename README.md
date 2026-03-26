@@ -26,7 +26,7 @@ gem として試すなら、ビルドしてローカルに入れられるよ。
 
 ```bash
 gem build calc.gemspec
-gem install ./calc-0.3.0.gem
+gem install ./calc-0.4.0.gem
 ```
 
 ## Usage
