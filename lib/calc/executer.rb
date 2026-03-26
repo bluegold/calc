@@ -59,6 +59,7 @@ module Calc
       value_node = children[2]
       raise ArgumentError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
       raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
+      raise NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
       value = evaluate(value_node)
       @environment.set(name_node.name, value) if @current_namespace.nil?
@@ -78,6 +79,7 @@ module Calc
 
       raise ArgumentError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
       raise NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
+      raise NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
       params = param_nodes.map do |param|
         raise ArgumentError, "invalid function parameter" unless param.is_a?(SymbolNode)
@@ -101,6 +103,7 @@ module Calc
       namespace_node = children[1]
       body_nodes = children.drop(2)
       raise ArgumentError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
+      raise NameError, "cannot modify reserved namespace: builtin" if namespace_node.name == "builtin"
 
       previous_namespace = @current_namespace
       next_namespace = namespace_path(namespace_node.name)

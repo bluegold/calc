@@ -29,6 +29,10 @@ module Calc
       ensure_namespace("builtin")
     end
 
+    def reserved_namespace?(path)
+      path.to_s == "builtin"
+    end
+
     attr_reader :root
 
     def ensure_namespace(path)
@@ -48,11 +52,15 @@ module Calc
     end
 
     def define_variable(namespace_path, name, value, local: false)
+      raise NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
+
       namespace = ensure_namespace(namespace_path)
       namespace.variables[name] = { value: value, local: local || namespace.local_name?(name) }
     end
 
     def define_function(namespace_path, name, value, local: false)
+      raise NameError, "cannot modify reserved namespace: builtin" if reserved_namespace?(namespace_path)
+
       namespace = ensure_namespace(namespace_path)
       namespace.functions[name] =
         { value: value, namespace: namespace.path, local: local || namespace.local_name?(name) }

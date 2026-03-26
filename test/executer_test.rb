@@ -35,6 +35,12 @@ class ExecuterTest < Minitest::Test
     assert_match "cannot redefine reserved literal", error.message
   end
 
+  def test_builtin_namespace_is_reserved
+    error = assert_raises(NameError) { @executer.evaluate(@parser.parse("(namespace builtin (define x 1))").first) }
+
+    assert_match "cannot modify reserved namespace", error.message
+  end
+
   def test_if_evaluates_then_branch_for_truthy_values
     ast = @parser.parse("(if true 1 2)").first
 

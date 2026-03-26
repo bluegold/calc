@@ -33,6 +33,17 @@ class NamespaceRegistryTest < Minitest::Test
     assert_equal :builtin_pow, @registry.resolve_function("crypto.cipher", "pow")[:value]
   end
 
+  def test_marks_builtin_as_reserved_namespace
+    assert @registry.reserved_namespace?("builtin")
+    refute @registry.reserved_namespace?("crypto")
+  end
+
+  def test_rejects_definitions_in_builtin_namespace
+    error = assert_raises(NameError) { @registry.define_variable("builtin", "x", 1) }
+
+    assert_match "cannot modify reserved namespace", error.message
+  end
+
   def test_resolves_public_definitions_from_parent_namespaces
     @registry.ensure_namespace("crypto.cipher")
     @registry.define_variable("crypto", "shared", 9)
