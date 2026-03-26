@@ -107,6 +107,17 @@ class BuiltinsTest < Minitest::Test
     assert_equal 4, result
   end
 
+  def test_prints_values_to_stdout_and_returns_nil
+    out, err = capture_io do
+      result = @builtins.call("print", ["calc", BigDecimal("1.5"), true])
+
+      assert_nil result
+    end
+
+    assert_equal "calc\n1.5\ntrue\n", out
+    assert_empty err
+  end
+
   def test_enumerates_builtins
     names = @builtins.each_builtin.map(&:name)
 
@@ -119,6 +130,7 @@ class BuiltinsTest < Minitest::Test
     assert_includes names, "!="
     assert_includes names, "concat"
     assert_includes names, "length"
+    assert_includes names, "print"
     assert_includes names, "pow"
     assert_includes names, "sqrt"
   end

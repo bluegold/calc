@@ -21,6 +21,7 @@
 - [x] `division by zero` の専用エラーを整える
 - [x] エラー型を syntax / name / runtime に分ける
 - [x] 文字列を扱う組み込み関数を追加する
+- [x] `print` で標準出力に値を出せるようにする
 
 ## REPL / File
 - [x] ファイル指定で実行する入口を作る

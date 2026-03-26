@@ -58,6 +58,13 @@ module Calc
       register("length", min_arity: 1, max_arity: 1, description: "String length", example: "(length \"calc\")") do |args|
         args.first.to_s.length
       end
+      register("print", min_arity: 0, description: "Print values", example: "(print \"hello\" 1)") do |args|
+        args.each do |value|
+          $stdout.puts Calc.format_value(value)
+        end
+
+        nil
+      end
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
