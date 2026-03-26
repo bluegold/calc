@@ -22,6 +22,13 @@
 bundle install
 ```
 
+gem として試すなら、ビルドしてローカルに入れられるよ。
+
+```bash
+gem build calc.gemspec
+gem install ./calc-0.1.0.gem
+```
+
 ## Usage
 
 ### REPL
@@ -30,9 +37,19 @@ bundle install
 bin/calc
 ```
 
+`bin/calc` は gem の executable としても配布される想定です。
+
 例:
 
 ```text
+> (namespace fibonacchi
+    (define (fib n)
+      (if (<= n 1)
+          n
+          (+ (fib (- n 1)) (fib (- n 2))))))
+defined function fibonacchi.fib(n)
+> (fibonacchi.fib 10)
+55
 > (+ 1 2 3)
 6
 > (define x 10)
@@ -67,8 +84,7 @@ bin/calc path/to/program.calc
 ## Running tests
 
 ```bash
-ruby -Ilib:test test/parser_test.rb
-ruby -Ilib:test test/executer_test.rb
+rake test
 ```
 
 ## Project layout
