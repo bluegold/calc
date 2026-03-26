@@ -57,14 +57,16 @@ class ExecuterTest < Minitest::Test
     ast = @parser.parse("(namespace crypto (define _tmp 7))").first
 
     assert_equal BigDecimal("7"), @executer.evaluate(ast)
-    assert_equal BigDecimal("7"), @executer.instance_variable_get(:@namespaces).resolve_variable("crypto", "_tmp")[:value]
+    assert_equal BigDecimal("7"),
+                 @executer.instance_variable_get(:@namespaces).resolve_variable("crypto", "_tmp")[:value]
   end
 
   def test_namespace_nested_dotted_path
     ast = @parser.parse("(namespace crypto.cipher (define _tmp 3))").first
 
     assert_equal BigDecimal("3"), @executer.evaluate(ast)
-    assert_equal BigDecimal("3"), @executer.instance_variable_get(:@namespaces).resolve_variable("crypto.cipher", "_tmp")[:value]
+    assert_equal BigDecimal("3"),
+                 @executer.instance_variable_get(:@namespaces).resolve_variable("crypto.cipher", "_tmp")[:value]
   end
 
   def test_defines_and_calls_user_functions
@@ -130,5 +132,4 @@ class ExecuterTest < Minitest::Test
 
     assert_equal BigDecimal("55"), @executer.evaluate(ast)
   end
-
 end

@@ -1,6 +1,7 @@
 module Calc
   class Executer
-    def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new, current_namespace: nil)
+    def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
+                   current_namespace: nil)
       @environment = environment
       @builtins = builtins
       @namespaces = namespaces
@@ -38,11 +39,12 @@ module Calc
       head = node.children.first
       case head
       when SymbolNode
-        if head.name == "define"
+        case head.name
+        when "define"
           function_definition?(node.children) ? define_function(node.children) : define_variable(node.children)
-        elsif head.name == "if"
+        when "if"
           evaluate_if(node.children)
-        elsif head.name == "namespace"
+        when "namespace"
           evaluate_namespace(node.children)
         else
           call_function(head.name, node.children.drop(1))
@@ -87,7 +89,7 @@ module Calc
         params: params,
         body: body_node,
         namespace: @current_namespace,
-        local: name_node.name.start_with?("_"),
+        local: name_node.name.start_with?("_")
       }
 
       @namespaces.define_function(@current_namespace, name_node.name, function_entry, local: function_entry[:local])

@@ -5,26 +5,53 @@ module Calc
     LITERALS = {
       "true" => true,
       "false" => false,
-      "nil" => nil,
+      "nil" => nil
     }.freeze
 
-    Builtin = Struct.new(:name, :min_arity, :max_arity, :description, :example, :callable, keyword_init: true)
+    Builtin = Struct.new(:name, :min_arity, :max_arity, :description, :example, :callable)
 
     def initialize
       @functions = {}
 
-      register("+", min_arity: 0, description: "Add numbers", example: "(+ 1 2 3)") { |args| args.reduce(BigDecimal("0"), :+) }
-      register("-", min_arity: 1, description: "Subtract numbers", example: "(- 5 2)") { |args| args.length == 1 ? -args.first : args.reduce { |memo, v| memo - v } }
-      register("*", min_arity: 0, description: "Multiply numbers", example: "(* 2 3 4)") { |args| args.reduce(BigDecimal("1"), :*) }
-      register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") { |args| args.reduce { |memo, v| memo / v } }
-      register("<", min_arity: 2, max_arity: 2, description: "Less than", example: "(< 1 2)") { |args| args[0] < args[1] }
+      register("+", min_arity: 0, description: "Add numbers", example: "(+ 1 2 3)") do |args|
+        args.reduce(BigDecimal("0"), :+)
+      end
+      register("-", min_arity: 1, description: "Subtract numbers",
+                    example: "(- 5 2)") do |args|
+        if args.length == 1
+          -args.first
+        else
+          args.reduce do |memo, v|
+            memo - v
+          end
+        end
+      end
+      register("*", min_arity: 0, description: "Multiply numbers", example: "(* 2 3 4)") do |args|
+        args.reduce(BigDecimal("1"), :*)
+      end
+      register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") do |args|
+        args.reduce do |memo, v|
+          memo / v
+        end
+      end
+      register("<", min_arity: 2, max_arity: 2, description: "Less than", example: "(< 1 2)") do |args|
+        args[0] < args[1]
+      end
       register("<=", min_arity: 2, max_arity: 2, description: "Less than or equal", example: "(<= 1 2)") do |args|
         args[0] <= args[1]
       end
-      register(">", min_arity: 2, max_arity: 2, description: "Greater than", example: "(> 2 1)") { |args| args[0] > args[1] }
-      register(">=", min_arity: 2, max_arity: 2, description: "Greater than or equal", example: "(>= 2 1)") { |args| args[0] >= args[1] }
-      register("==", min_arity: 2, max_arity: 2, description: "Equal", example: "(== 1 1)") { |args| args[0] == args[1] }
-      register("!=", min_arity: 2, max_arity: 2, description: "Not equal", example: "(!= 1 2)") { |args| args[0] != args[1] }
+      register(">", min_arity: 2, max_arity: 2, description: "Greater than", example: "(> 2 1)") do |args|
+        args[0] > args[1]
+      end
+      register(">=", min_arity: 2, max_arity: 2, description: "Greater than or equal", example: "(>= 2 1)") do |args|
+        args[0] >= args[1]
+      end
+      register("==", min_arity: 2, max_arity: 2, description: "Equal", example: "(== 1 1)") do |args|
+        args[0] == args[1]
+      end
+      register("!=", min_arity: 2, max_arity: 2, description: "Not equal", example: "(!= 1 2)") do |args|
+        args[0] != args[1]
+      end
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
@@ -37,7 +64,7 @@ module Calc
         max_arity: max_arity,
         description: description,
         example: example,
-        callable: block,
+        callable: block
       )
     end
 
@@ -73,9 +100,7 @@ module Calc
       builtin = @functions[name]
       raise NameError, "unknown function: #{name}" unless builtin
       raise ArgumentError, "wrong number of arguments for #{name}" if args.length < builtin.min_arity
-      if builtin.max_arity && args.length > builtin.max_arity
-        raise ArgumentError, "wrong number of arguments for #{name}"
-      end
+      raise ArgumentError, "wrong number of arguments for #{name}" if builtin.max_arity && args.length > builtin.max_arity
 
       builtin.callable.call(args)
     end

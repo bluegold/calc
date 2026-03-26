@@ -41,7 +41,7 @@ elsif File.exist?(history_path)
   warn "ignoring non-regular history file: #{history_path}"
 end
 
-def handle_repl_command(line, parser, executer, builtins)
+def handle_repl_command(line, parser, _executer, builtins)
   command, payload = line[1..].split(/\s+/, 2)
 
   case command
@@ -112,46 +112,42 @@ else
   buffer = +""
 
   loop do
-    begin
-      line = Reline.readline(prompt_for(buffer), false)
-      break unless line
+    line = Reline.readline(prompt_for(buffer), false)
+    break unless line
 
-      if buffer.empty? && line.strip.empty?
-        next
-      end
+    next if buffer.empty? && line.strip.empty?
 
-      buffer << line << "\n"
+    buffer << line << "\n"
 
-      if unmatched_closing_paren?(buffer)
-        warn "unexpected ')'"
-        buffer.clear
-        next
-      end
-
-      next unless balanced_parens?(buffer)
-
-      source = buffer.strip
+    if unmatched_closing_paren?(buffer)
+      warn "unexpected ')'"
       buffer.clear
-
-      next if source.empty?
-
-      if source.start_with?(":")
-        Reline::HISTORY << source if handle_repl_command(source, parser, executer, builtins)
-        next
-      end
-
-      last_result = nil
-      parser.parse(source).each do |node|
-        last_result = executer.evaluate(node)
-      end
-
-      puts Calc.format_value(last_result) unless last_result.nil?
-
-      Reline::HISTORY << source
-    rescue StandardError => e
-      warn "#{e.class}: #{e.message}"
-      buffer.clear
+      next
     end
+
+    next unless balanced_parens?(buffer)
+
+    source = buffer.strip
+    buffer.clear
+
+    next if source.empty?
+
+    if source.start_with?(":")
+      Reline::HISTORY << source if handle_repl_command(source, parser, executer, builtins)
+      next
+    end
+
+    last_result = nil
+    parser.parse(source).each do |node|
+      last_result = executer.evaluate(node)
+    end
+
+    puts Calc.format_value(last_result) unless last_result.nil?
+
+    Reline::HISTORY << source
+  rescue StandardError => e
+    warn "#{e.class}: #{e.message}"
+    buffer.clear
   end
 
   begin

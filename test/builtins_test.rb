@@ -32,7 +32,8 @@ class BuiltinsTest < Minitest::Test
   end
 
   def test_registers_custom_function
-    @builtins.register("square", min_arity: 1, max_arity: 1, description: "Square a number", example: "(square 4)") do |args|
+    @builtins.register("square", min_arity: 1, max_arity: 1, description: "Square a number",
+                                 example: "(square 4)") do |args|
       args.first * args.first
     end
 

@@ -11,19 +11,19 @@ module Calc
     end
   end
 
-  NumberNode = Struct.new(:value, keyword_init: true) do
+  NumberNode = Struct.new(:value) do
     def pretty_print(q)
       q.text(Calc.format_value(value))
     end
   end
 
-  SymbolNode = Struct.new(:name, keyword_init: true) do
+  SymbolNode = Struct.new(:name) do
     def pretty_print(q)
       q.text(name)
     end
   end
 
-  ListNode = Struct.new(:children, keyword_init: true) do
+  ListNode = Struct.new(:children) do
     def pretty_print(q)
       q.group(1, "(", ")") do
         children.each_with_index do |child, index|
@@ -59,9 +59,7 @@ module Calc
 
     def parse_forms(tokens)
       forms = []
-      until tokens.empty?
-        forms << parse_expression(tokens)
-      end
+      forms << parse_expression(tokens) until tokens.empty?
       forms
     end
 
@@ -74,9 +72,11 @@ module Calc
         children = []
         until tokens.first == ")"
           raise SyntaxError, "missing ')'" if tokens.empty?
+
           children << parse_expression(tokens)
         end
         raise SyntaxError, "empty list" if children.empty?
+
         tokens.shift
         ListNode.new(children: children)
       when ")"

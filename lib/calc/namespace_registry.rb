@@ -1,6 +1,6 @@
 module Calc
   class NamespaceRegistry
-    Namespace = Struct.new(:name, :parent, :children, :variables, :functions, keyword_init: true) do
+    Namespace = Struct.new(:name, :parent, :children, :variables, :functions) do
       def initialize(name:, parent: nil)
         super
         self.children ||= {}
@@ -29,9 +29,7 @@ module Calc
       ensure_namespace("builtin")
     end
 
-    def root
-      @root
-    end
+    attr_reader :root
 
     def ensure_namespace(path)
       return @root if path.nil? || path.to_s.empty?
@@ -56,7 +54,8 @@ module Calc
 
     def define_function(namespace_path, name, value, local: false)
       namespace = ensure_namespace(namespace_path)
-      namespace.functions[name] = { value: value, namespace: namespace.path, local: local || namespace.local_name?(name) }
+      namespace.functions[name] =
+        { value: value, namespace: namespace.path, local: local || namespace.local_name?(name) }
     end
 
     def resolve_variable(namespace_path, name)
@@ -93,7 +92,7 @@ module Calc
       end
 
       builtin = @root.children["builtin"]
-      return builtin.public_send(bucket)[name] if builtin && builtin.public_send(bucket).key?(name)
+      return builtin.public_send(bucket)[name] if builtin&.public_send(bucket)&.key?(name)
 
       nil
     end
@@ -106,7 +105,7 @@ module Calc
       return entry if entry
 
       builtin = @root.children["builtin"]
-      return builtin.public_send(bucket)[name] if namespace_path == "builtin" && builtin && builtin.public_send(bucket).key?(name)
+      return builtin.public_send(bucket)[name] if namespace_path == "builtin" && builtin&.public_send(bucket)&.key?(name)
 
       nil
     end
