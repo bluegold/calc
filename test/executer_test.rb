@@ -48,6 +48,14 @@ class ExecuterTest < Minitest::Test
     assert_match "cannot modify reserved namespace", error.message
   end
 
+  def test_builtin_allows_nested_namespaces
+    ast = @parser.parse("(namespace builtin (namespace crypto (define x 1)))").first
+
+    assert_equal BigDecimal("1"), @executer.evaluate(ast)
+    assert_equal BigDecimal("1"),
+                 @executer.instance_variable_get(:@namespaces).resolve_variable("builtin.crypto", "x")[:value]
+  end
+
   def test_if_evaluates_then_branch_for_truthy_values
     ast = @parser.parse("(if true 1 2)").first
 

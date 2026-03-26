@@ -103,7 +103,6 @@ module Calc
       namespace_node = children[1]
       body_nodes = children.drop(2)
       raise ArgumentError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
-      raise NameError, "cannot modify reserved namespace: builtin" if namespace_node.name == "builtin"
 
       previous_namespace = @current_namespace
       next_namespace = namespace_path(namespace_node.name)
