@@ -51,6 +51,12 @@ class ParserTest < Minitest::Test
     assert_equal "hello\nworld", ast.value
   end
 
+  def test_rejects_unterminated_string_literal
+    error = assert_raises(Calc::SyntaxError) { @parser.parse("\"hello") }
+
+    assert_match "unterminated string literal", error.message
+  end
+
   def test_pretty_prints_ast
     ast = @parser.parse("(+ 1 (* 2 3))")
 

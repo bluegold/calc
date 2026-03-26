@@ -147,6 +147,8 @@ module Calc
       if token.match?(/\A-?(?:\d+\.?\d*|\d*\.\d+)\z/)
         NumberNode.new(value: BigDecimal(token))
       elsif token.start_with?("\"")
+        raise Calc::SyntaxError, "unterminated string literal" unless token.end_with?("\"")
+
         StringNode.new(value: unescape_string(token))
       else
         SymbolNode.new(name: token)
