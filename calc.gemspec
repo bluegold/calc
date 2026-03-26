@@ -1,4 +1,5 @@
 Gem::Specification.new do |spec|
+  spec.metadata["rubygems_mfa_required"] = "true"
   require_relative "lib/calc/version"
 
   spec.name = "calc"

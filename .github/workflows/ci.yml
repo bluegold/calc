@@ -27,10 +27,10 @@ jobs:
           bundler-cache: true
 
       - name: Install RuboCop
-        run: gem install rubocop
+        run: bundle check || bundle install
 
       - name: Run tests
-        run: rake test
+        run: bundle exec rake test
 
       - name: Run RuboCop
-        run: rubocop
+        run: bundle exec rubocop
