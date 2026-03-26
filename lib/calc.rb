@@ -1,3 +1,4 @@
+require_relative "calc/version"
 require_relative "calc/parser"
 require_relative "calc/builtins"
 require_relative "calc/functions"

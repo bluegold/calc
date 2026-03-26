@@ -1,6 +1,8 @@
 Gem::Specification.new do |spec|
+  require_relative "lib/calc/version"
+
   spec.name = "calc"
-  spec.version = "0.1.0"
+  spec.version = Calc::VERSION
   spec.summary = "A Ruby S-expression calculator"
   spec.description = "A Ruby-based S-expression calculator with namespaces, functions, and a REPL."
   spec.authors = ["kaneko"]
