@@ -1,5 +1,10 @@
 # Daily Log
 
+## 2026-03-26
+- Updated the release workflow to keep release notes generic across versions.
+- Added `print` and string builtins, plus string literal support.
+- Bumped the project to `0.3.0` and then `0.3.0` release automation was verified.
+
 ## 2026-03-25
 - Initialized the Ruby S-expression calculator repository.
 - Added project guidelines and early design notes.
