@@ -3,6 +3,7 @@
 ## 2026-03-26
 - Updated the release workflow to keep release notes generic across versions.
 - Added `print` and string builtins, plus string literal support.
+- Documented the planned `lambda` closure model and added TODO items for higher-order functions.
 - Split Calc exceptions into syntax, name, and runtime classes, and added a dedicated division-by-zero error.
 - Marked builtin namespace reservation and division-by-zero handling as complete in the TODO list.
 - Added multiline REPL input with separate primary and continuation prompts.
