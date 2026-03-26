@@ -44,6 +44,13 @@ class ParserTest < Minitest::Test
     assert_equal BigDecimal("2.25"), ast.children[2].value
   end
 
+  def test_parses_string_literal
+    ast = @parser.parse("\"hello\\nworld\"").first
+
+    assert_instance_of Calc::StringNode, ast
+    assert_equal "hello\nworld", ast.value
+  end
+
   def test_pretty_prints_ast
     ast = @parser.parse("(+ 1 (* 2 3))")
 
@@ -62,6 +69,15 @@ class ParserTest < Minitest::Test
             value: '2'
           - type: number
             value: '3'
+    YAML
+  end
+
+  def test_pretty_prints_string_literal
+    ast = @parser.parse("\"hello\"")
+
+    assert_equal <<~YAML, Calc::ASTPrinter.pretty(ast)
+      - type: string
+        value: hello
     YAML
   end
 

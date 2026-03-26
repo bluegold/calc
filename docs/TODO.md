@@ -5,7 +5,7 @@
 - [x] `#!` 付きスクリプトの先頭行を無視する
 - [x] `;` コメントを無視する
 - [x] `BigDecimal` リテラルを扱う
-- [ ] 文字列リテラルを扱う
+- [x] 文字列リテラルを扱う
 - [ ] エラーメッセージを改善する
 
 ## Executor
@@ -13,12 +13,12 @@
 - [x] 変数定義を扱う
 - [x] `if` を special form として扱う
 - [x] namespace の special form を実装する
-- [ ] `builtin` を予約 namespace として完全に扱う
+- [x] `builtin` を予約 namespace として完全に扱う
 - [x] namespace 解決順を実装する
 - [x] `_` で始まるローカル関数を扱う
 - [x] 跨ぎ namespace 参照を qualified name で扱う
 - [x] 組み込み関数を登録しやすい構造にする
-- [ ] `division by zero` の専用エラーを整える
+- [x] `division by zero` の専用エラーを整える
 - [x] エラー型を syntax / name / runtime に分ける
 
 ## REPL / File

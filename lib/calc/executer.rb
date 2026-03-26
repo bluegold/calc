@@ -11,7 +11,7 @@ module Calc
 
     def evaluate(node)
       case node
-      when NumberNode
+      when NumberNode, StringNode
         node.value
       when SymbolNode
         return @environment.get_local(node.name) if @environment.bound_local?(node.name)

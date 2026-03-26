@@ -23,6 +23,12 @@ module Calc
     end
   end
 
+  StringNode = Struct.new(:value) do
+    def pretty_print(q)
+      q.text(value.inspect)
+    end
+  end
+
   ListNode = Struct.new(:children) do
     def pretty_print(q)
       q.group(1, "(", ")") do
@@ -47,6 +53,8 @@ module Calc
         { "type" => "number", "value" => Calc.format_value(node.value) }
       when SymbolNode
         { "type" => "symbol", "name" => node.name }
+      when StringNode
+        { "type" => "string", "value" => node.value }
       when ListNode
         { "type" => "list", "children" => node.children.map { |child| render(child) } }
       else
@@ -65,7 +73,45 @@ module Calc
     private
 
     def tokenize(source)
-      source.gsub(/;.*$/, "").scan(/\(|\)|[^\s()]+/)
+      stripped = strip_comments_and_shebang(source)
+      stripped.scan(/"(?:\\.|[^"\\])*"|\(|\)|[^\s()]+/)
+    end
+
+    def strip_comments_and_shebang(source)
+      output = +""
+      in_string = false
+      escaped = false
+
+      source.each_line.with_index do |line, index|
+        next if index.zero? && line.start_with?("#!")
+
+        line.each_char do |char|
+          if in_string
+            output << char
+            if escaped
+              escaped = false
+            elsif char == "\\"
+              escaped = true
+            elsif char == '"'
+              in_string = false
+            end
+            next
+          end
+
+          break if char == ";"
+
+          output << char
+
+          if char == '"'
+            in_string = true
+            escaped = false
+          end
+        end
+
+        output << "\n"
+      end
+
+      output
     end
 
     def parse_forms(tokens)
@@ -100,9 +146,19 @@ module Calc
     def atom(token)
       if token.match?(/\A-?(?:\d+\.?\d*|\d*\.\d+)\z/)
         NumberNode.new(value: BigDecimal(token))
+      elsif token.start_with?("\"")
+        StringNode.new(value: unescape_string(token))
       else
         SymbolNode.new(name: token)
       end
+    end
+
+    def unescape_string(token)
+      token[1..-2]
+        .gsub("\\n", "\n")
+        .gsub("\\t", "\t")
+        .gsub("\\\\", "\\")
+        .gsub('\\"', '"')
     end
   end
 end

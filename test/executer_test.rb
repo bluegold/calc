@@ -14,6 +14,12 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("6"), @executer.evaluate(ast)
   end
 
+  def test_string_literal_evaluates_to_string
+    ast = @parser.parse("\"hello\"").first
+
+    assert_equal "hello", @executer.evaluate(ast)
+  end
+
   def test_division_by_zero_raises_custom_error
     ast = @parser.parse("(/ 8 0)").first
 
