@@ -47,7 +47,22 @@ class ParserTest < Minitest::Test
   def test_pretty_prints_ast
     ast = @parser.parse("(+ 1 (* 2 3))")
 
-    assert_equal "(+ 1 (* 2 3))", Calc::ASTPrinter.pretty(ast)
+    assert_equal <<~YAML, Calc::ASTPrinter.pretty(ast)
+      - type: list
+        children:
+        - type: symbol
+          name: "+"
+        - type: number
+          value: '1'
+        - type: list
+          children:
+          - type: symbol
+            name: "*"
+          - type: number
+            value: '2'
+          - type: number
+            value: '3'
+    YAML
   end
 
   def test_rejects_empty_list

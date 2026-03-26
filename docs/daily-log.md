@@ -10,6 +10,7 @@
 - Added `BigDecimal` number handling and `;` line comments.
 - Updated parser and executor tests to cover the new behavior.
 - Added AST pretty printing and a `:ast` REPL debug command.
+- Switched `:ast` output to a YAML-like indented representation for readability.
 - Added REPL history support via `Readline` and persistent history storage.
 - Added multiline REPL input with separate primary and continuation prompts.
 - Hardened REPL history loading and saving so filesystem failures do not crash the shell.

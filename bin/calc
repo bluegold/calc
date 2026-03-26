@@ -47,9 +47,7 @@ def handle_repl_command(line, parser, _executer, builtins)
   case command
   when "ast"
     source = payload.to_s.strip
-    parser.parse(source).each do |node|
-      puts Calc::ASTPrinter.pretty(node)
-    end
+    puts Calc::ASTPrinter.pretty(parser.parse(source))
     true
   when "help"
     puts "Commands:"

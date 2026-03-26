@@ -1,5 +1,5 @@
-require "pp"
 require "bigdecimal"
+require "yaml"
 
 module Calc
   def self.format_value(value)
@@ -36,11 +36,22 @@ module Calc
 
   class ASTPrinter
     def self.pretty(nodes)
-      Array(nodes).map { |node| render(node).strip }.join("\n")
+      normalized_nodes = nodes.is_a?(Array) ? nodes : [nodes]
+
+      YAML.dump(normalized_nodes.map { |node| render(node) }).sub(/\A---\n?/, "")
     end
 
     def self.render(node)
-      PP.pp(node, +"", 80)
+      case node
+      when NumberNode
+        { "type" => "number", "value" => Calc.format_value(node.value) }
+      when SymbolNode
+        { "type" => "symbol", "name" => node.name }
+      when ListNode
+        { "type" => "list", "children" => node.children.map { |child| render(child) } }
+      else
+        { "type" => "unknown", "value" => node.inspect }
+      end
     end
   end
 
