@@ -5,5 +5,5 @@ module Calc
 
   class RuntimeError < StandardError; end
 
-  class DivisionByZeroError < StandardError; end
+  class DivisionByZeroError < RuntimeError; end
 end
