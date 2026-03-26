@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Build gem
+        run: gem build calc.gemspec
+
+      - name: Create GitHub release and upload gem
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag_name="${GITHUB_REF_NAME}"
+          if gh release view "$tag_name" >/dev/null 2>&1; then
+            gh release upload "$tag_name" calc-*.gem --clobber
+          else
+            gh release create "$tag_name" calc-*.gem --title "$tag_name" --notes "Release $tag_name"
+          fi
