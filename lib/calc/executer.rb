@@ -61,7 +61,7 @@ module Calc
         when "do"
           evaluate_do(node.children)
         else
-          call_function(head.name, node.children.drop(1))
+          call_function(head.name, node.children.drop(1), node)
         end
       else
         callable = evaluate(head)
@@ -154,17 +154,44 @@ module Calc
       value != false && !value.nil?
     end
 
-    def call_function(name, args)
+    def call_function(name, args, node = nil)
+      callable = resolve_callable(name)
+      raise Calc::NameError, "unknown function: #{name}" unless callable
+
       values = args.map { |arg| evaluate(arg) }
 
-      return @builtins.call(name, values) if @builtins.registered?(name)
+      call_resolved_callable(callable, values)
+    rescue Calc::NameError => e
+      raise e unless node
 
-      return call_lambda(@environment.get(name), values) if @environment.bound?(name) && @environment.get(name).is_a?(LambdaValue)
+      raise Calc::NameError, "#{e.message} while evaluating #{Calc::ASTPrinter.pretty([node]).strip}"
+    end
+
+    def resolve_callable(name)
+      return [:builtin, name] if @builtins.registered?(name)
+
+      if @environment.bound?(name)
+        value = @environment.get(name)
+        return [:lambda, value] if value.is_a?(LambdaValue)
+      end
 
       resolved_function = @namespaces.resolve_function(@current_namespace, name)
-      return call_user_function(resolved_function[:value], values) if resolved_function
+      return [:lambda, resolved_function[:value]] if resolved_function
 
-      @builtins.call(name, values)
+      nil
+    end
+
+    def call_resolved_callable(callable, values)
+      kind, value = callable
+
+      case kind
+      when :builtin
+        @builtins.call(value, values)
+      when :lambda
+        call_lambda(value, values)
+      else
+        raise Calc::NameError, "unknown function: #{value}"
+      end
     end
 
     def call_lambda(callable, values)

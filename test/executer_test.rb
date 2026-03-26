@@ -48,6 +48,15 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("15"), @executer.evaluate(ast)
   end
 
+  def test_reports_unknown_function_with_expression_context
+    ast = @parser.parse("(do (define x 10)(define f (labmda (y) (+ x y)))(define x 20)(f 5))").first
+
+    error = assert_raises(Calc::NameError) { @executer.evaluate(ast) }
+
+    assert_match "unknown function: labmda", error.message
+    assert_match "while evaluating", error.message
+  end
+
   def test_division_by_zero_raises_custom_error
     ast = @parser.parse("(/ 8 0)").first
 
