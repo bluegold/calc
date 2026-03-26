@@ -32,6 +32,10 @@ Namespaces should be treated as a runtime concern, not a parsing concern. The pa
 
 Namespace resolution should respect lexical scope first. `Environment` bindings for function parameters and local values must shadow namespace lookups. Functions and variables whose names start with `_` are local to their defining namespace and are not visible outside it.
 
+Function values should be represented explicitly so the language can support higher-order functions. `lambda` should create a closure that captures the current lexical environment together with the current namespace at definition time. `define` for functions is syntactic sugar over `lambda`, so users can continue to write named functions while the runtime still treats them as first-class values.
+
+Closures should evaluate their bodies eagerly. Delayed evaluation is not part of the initial design. Anonymous recursion is also out of scope for the first implementation. When a function value is printed for debugging or `:ast`, it should be rendered as structured AST-like data rather than as an opaque Ruby object.
+
 ## Evaluation Flow
 1. Read source text from stdin or a file
 2. Strip a leading shebang line if present
