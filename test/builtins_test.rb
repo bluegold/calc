@@ -31,6 +31,14 @@ class BuiltinsTest < Minitest::Test
     assert_equal BigDecimal("6"), result
   end
 
+  def test_division_by_zero_raises_custom_error
+    error = assert_raises(Calc::DivisionByZeroError) do
+      @builtins.call("/", [BigDecimal("8"), BigDecimal("0")])
+    end
+
+    assert_equal "division by zero", error.message
+  end
+
   def test_registers_custom_function
     @builtins.register("square", min_arity: 1, max_arity: 1, description: "Square a number",
                                  example: "(square 4)") do |args|

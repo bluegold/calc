@@ -14,6 +14,13 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("6"), @executer.evaluate(ast)
   end
 
+  def test_division_by_zero_raises_custom_error
+    ast = @parser.parse("(/ 8 0)").first
+
+    error = assert_raises(Calc::DivisionByZeroError) { @executer.evaluate(ast) }
+    assert_equal "division by zero", error.message
+  end
+
   def test_variable_definition
     define_ast = @parser.parse("(define x 7)").first
     use_ast = @parser.parse("(+ x 2)").first

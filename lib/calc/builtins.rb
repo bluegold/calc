@@ -31,6 +31,8 @@ module Calc
       end
       register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") do |args|
         args.reduce do |memo, v|
+          raise DivisionByZeroError, "division by zero" if v.zero?
+
           memo / v
         end
       end

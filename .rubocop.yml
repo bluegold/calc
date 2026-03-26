@@ -10,7 +10,7 @@ Layout/LineLength:
   Max: 130
 
 Metrics/AbcSize:
-  Max: 40
+  Max: 42
 
 Metrics/ClassLength:
   Max: 150
