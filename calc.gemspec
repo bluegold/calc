@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.homepage = "https://github.com/bluegold/calc"
   spec.license = "MIT"
 
-  spec.required_ruby_version = ">= 4.0.2"
+  spec.required_ruby_version = ">= 3.1"
 
   spec.files = Dir.chdir(__dir__) do
     Dir["README.md", "LICENSE*", "bin/**/*", "lib/**/*", "docs/**/*"]
