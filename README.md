@@ -14,7 +14,7 @@
 
 ## Requirements
 
-- Ruby 3.1 以上
+- Ruby 3.2 以上
 
 ## Setup
 
