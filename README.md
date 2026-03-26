@@ -98,5 +98,5 @@ rake test
 ## Notes
 
 - AST 表示の `:ast` はデバッグ用です
-- Release 手順は [`docs/release.md`](/home/kaneko/work/tmp/calc/docs/release.md) を参照してください
+- Release 手順は [`docs/release.md`](docs/release.md) を参照してください
 - ルートの `docs/TODO.md` に未実装項目をまとめています
