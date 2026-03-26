@@ -95,6 +95,18 @@ class BuiltinsTest < Minitest::Test
     assert_equal false, @builtins.call("!=", [BigDecimal("2"), BigDecimal("2")])
   end
 
+  def test_concatenates_strings
+    result = @builtins.call("concat", %w[cal c])
+
+    assert_equal "calc", result
+  end
+
+  def test_returns_string_length
+    result = @builtins.call("length", ["calc"])
+
+    assert_equal 4, result
+  end
+
   def test_enumerates_builtins
     names = @builtins.each_builtin.map(&:name)
 
@@ -105,6 +117,8 @@ class BuiltinsTest < Minitest::Test
     assert_includes names, ">="
     assert_includes names, "=="
     assert_includes names, "!="
+    assert_includes names, "concat"
+    assert_includes names, "length"
     assert_includes names, "pow"
     assert_includes names, "sqrt"
   end

@@ -54,6 +54,10 @@ module Calc
       register("!=", min_arity: 2, max_arity: 2, description: "Not equal", example: "(!= 1 2)") do |args|
         args[0] != args[1]
       end
+      register("concat", min_arity: 0, description: "Concatenate strings", example: "(concat \"a\" \"b\")", &:join)
+      register("length", min_arity: 1, max_arity: 1, description: "String length", example: "(length \"calc\")") do |args|
+        args.first.to_s.length
+      end
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
