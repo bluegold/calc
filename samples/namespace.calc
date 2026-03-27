@@ -4,5 +4,6 @@
   (define (square x) (* x x)))
 
 (do
-  (crypto.twice 3)
+  (print "--- namespace ---")
+  (print (crypto.twice 3))
   (crypto.square 4))

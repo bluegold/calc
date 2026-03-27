@@ -2,6 +2,9 @@
 (define bonus 4)
 
 (do
+  (print "--- basic ---")
+  (print (+ base bonus))
+  (print (- base bonus))
   (if (> (+ base bonus) 12)
       (+ base bonus)
       (- base bonus)))

@@ -1,0 +1,18 @@
+(define user (hash :name "taro" :age 20 :active true))
+(define payload
+  (hash :user user
+        :items (list (hash :id 1 :name "apple")
+                     (hash :id 2 :name "banana"))))
+
+(do
+  (print "--- hash ops ---")
+  (print (get user :name))
+  (print (set user :name "hanako"))
+  (print (keys user))
+  (print (values user))
+  (print (entries user))
+  (print (has? user :active))
+  (print (dig payload :items 1 :name))
+  (print (map (lambda (pair) (get pair 0)) user))
+  (print (select (lambda (pair) (> (get pair 1) 19)) (hash :a 10 :b 20 :c 30)))
+  (print (hash-from-pairs (list (list :x 1) (list :y 2)))))
