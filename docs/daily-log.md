@@ -3,7 +3,6 @@
 ## 2026-03-27
 - Reordered the README examples from simple arithmetic through higher-order functions to recursive namespace usage.
 - Noted that `list` is a builtin helper for building arrays rather than a special form.
-- Recorded the `if` special form implementation in the daily log.
 
 ## 2026-03-26
 - Updated the release workflow to keep release notes generic across versions.
