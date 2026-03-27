@@ -29,6 +29,16 @@ class FileExecutionTest < Minitest::Test
       --- recursion ---
       21
     OUT
+    "samples/hanoi.calc" => <<~OUT,
+      --- hanoi ---
+      A -> C
+      A -> B
+      C -> B
+      A -> C
+      B -> A
+      B -> C
+      A -> C
+    OUT
     "samples/list-ops.calc" => <<~OUT,
       --- list ops ---
       10
@@ -76,7 +86,7 @@ class FileExecutionTest < Minitest::Test
   end
 
   def test_file_execution_does_not_append_last_result_when_printing_nil
-    %w[samples/list-ops.calc samples/hash-ops.calc].each do |sample_path|
+    %w[samples/hanoi.calc samples/list-ops.calc samples/hash-ops.calc].each do |sample_path|
       stdout, stderr, status = run_calc("--print-last-result", sample_path)
 
       assert_predicate status, :success?

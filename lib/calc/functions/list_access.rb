@@ -1,13 +1,8 @@
 module Calc
   module Functions
     module ListAccess
-      NTH_EXAMPLE = "(nth 0 (list 1 2 3))".freeze
-      FIRST_EXAMPLE = "(first (list 1 2 3))".freeze
-      REST_EXAMPLE = "(rest (list 1 2 3))".freeze
-
       def self.register(builtins)
-        builtins.register("nth", min_arity: 2, max_arity: 2, description: "Return list item at index",
-                                 example: NTH_EXAMPLE) do |args|
+        Functions.register(builtins, "nth", min_arity: 2, max_arity: 2) do |args|
           index, list = args
           raise Calc::RuntimeError, "nth expects a list" unless list.is_a?(Array)
 
@@ -17,16 +12,14 @@ module Calc
           list[normalized_index]
         end
 
-        builtins.register("first", min_arity: 1, max_arity: 1, description: "Return first item from list",
-                                   example: FIRST_EXAMPLE) do |args|
+        Functions.register(builtins, "first", min_arity: 1, max_arity: 1) do |args|
           list = args.first
           raise Calc::RuntimeError, "first expects a list" unless list.is_a?(Array)
 
           list.first
         end
 
-        builtins.register("rest", min_arity: 1, max_arity: 1, description: "Return list without first item",
-                                  example: REST_EXAMPLE) do |args|
+        Functions.register(builtins, "rest", min_arity: 1, max_arity: 1) do |args|
           list = args.first
           raise Calc::RuntimeError, "rest expects a list" unless list.is_a?(Array)
 
