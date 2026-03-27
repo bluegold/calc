@@ -1,6 +1,10 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.5.1`.
+- Fixed `parse-json` to preserve decimal precision with `BigDecimal`.
+
+## 2026-03-27
 - Bumped the project to `0.5.0`.
 - Added dictionary helpers with `hash`, `get`, `set`, and `entries`, plus JSON parsing and stringifying.
 

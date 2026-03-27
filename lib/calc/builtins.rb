@@ -187,7 +187,7 @@ module Calc
     def parse_json_value(value)
       raise Calc::RuntimeError, "parse-json expects a string" unless value.is_a?(String)
 
-      JSON.parse(value, symbolize_names: false).then { |parsed| convert_json_to_calc(parsed) }
+      JSON.parse(value, symbolize_names: false, decimal_class: BigDecimal).then { |parsed| convert_json_to_calc(parsed) }
     rescue JSON::ParserError => e
       raise Calc::SyntaxError, e.message
     end
@@ -243,7 +243,7 @@ module Calc
         value.each_with_object({}) do |(key, item), result|
           result[key] = convert_json_to_calc(item)
         end
-      when Integer, Float
+      when Integer, BigDecimal
         BigDecimal(value.to_s)
       else
         value
