@@ -14,11 +14,7 @@ module Calc
     def initialize
       @functions = {}
 
-      Functions::Core.register(self)
-      Functions::Dictionary.register(self)
-      Functions::ListAccess.register(self)
-      Functions::HigherOrder.register(self)
-      Functions::Math.register(self)
+      Functions.register_all(self)
     end
 
     def register(name, min_arity: 0, max_arity: nil, description: nil, example: nil, &block)
