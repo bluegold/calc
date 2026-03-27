@@ -60,6 +60,12 @@ module Calc
           evaluate_lambda(node.children)
         when "do"
           evaluate_do(node.children)
+        when "map"
+          evaluate_map(node.children)
+        when "reduce"
+          evaluate_reduce(node.children)
+        when "select"
+          evaluate_select(node.children)
         else
           call_function(head.name, node.children.drop(1), node)
         end
@@ -120,6 +126,42 @@ module Calc
       raise Calc::SyntaxError, "invalid do" if children.length < 2
 
       children.drop(1).reduce(nil) { |_memo, node| evaluate(node) }
+    end
+
+    def evaluate_map(children)
+      raise Calc::SyntaxError, "invalid map" unless children.length == 3
+
+      callable = evaluate(children[1])
+      list = evaluate(children[2])
+      ensure_callable!(callable, "map")
+      ensure_array!(list, "map")
+
+      list.map { |item| call_lambda(callable, [item]) }
+    end
+
+    def evaluate_reduce(children)
+      raise Calc::SyntaxError, "invalid reduce" unless children.length == 4
+
+      callable = evaluate(children[1])
+      memo = evaluate(children[2])
+      list = evaluate(children[3])
+      ensure_callable!(callable, "reduce")
+      ensure_array!(list, "reduce")
+
+      list.reduce(memo) do |accumulator, item|
+        call_lambda(callable, [accumulator, item])
+      end
+    end
+
+    def evaluate_select(children)
+      raise Calc::SyntaxError, "invalid select" unless children.length == 3
+
+      callable = evaluate(children[1])
+      list = evaluate(children[2])
+      ensure_callable!(callable, "select")
+      ensure_array!(list, "select")
+
+      list.select { |item| truthy?(call_lambda(callable, [item])) }
     end
 
     def evaluate_namespace(children)
@@ -210,6 +252,14 @@ module Calc
       @namespace_stack.pop
       @environment = previous_environment
       @current_namespace = previous_namespace
+    end
+
+    def ensure_callable!(value, name)
+      raise Calc::NameError, "#{name} expects a function" unless value.is_a?(LambdaValue)
+    end
+
+    def ensure_array!(value, name)
+      raise Calc::RuntimeError, "#{name} expects a list" unless value.is_a?(Array)
     end
 
     def call_user_function(function_entry, values)

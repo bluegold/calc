@@ -48,6 +48,24 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("15"), @executer.evaluate(ast)
   end
 
+  def test_map_applies_lambda_to_each_item
+    ast = @parser.parse("(map (lambda (x) (+ x 1)) (list 1 2 3))").first
+
+    assert_equal [BigDecimal("2"), BigDecimal("3"), BigDecimal("4")], @executer.evaluate(ast)
+  end
+
+  def test_reduce_accumulates_values
+    ast = @parser.parse("(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))").first
+
+    assert_equal BigDecimal("6"), @executer.evaluate(ast)
+  end
+
+  def test_select_filters_values
+    ast = @parser.parse("(select (lambda (x) (> x 1)) (list 1 2 3))").first
+
+    assert_equal [BigDecimal("2"), BigDecimal("3")], @executer.evaluate(ast)
+  end
+
   def test_reports_unknown_function_with_expression_context
     ast = @parser.parse("(do (define x 10)(define f (labmda (y) (+ x y)))(define x 20)(f 5))").first
 

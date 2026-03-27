@@ -65,6 +65,9 @@ module Calc
 
         nil
       end
+      register("list", min_arity: 0, description: "Create a list", example: "(list 1 2 3)") do |args|
+        args
+      end
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)

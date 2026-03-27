@@ -5,6 +5,7 @@
 - Added `print` and string builtins, plus string literal support.
 - Added `lambda` closures, `do`, and sugar for named functions.
 - Improved function-call error messages so typos like `labmda` include expression context.
+- Added higher-order builtins: `map`, `reduce`, `select`, and `list`.
 - Split Calc exceptions into syntax, name, and runtime classes, and added a dedicated division-by-zero error.
 - Marked builtin namespace reservation and division-by-zero handling as complete in the TODO list.
 - Added multiline REPL input with separate primary and continuation prompts.

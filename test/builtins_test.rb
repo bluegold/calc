@@ -118,6 +118,12 @@ class BuiltinsTest < Minitest::Test
     assert_empty err
   end
 
+  def test_builds_lists
+    result = @builtins.call("list", [1, 2, 3])
+
+    assert_equal [1, 2, 3], result
+  end
+
   def test_enumerates_builtins
     names = @builtins.each_builtin.map(&:name)
 
@@ -131,6 +137,7 @@ class BuiltinsTest < Minitest::Test
     assert_includes names, "concat"
     assert_includes names, "length"
     assert_includes names, "print"
+    assert_includes names, "list"
     assert_includes names, "pow"
     assert_includes names, "sqrt"
   end
