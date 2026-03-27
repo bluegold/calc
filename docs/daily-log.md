@@ -1,6 +1,14 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.5.0`.
+- Added dictionary helpers with `hash`, `get`, `set`, and `entries`, plus JSON parsing and stringifying.
+
+## 2026-03-27
+- Added `hash`, `get`, `set`, `entries`, `parse-json`, and `stringify-json` for dictionary and JSON handling.
+- Introduced keyword-style hash keys using `:key` syntax.
+
+## 2026-03-27
 - Marked the file execution integration test task complete in the TODO list.
 
 ## 2026-03-27

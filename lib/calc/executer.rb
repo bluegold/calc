@@ -19,6 +19,8 @@ module Calc
       case node
       when NumberNode, StringNode
         node.value
+      when KeywordNode
+        ":#{node.name}"
       when SymbolNode
         return @environment.get_local(node.name) if @environment.bound_local?(node.name)
 

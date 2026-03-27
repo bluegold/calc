@@ -1,5 +1,6 @@
 require_relative "test_helper"
 require "bigdecimal"
+require "json"
 
 class BuiltinsTest < Minitest::Test
   def setup
@@ -129,6 +130,74 @@ class BuiltinsTest < Minitest::Test
     result = @builtins.call("list", [1, 2, 3])
 
     assert_equal [1, 2, 3], result
+  end
+
+  def test_builds_hashes_with_last_key_wins
+    result = @builtins.call("hash", [":name", "taro", ":name", "hanako", ":age", BigDecimal("20")])
+
+    assert_equal({ "name" => "hanako", "age" => BigDecimal("20") }, result)
+  end
+
+  def test_rejects_non_keyword_hash_keys
+    error = assert_raises(Calc::RuntimeError) { @builtins.call("hash", %w[name taro]) }
+
+    assert_equal "hash keys must be keywords", error.message
+  end
+
+  def test_get_reads_from_hashes_and_lists
+    hash = { "name" => "taro" }
+
+    assert_equal "taro", @builtins.call("get", [hash, ":name"])
+    assert_equal BigDecimal("2"), @builtins.call("get", [[BigDecimal("1"), BigDecimal("2")], BigDecimal("1")])
+    assert_nil @builtins.call("get", [hash, ":missing"])
+  end
+
+  def test_set_returns_new_hashes_and_lists
+    hash = { "name" => "taro" }
+    list = [BigDecimal("1"), BigDecimal("2")]
+
+    assert_equal({ "name" => "hanako" }, @builtins.call("set", [hash, ":name", "hanako"]))
+    assert_equal([BigDecimal("1"), BigDecimal("9")], @builtins.call("set", [list, BigDecimal("1"), BigDecimal("9")]))
+  end
+
+  def test_set_rejects_non_keyword_hash_keys_and_invalid_indices
+    error = assert_raises(Calc::RuntimeError) { @builtins.call("set", [{}, BigDecimal("0"), "value"]) }
+
+    assert_equal "hash keys must be keywords", error.message
+  end
+
+  def test_entries_returns_key_value_pairs
+    result = @builtins.call("entries", [{ "name" => "taro", "age" => BigDecimal("20") }])
+
+    assert_equal [%w[name taro], ["age", BigDecimal("20")]], result
+  end
+
+  def test_parses_json_into_calc_values
+    result = @builtins.call("parse-json", ['{"name":"taro","scores":[1,2.5],"meta":{"active":true}}'])
+
+    assert_equal "taro", result["name"]
+    assert_equal [BigDecimal("1"), BigDecimal("2.5")], result["scores"]
+    assert_equal({ "active" => true }, result["meta"])
+  end
+
+  def test_parse_json_requires_string
+    error = assert_raises(Calc::RuntimeError) { @builtins.call("parse-json", [123]) }
+
+    assert_equal "parse-json expects a string", error.message
+  end
+
+  def test_stringifies_calc_values_into_json
+    value = { "name" => "taro", "scores" => [BigDecimal("1"), BigDecimal("2.5")], "meta" => { "active" => true } }
+
+    assert_equal '{"name":"taro","scores":[1,2.5],"meta":{"active":true}}', @builtins.call("stringify-json", [value])
+  end
+
+  def test_stringify_json_keeps_unrepresentable_bigdecimals_as_strings
+    huge = BigDecimal("1e1000")
+    value = { "huge" => huge, "tiny" => BigDecimal("0.1") }
+    expected = { "huge" => huge.to_s("F"), "tiny" => 0.1 }
+
+    assert_equal JSON.generate(expected), @builtins.call("stringify-json", [value])
   end
 
   def test_formats_nested_lists

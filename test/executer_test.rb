@@ -66,6 +66,26 @@ class ExecuterTest < Minitest::Test
     assert_equal [BigDecimal("2"), BigDecimal("3")], @executer.evaluate(ast)
   end
 
+  def test_hash_literal_uses_keyword_keys
+    ast = @parser.parse('(hash :name "taro" :name "hanako" :age 20)').first
+
+    assert_equal({ "name" => "hanako", "age" => BigDecimal("20") }, @executer.evaluate(ast))
+  end
+
+  # rubocop:disable Minitest/MultipleAssertions
+  def test_get_and_set_work_with_hashes_and_lists
+    get_hash = @parser.parse('(get (hash :name "taro") :name)').first
+    get_list = @parser.parse('(get (list 1 2 3) 1)').first
+    set_hash = @parser.parse('(set (hash :name "taro") :name "hanako")').first
+    set_list = @parser.parse('(set (list 1 2 3) 1 9)').first
+
+    assert_equal "taro", @executer.evaluate(get_hash)
+    assert_equal BigDecimal("2"), @executer.evaluate(get_list)
+    assert_equal({ "name" => "hanako" }, @executer.evaluate(set_hash))
+    assert_equal [BigDecimal("1"), BigDecimal("9"), BigDecimal("3")], @executer.evaluate(set_list)
+  end
+  # rubocop:enable Minitest/MultipleAssertions
+
   def test_reports_unknown_function_with_expression_context
     ast = @parser.parse("(do (define x 10)(define f (lambda (y) (missing y)))(define x 20)(f 5))").first
 

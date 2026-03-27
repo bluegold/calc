@@ -18,6 +18,8 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Max: 230
+  Exclude:
+    - "lib/calc/builtins.rb"
 
 Metrics/CyclomaticComplexity:
   Max: 13

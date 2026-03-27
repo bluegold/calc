@@ -8,6 +8,10 @@ module Calc
       value.to_s("F").sub(/\.0+\z/, "")
     when Array
       "[#{value.map { |item| format_value(item) }.join(', ')}]"
+    when Hash
+      entries = value.map { |key, item| "#{key.inspect} => #{format_value(item)}" }
+
+      "{#{entries.join(', ')}}"
     else
       value.to_s
     end
@@ -28,6 +32,12 @@ module Calc
   StringNode = Struct.new(:value) do
     def pretty_print(q)
       q.text(value.inspect)
+    end
+  end
+
+  KeywordNode = Struct.new(:name) do
+    def pretty_print(q)
+      q.text(":#{name}")
     end
   end
 
@@ -74,6 +84,8 @@ module Calc
         { "type" => "symbol", "name" => node.name }
       when StringNode
         { "type" => "string", "value" => node.value }
+      when KeywordNode
+        { "type" => "keyword", "name" => node.name }
       when LambdaNode
         { "type" => "lambda", "params" => node.params, "body" => render(node.body) }
       when ListNode
@@ -171,6 +183,8 @@ module Calc
         raise Calc::SyntaxError, "unterminated string literal" unless token.end_with?("\"")
 
         StringNode.new(value: unescape_string(token))
+      elsif token.start_with?(":") && token.length > 1
+        KeywordNode.new(name: token[1..])
       else
         SymbolNode.new(name: token)
       end
