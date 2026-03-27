@@ -86,6 +86,20 @@ class ExecuterTest < Minitest::Test
   end
   # rubocop:enable Minitest/MultipleAssertions
 
+  # rubocop:disable Minitest/MultipleAssertions
+  def test_dig_and_list_access_helpers
+    dig_ast = @parser.parse('(dig (hash :items (list (hash :name "taro"))) :items 0 :name)').first
+    nth_ast = @parser.parse('(nth 1 (list 1 2 3))').first
+    first_ast = @parser.parse('(first (list 1 2 3))').first
+    rest_ast = @parser.parse('(rest (list 1 2 3))').first
+
+    assert_equal "taro", @executer.evaluate(dig_ast)
+    assert_equal BigDecimal("2"), @executer.evaluate(nth_ast)
+    assert_equal BigDecimal("1"), @executer.evaluate(first_ast)
+    assert_equal [BigDecimal("2"), BigDecimal("3")], @executer.evaluate(rest_ast)
+  end
+  # rubocop:enable Minitest/MultipleAssertions
+
   def test_reports_unknown_function_with_expression_context
     ast = @parser.parse("(do (define x 10)(define f (lambda (y) (missing y)))(define x 20)(f 5))").first
 

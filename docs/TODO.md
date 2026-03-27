@@ -25,10 +25,10 @@
 - [x] `lambda` で無名関数とクロージャを扱う
 - [x] `map` / `reduce` / `select` などの高階関数を追加する
 - [x] `hash` / `get` / `set` / `entries` で辞書を扱えるようにする
-- [ ] `keys` / `values` / `has?` を追加する
-- [ ] `dig` を追加する
-- [ ] `nth` / `first` / `rest` を追加する
-- [ ] `hash-from-pairs` のような配列から辞書への変換を追加する
+- [x] `keys` / `values` / `has?` を追加する
+- [x] `dig` を追加する
+- [x] `nth` / `first` / `rest` を追加する
+- [x] `hash-from-pairs` のような配列から辞書への変換を追加する
 - [ ] `lambda` の表示とエラーメッセージをさらに改善する
 
 ## REPL / File

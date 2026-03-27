@@ -3,13 +3,6 @@ require "json"
 
 module Calc
   class Builtins
-    HASH_EXAMPLE = "(hash :name \"taro\" :age 20)".freeze
-    GET_EXAMPLE = "(get user :name)".freeze
-    SET_EXAMPLE = "(set user :name \"taro\")".freeze
-    ENTRIES_EXAMPLE = "(entries user)".freeze
-    PARSE_JSON_EXAMPLE = "(parse-json \"{\\\"name\\\":\\\"taro\\\"}\")".freeze
-    STRINGIFY_JSON_EXAMPLE = "(stringify-json (hash :name \"taro\"))".freeze
-
     LITERALS = {
       "true" => true,
       "false" => false,
@@ -21,66 +14,11 @@ module Calc
     def initialize
       @functions = {}
 
-      register("+", min_arity: 0, description: "Add numbers", example: "(+ 1 2 3)") do |args|
-        args.reduce(BigDecimal("0"), :+)
-      end
-      register("-", min_arity: 1, description: "Subtract numbers",
-                    example: "(- 5 2)") do |args|
-        if args.length == 1
-          -args.first
-        else
-          args.reduce do |memo, v|
-            memo - v
-          end
-        end
-      end
-      register("*", min_arity: 0, description: "Multiply numbers", example: "(* 2 3 4)") do |args|
-        args.reduce(BigDecimal("1"), :*)
-      end
-      register("/", min_arity: 1, description: "Divide numbers", example: "(/ 8 2)") do |args|
-        args.reduce do |memo, v|
-          raise DivisionByZeroError, "division by zero" if v.zero?
-
-          memo / v
-        end
-      end
-      register("<", min_arity: 2, max_arity: 2, description: "Less than", example: "(< 1 2)") do |args|
-        args[0] < args[1]
-      end
-      register("<=", min_arity: 2, max_arity: 2, description: "Less than or equal", example: "(<= 1 2)") do |args|
-        args[0] <= args[1]
-      end
-      register(">", min_arity: 2, max_arity: 2, description: "Greater than", example: "(> 2 1)") do |args|
-        args[0] > args[1]
-      end
-      register(">=", min_arity: 2, max_arity: 2, description: "Greater than or equal", example: "(>= 2 1)") do |args|
-        args[0] >= args[1]
-      end
-      register("==", min_arity: 2, max_arity: 2, description: "Equal", example: "(== 1 1)") do |args|
-        args[0] == args[1]
-      end
-      register("!=", min_arity: 2, max_arity: 2, description: "Not equal", example: "(!= 1 2)") do |args|
-        args[0] != args[1]
-      end
-      register("concat", min_arity: 0, description: "Concatenate strings", example: "(concat \"a\" \"b\")", &:join)
-      register("length", min_arity: 1, max_arity: 1, description: "String length", example: "(length \"calc\")") do |args|
-        args.first.to_s.length
-      end
-      register("print", min_arity: 0, description: "Print values", example: "(print \"hello\" 1)") do |args|
-        args.each do |value|
-          $stdout.puts Calc.format_value(value)
-        end
-
-        nil
-      end
-      register("list", min_arity: 0, description: "Create a list", example: "(list 1 2 3)") do |args|
-        args
-      end
-      register_dictionary_builtins
-      register_higher_order_builtins
-
-      Functions::Pow.register(self)
-      Functions::Sqrt.register(self)
+      Functions::Core.register(self)
+      Functions::Dictionary.register(self)
+      Functions::ListAccess.register(self)
+      Functions::HigherOrder.register(self)
+      Functions::Math.register(self)
     end
 
     def register(name, min_arity: 0, max_arity: nil, description: nil, example: nil, &block)
@@ -137,42 +75,6 @@ module Calc
 
     private
 
-    # rubocop:disable Layout/HashAlignment
-    def register_dictionary_builtins
-      register("hash", min_arity: 0, description: "Create a hash", example: HASH_EXAMPLE) do |args|
-        raise Calc::RuntimeError, "hash expects key/value pairs" if args.length.odd?
-
-        args.each_slice(2).with_object({}) do |(key, value), result|
-          result[normalize_hash_key(key)] = value
-        end
-      end
-      register("get", min_arity: 2, max_arity: 2, description: "Read a value from a list or hash", example: GET_EXAMPLE) do |args|
-        container, key = args
-        get_value(container, key)
-      end
-      register("set", min_arity: 3, max_arity: 3, description: "Return a new list or hash with an updated value",
-                      example: SET_EXAMPLE) do |args|
-        container, key, value = args
-        set_value(container, key, value)
-      end
-      register("entries", min_arity: 1, max_arity: 1, description: "Return hash entries as [key, value] pairs",
-                      example: ENTRIES_EXAMPLE) do |args|
-        container = args.first
-        raise Calc::RuntimeError, "entries expects a hash" unless container.is_a?(Hash)
-
-        container.map { |key, value| [key, value] }
-      end
-      register("parse-json", min_arity: 1, max_arity: 1, description: "Parse JSON into Calc values",
-                      example: PARSE_JSON_EXAMPLE) do |args|
-        parse_json_value(args.first)
-      end
-      register("stringify-json", min_arity: 1, max_arity: 1, description: "Convert Calc values to JSON",
-                      example: STRINGIFY_JSON_EXAMPLE) do |args|
-        JSON.generate(jsonify_value(args.first))
-      end
-    end
-    # rubocop:enable Layout/HashAlignment
-
     def normalize_hash_key(key)
       case key
       when String
@@ -206,11 +108,43 @@ module Calc
       end
     end
 
+    def value_exists(container, key)
+      case container
+      when Hash
+        container.key?(normalize_hash_key(key))
+      when Array
+        index = normalize_index(key)
+        !index.nil? && index >= 0 && index < container.length
+      else
+        raise Calc::RuntimeError, "has? expects a hash or list"
+      end
+    end
+
+    def dig_value(container, path)
+      path.reduce(container) do |current, key|
+        return nil if current.nil?
+
+        case current
+        when Hash, Array
+          get_value(current, key)
+        else
+          return nil
+        end
+      end
+    end
+
+    def entries_from_hash(hash)
+      hash.map { |key, value| [keyword_for_key(key), value] }
+    end
+
+    def keyword_for_key(key)
+      ":#{key}"
+    end
+
     def set_value(container, key, value)
       case container
       when Hash
         normalized_key = normalize_hash_key(key)
-
         container.merge(normalized_key => value)
       when Array
         index = normalize_index(key)
@@ -269,30 +203,14 @@ module Calc
       end
     end
 
-    def register_higher_order_builtins
-      register("map", min_arity: 2, max_arity: 2, description: "Map a function over a list",
-                      example: "(map (lambda (x) (+ x 1)) (list 1 2 3))") do |args, &block|
-        callable, list = args
-        raise Calc::RuntimeError, "map expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "map expects a function" unless block
-
-        list.map { |item| block.call(callable, [item]) }
-      end
-      register("reduce", min_arity: 3, max_arity: 3, description: "Reduce a list with a function",
-                         example: "(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))") do |args, &block|
-        callable, memo, list = args
-        raise Calc::RuntimeError, "reduce expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "reduce expects a function" unless block
-
-        list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
-      end
-      register("select", min_arity: 2, max_arity: 2, description: "Select items with a predicate",
-                         example: "(select (lambda (x) (> x 1)) (list 1 2 3))") do |args, &block|
-        callable, list = args
-        raise Calc::RuntimeError, "select expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "select expects a function" unless block
-
-        list.select { |item| truthy?(block.call(callable, [item])) }
+    def normalize_iterable(collection, name)
+      case collection
+      when Array
+        collection
+      when Hash
+        entries_from_hash(collection)
+      else
+        raise Calc::RuntimeError, "#{name} expects a list or hash"
       end
     end
   end
