@@ -4,6 +4,8 @@ require "bigdecimal"
 class BuiltinsTest < Minitest::Test
   def setup
     @builtins = Calc::Builtins.new
+    @parser = Calc::Parser.new
+    @environment = Calc::Environment.new
   end
 
   def test_resolves_boolean_literals
@@ -122,6 +124,37 @@ class BuiltinsTest < Minitest::Test
     result = @builtins.call("list", [1, 2, 3])
 
     assert_equal [1, 2, 3], result
+  end
+
+  def test_formats_nested_lists
+    assert_equal "[1, 2, 3]", Calc.format_value([BigDecimal("1"), BigDecimal("2"), BigDecimal("3")])
+  end
+
+  def test_maps_with_callable_runner
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(+ x 1)").first, @environment.snapshot, nil)
+    result = @builtins.call("map", [callable, [1, 2, 3]]) do |callable_value, values|
+      Calc::Executer.new(@environment).send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal [BigDecimal("2"), BigDecimal("3"), BigDecimal("4")], result
+  end
+
+  def test_reduce_with_callable_runner
+    callable = Calc::LambdaValue.new(["memo", "x"], @parser.parse("(+ memo x)").first, @environment.snapshot, nil)
+    result = @builtins.call("reduce", [callable, BigDecimal("0"), [1, 2, 3]]) do |callable_value, values|
+      Calc::Executer.new(@environment).send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal BigDecimal("6"), result
+  end
+
+  def test_select_with_callable_runner
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
+    result = @builtins.call("select", [callable, [1, 2, 3]]) do |callable_value, values|
+      Calc::Executer.new(@environment).send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal [2, 3], result
   end
 
   def test_enumerates_builtins

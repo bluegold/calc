@@ -1,6 +1,10 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.4.2`.
+- Formatted list output recursively so higher-order functions like `select` render readable arrays in the REPL.
+
+## 2026-03-27
 - Reordered the README examples from simple arithmetic through higher-order functions to recursive namespace usage.
 - Noted that `list` is a builtin helper for building arrays rather than a special form.
 

@@ -67,11 +67,11 @@ class ExecuterTest < Minitest::Test
   end
 
   def test_reports_unknown_function_with_expression_context
-    ast = @parser.parse("(do (define x 10)(define f (labmda (y) (+ x y)))(define x 20)(f 5))").first
+    ast = @parser.parse("(do (define x 10)(define f (lambda (y) (missing y)))(define x 20)(f 5))").first
 
     error = assert_raises(Calc::NameError) { @executer.evaluate(ast) }
 
-    assert_match "unknown function: labmda", error.message
+    assert_match "unknown function: missing", error.message
     assert_match "while evaluating", error.message
   end
 
@@ -185,6 +185,12 @@ class ExecuterTest < Minitest::Test
     ast = @parser.parse("(namespace crypto (define twice 7) (define (twice x) (+ x x)) twice)").first
 
     assert_equal BigDecimal("7"), @executer.evaluate(ast)
+  end
+
+  def test_builtin_function_is_not_shadowed_by_local_variable
+    ast = @parser.parse("(do (define pow 7) (pow 2 3))").first
+
+    assert_equal BigDecimal("8"), @executer.evaluate(ast)
   end
 
   def test_namespace_local_variable_does_not_leak_to_root

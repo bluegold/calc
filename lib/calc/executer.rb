@@ -60,12 +60,6 @@ module Calc
           evaluate_lambda(node.children)
         when "do"
           evaluate_do(node.children)
-        when "map"
-          evaluate_map(node.children)
-        when "reduce"
-          evaluate_reduce(node.children)
-        when "select"
-          evaluate_select(node.children)
         else
           call_function(head.name, node.children.drop(1), node)
         end
@@ -128,42 +122,6 @@ module Calc
       children.drop(1).reduce(nil) { |_memo, node| evaluate(node) }
     end
 
-    def evaluate_map(children)
-      raise Calc::SyntaxError, "invalid map" unless children.length == 3
-
-      callable = evaluate(children[1])
-      list = evaluate(children[2])
-      ensure_callable!(callable, "map")
-      ensure_array!(list, "map")
-
-      list.map { |item| call_lambda(callable, [item]) }
-    end
-
-    def evaluate_reduce(children)
-      raise Calc::SyntaxError, "invalid reduce" unless children.length == 4
-
-      callable = evaluate(children[1])
-      memo = evaluate(children[2])
-      list = evaluate(children[3])
-      ensure_callable!(callable, "reduce")
-      ensure_array!(list, "reduce")
-
-      list.reduce(memo) do |accumulator, item|
-        call_lambda(callable, [accumulator, item])
-      end
-    end
-
-    def evaluate_select(children)
-      raise Calc::SyntaxError, "invalid select" unless children.length == 3
-
-      callable = evaluate(children[1])
-      list = evaluate(children[2])
-      ensure_callable!(callable, "select")
-      ensure_array!(list, "select")
-
-      list.select { |item| truthy?(call_lambda(callable, [item])) }
-    end
-
     def evaluate_namespace(children)
       namespace_node = children[1]
       body_nodes = children.drop(2)
@@ -197,43 +155,26 @@ module Calc
     end
 
     def call_function(name, args, node = nil)
-      callable = resolve_callable(name)
-      raise Calc::NameError, "unknown function: #{name}" unless callable
-
       values = args.map { |arg| evaluate(arg) }
 
-      call_resolved_callable(callable, values)
+      return @builtins.call(name, values) { |callable, call_values| call_value_callable(callable, call_values) } if @builtins.registered?(name)
+
+      if @environment.bound?(name)
+        value = @environment.get(name)
+
+        return call_lambda(value, values) if value.is_a?(LambdaValue)
+
+        raise Calc::SyntaxError, "invalid expression"
+      end
+
+      resolved_function = @namespaces.resolve_function(@current_namespace, name)
+      return call_user_function(resolved_function[:value], values) if resolved_function
+
+      @builtins.call(name, values) { |callable, call_values| call_value_callable(callable, call_values) }
     rescue Calc::NameError => e
       raise e unless node
 
       raise Calc::NameError, "#{e.message} while evaluating #{Calc::ASTPrinter.pretty([node]).strip}"
-    end
-
-    def resolve_callable(name)
-      return [:builtin, name] if @builtins.registered?(name)
-
-      if @environment.bound?(name)
-        value = @environment.get(name)
-        return [:lambda, value] if value.is_a?(LambdaValue)
-      end
-
-      resolved_function = @namespaces.resolve_function(@current_namespace, name)
-      return [:lambda, resolved_function[:value]] if resolved_function
-
-      nil
-    end
-
-    def call_resolved_callable(callable, values)
-      kind, value = callable
-
-      case kind
-      when :builtin
-        @builtins.call(value, values)
-      when :lambda
-        call_lambda(value, values)
-      else
-        raise Calc::NameError, "unknown function: #{value}"
-      end
     end
 
     def call_lambda(callable, values)
@@ -254,12 +195,10 @@ module Calc
       @current_namespace = previous_namespace
     end
 
-    def ensure_callable!(value, name)
-      raise Calc::NameError, "#{name} expects a function" unless value.is_a?(LambdaValue)
-    end
+    def call_value_callable(callable, values)
+      raise Calc::NameError, "expected a function" unless callable.is_a?(LambdaValue)
 
-    def ensure_array!(value, name)
-      raise Calc::RuntimeError, "#{name} expects a list" unless value.is_a?(Array)
+      call_lambda(callable, values)
     end
 
     def call_user_function(function_entry, values)

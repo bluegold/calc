@@ -6,6 +6,8 @@ module Calc
     case value
     when BigDecimal
       value.to_s("F").sub(/\.0+\z/, "")
+    when Array
+      "[#{value.map { |item| format_value(item) }.join(", ")}]"
     else
       value.to_s
     end
