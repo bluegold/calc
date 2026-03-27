@@ -1,6 +1,12 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.5.3`.
+- Added list helpers: `cons`, `append`, and `concat-list`.
+- Added `fold` as a higher-order builtin alongside `reduce`.
+- Added `hanoi`/`hanoi2` samples and expanded file execution integration tests.
+
+## 2026-03-27
 - Bumped the project to `0.5.2`.
 - Refactored builtin definitions into `lib/calc/functions/*` modules.
 - Split the large builtin test file into focused test files by domain.

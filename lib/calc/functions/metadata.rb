@@ -36,6 +36,9 @@ module Calc
           description: "Convert Calc values to JSON",
           example: "(stringify-json (hash :name \"taro\"))"
         },
+        "cons" => { description: "Prepend an item to a list", example: "(cons 1 (list 2 3))" },
+        "append" => { description: "Append an item to a list", example: "(append (list 1 2) 3)" },
+        "concat-list" => { description: "Concatenate two lists", example: "(concat-list (list 1) (list 2 3))" },
         "nth" => { description: "Return list item at index", example: "(nth 0 (list 1 2 3))" },
         "first" => { description: "Return first item from list", example: "(first (list 1 2 3))" },
         "rest" => { description: "Return list without first item", example: "(rest (list 1 2 3))" },
@@ -46,6 +49,10 @@ module Calc
         "reduce" => {
           description: "Reduce a list with a function",
           example: "(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))"
+        },
+        "fold" => {
+          description: "Fold a list with a function and seed",
+          example: "(fold (lambda (memo x) (+ memo x)) 0 (list 1 2 3))"
         },
         "select" => {
           description: "Select items with a predicate",

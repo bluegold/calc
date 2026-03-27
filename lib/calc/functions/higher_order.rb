@@ -18,6 +18,14 @@ module Calc
           list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
         end
 
+        Functions.register(builtins, "fold", min_arity: 3, max_arity: 3) do |args, &block|
+          callable, memo, collection = args
+          list = builtins.send(:normalize_iterable, collection, "fold")
+          raise Calc::NameError, "fold expects a function" unless block
+
+          list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
+        end
+
         Functions.register(builtins, "select", min_arity: 2, max_arity: 2) do |args, &block|
           callable, collection = args
           list = builtins.send(:normalize_iterable, collection, "select")

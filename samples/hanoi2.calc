@@ -1,0 +1,38 @@
+(define (hanoi-moves n from to via)
+  (if (<= n 0)
+      (list)
+      (if (<= n 1)
+          (list (list from to))
+          (concat-list
+            (hanoi-moves (- n 1) from via to)
+            (concat-list
+              (list (list from to))
+              (hanoi-moves (- n 1) via to from))))))
+
+(define (apply-move state move)
+  (do
+    (define from (first move))
+    (define to (nth 1 move))
+    (define from-tower (get state from))
+    (define to-tower (get state to))
+    (define disk (first from-tower))
+    (set
+      (set state from (rest from-tower))
+      to
+      (cons disk to-tower))))
+
+(define initial-state (hash :A (list 1 2 3) :B (list) :C (list)))
+(define moves (hanoi-moves 3 :A :C :B))
+
+(do
+  (print "--- hanoi2 ---")
+  (print (list :initial :A (get initial-state :A) :B (get initial-state :B) :C (get initial-state :C)))
+  (print moves)
+  (fold
+    (lambda (state move)
+      (do
+        (define next-state (apply-move state move))
+        (print (list :move move :A (get next-state :A) :B (get next-state :B) :C (get next-state :C)))
+        next-state))
+    initial-state
+    moves))

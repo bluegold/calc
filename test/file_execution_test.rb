@@ -6,6 +6,7 @@ class FileExecutionTest < Minitest::Test
   SAMPLE_WITH_LAST_RESULT = {
     "samples/basic.calc" => "14\n",
     "samples/higher-order.calc" => "[3, 4, 5]\n",
+    "samples/hanoi2.calc" => "{\"A\" => [], \"B\" => [], \"C\" => [1, 2, 3]}\n",
     "samples/namespace.calc" => "16\n",
     "samples/recursion.calc" => "55\n"
   }.freeze
@@ -28,6 +29,18 @@ class FileExecutionTest < Minitest::Test
     "samples/recursion.calc" => <<~OUT,
       --- recursion ---
       21
+    OUT
+    "samples/hanoi2.calc" => <<~OUT,
+      --- hanoi2 ---
+      [:initial, :A, [1, 2, 3], :B, [], :C, []]
+      [[:A, :C], [:A, :B], [:C, :B], [:A, :C], [:B, :A], [:B, :C], [:A, :C]]
+      [:move, [:A, :C], :A, [2, 3], :B, [], :C, [1]]
+      [:move, [:A, :B], :A, [3], :B, [2], :C, [1]]
+      [:move, [:C, :B], :A, [3], :B, [1, 2], :C, []]
+      [:move, [:A, :C], :A, [], :B, [1, 2], :C, [3]]
+      [:move, [:B, :A], :A, [1], :B, [2], :C, [3]]
+      [:move, [:B, :C], :A, [1], :B, [], :C, [2, 3]]
+      [:move, [:A, :C], :A, [], :B, [], :C, [1, 2, 3]]
     OUT
     "samples/hanoi.calc" => <<~OUT,
       --- hanoi ---

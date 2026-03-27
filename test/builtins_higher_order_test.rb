@@ -29,6 +29,16 @@ class BuiltinsHigherOrderTest < Minitest::Test
     assert_equal BigDecimal("6"), result
   end
 
+  def test_fold_with_callable_runner
+    callable = Calc::LambdaValue.new(%w[memo x], @parser.parse("(+ memo x)").first, @environment.snapshot, nil)
+
+    result = @builtins.call("fold", [callable, BigDecimal("0"), [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal BigDecimal("6"), result
+  end
+
   def test_select_with_callable_runner
     callable = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
 
@@ -39,6 +49,7 @@ class BuiltinsHigherOrderTest < Minitest::Test
     assert_equal [2, 3], result
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_higher_order_functions_accept_hash_iterables
     pair_to_value = Calc::LambdaValue.new(["pair"], @parser.parse("(get pair 1)").first, @environment.snapshot, nil)
     pair_predicate = Calc::LambdaValue.new(["pair"], @parser.parse("(== (get pair 0) :enabled)").first,
@@ -52,9 +63,14 @@ class BuiltinsHigherOrderTest < Minitest::Test
     reduced = @builtins.call("reduce", [pair_reduce, BigDecimal("0"), hash]) do |fn, values|
       @executer.send(:call_lambda, fn, values)
     end
+    folded = @builtins.call("fold", [pair_reduce, BigDecimal("0"), hash]) do |fn, values|
+      @executer.send(:call_lambda, fn, values)
+    end
 
     assert_equal [BigDecimal("2"), BigDecimal("1")], mapped
     assert_equal [[":enabled", BigDecimal("2")]], selected
     assert_equal BigDecimal("3"), reduced
+    assert_equal BigDecimal("3"), folded
   end
+  # rubocop:enable Minitest/MultipleAssertions
 end

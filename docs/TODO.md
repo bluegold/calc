@@ -23,11 +23,11 @@
 - [x] 文字列を扱う組み込み関数を追加する
 - [x] `print` で標準出力に値を出せるようにする
 - [x] `lambda` で無名関数とクロージャを扱う
-- [x] `map` / `reduce` / `select` などの高階関数を追加する
+- [x] `map` / `reduce` / `fold` / `select` などの高階関数を追加する
 - [x] `hash` / `get` / `set` / `entries` で辞書を扱えるようにする
 - [x] `keys` / `values` / `has?` を追加する
 - [x] `dig` を追加する
-- [x] `nth` / `first` / `rest` を追加する
+- [x] `cons` / `append` / `concat-list` / `nth` / `first` / `rest` を追加する
 - [x] `hash-from-pairs` のような配列から辞書への変換を追加する
 - [ ] `lambda` の表示とエラーメッセージをさらに改善する
 

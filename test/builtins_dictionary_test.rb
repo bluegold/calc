@@ -78,6 +78,12 @@ class BuiltinsDictionaryTest < Minitest::Test
   def test_list_access_helpers
     list = [BigDecimal("1"), BigDecimal("2"), BigDecimal("3")]
 
+    assert_equal [BigDecimal("0"), BigDecimal("1"), BigDecimal("2"), BigDecimal("3")],
+                 @builtins.call("cons", [BigDecimal("0"), list])
+    assert_equal [BigDecimal("1"), BigDecimal("2"), BigDecimal("3"), BigDecimal("4")],
+                 @builtins.call("append", [list, BigDecimal("4")])
+    assert_equal [BigDecimal("1"), BigDecimal("2"), BigDecimal("3"), BigDecimal("4"), BigDecimal("5")],
+                 @builtins.call("concat-list", [list, [BigDecimal("4"), BigDecimal("5")]])
     assert_equal BigDecimal("2"), @builtins.call("nth", [BigDecimal("1"), list])
     assert_nil @builtins.call("nth", [BigDecimal("9"), list])
     assert_equal BigDecimal("1"), @builtins.call("first", [list])

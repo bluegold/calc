@@ -89,16 +89,28 @@ class ExecuterTest < Minitest::Test
   # rubocop:disable Minitest/MultipleAssertions
   def test_dig_and_list_access_helpers
     dig_ast = @parser.parse('(dig (hash :items (list (hash :name "taro"))) :items 0 :name)').first
+    cons_ast = @parser.parse('(cons 0 (list 1 2 3))').first
+    append_ast = @parser.parse('(append (list 1 2 3) 4)').first
+    concat_list_ast = @parser.parse('(concat-list (list 1 2) (list 3 4))').first
     nth_ast = @parser.parse('(nth 1 (list 1 2 3))').first
     first_ast = @parser.parse('(first (list 1 2 3))').first
     rest_ast = @parser.parse('(rest (list 1 2 3))').first
 
     assert_equal "taro", @executer.evaluate(dig_ast)
+    assert_equal [BigDecimal("0"), BigDecimal("1"), BigDecimal("2"), BigDecimal("3")], @executer.evaluate(cons_ast)
+    assert_equal [BigDecimal("1"), BigDecimal("2"), BigDecimal("3"), BigDecimal("4")], @executer.evaluate(append_ast)
+    assert_equal [BigDecimal("1"), BigDecimal("2"), BigDecimal("3"), BigDecimal("4")], @executer.evaluate(concat_list_ast)
     assert_equal BigDecimal("2"), @executer.evaluate(nth_ast)
     assert_equal BigDecimal("1"), @executer.evaluate(first_ast)
     assert_equal [BigDecimal("2"), BigDecimal("3")], @executer.evaluate(rest_ast)
   end
   # rubocop:enable Minitest/MultipleAssertions
+
+  def test_fold_accumulates_values
+    ast = @parser.parse("(fold (lambda (memo x) (+ memo x)) 0 (list 1 2 3))").first
+
+    assert_equal BigDecimal("6"), @executer.evaluate(ast)
+  end
 
   def test_reports_unknown_function_with_expression_context
     ast = @parser.parse("(do (define x 10)(define f (lambda (y) (missing y)))(define x 20)(f 5))").first
