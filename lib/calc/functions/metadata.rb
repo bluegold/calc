@@ -59,7 +59,23 @@ module Calc
           example: "(select (lambda (x) (> x 1)) (list 1 2 3))"
         },
         "pow" => { description: "Raise a number to a power", example: "(pow 2 3)" },
-        "sqrt" => { description: "Square root", example: "(sqrt 9)" }
+        "sqrt" => { description: "Square root", example: "(sqrt 9)" },
+        "current-time" => { description: "Return current time as epoch microseconds", example: "(current-time)" },
+        "parse-time" => {
+          description: "Parse a time string into epoch microseconds",
+          example: "(parse-time \"2026-03-27T12:34:56Z\")"
+        },
+        "format-time" => {
+          description: "Format epoch microseconds as a time string",
+          example: "(format-time (current-time) \"%Y-%m-%d\")"
+        },
+        "next-month" => { description: "Shift epoch microseconds by one month forward", example: "(next-month (current-time))" },
+        "prev-month" => { description: "Shift epoch microseconds by one month backward", example: "(prev-month (current-time))" },
+        "beggining-of-month" => {
+          description: "Return start of month for epoch microseconds",
+          example: "(beggining-of-month (current-time))"
+        },
+        "end-of-month" => { description: "Return end of month for epoch microseconds", example: "(end-of-month (current-time))" }
       }.freeze
 
       def self.fetch(name)
