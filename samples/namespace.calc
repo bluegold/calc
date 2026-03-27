@@ -1,0 +1,8 @@
+(namespace crypto
+  (define shared 5)
+  (define (twice x) (+ x shared))
+  (define (square x) (* x x)))
+
+(do
+  (crypto.twice 3)
+  (crypto.square 4))

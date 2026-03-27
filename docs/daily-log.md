@@ -1,6 +1,16 @@
 # Daily Log
 
 ## 2026-03-27
+- Changed file execution to print the last result only when `--print-last-result` is passed.
+
+## 2026-03-27
+- Updated file execution so `bin/calc filename` prints the final expression result like the REPL.
+
+## 2026-03-27
+- Added a `samples/` directory with small Calc programs for arithmetic, higher-order functions, recursion, and namespace usage.
+- Documented the sample programs in the README.
+
+## 2026-03-27
 - Bumped the project to `0.4.2`.
 - Formatted list output recursively so higher-order functions like `select` render readable arrays in the REPL.
 

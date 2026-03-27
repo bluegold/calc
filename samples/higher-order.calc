@@ -1,0 +1,6 @@
+(define values (list 1 2 3 4 5))
+
+(do
+  (map (lambda (x) (+ x 1)) values)
+  (reduce (lambda (memo x) (+ memo x)) 0 values)
+  (select (lambda (x) (> x 2)) values))

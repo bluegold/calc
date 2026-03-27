@@ -10,6 +10,20 @@ parser = Calc::Parser.new
 executer = Calc::Executer.new
 builtins = executer.instance_variable_get(:@builtins)
 history_path = File.join(Dir.home, ".calc_history")
+print_last_result = false
+script_path = nil
+
+ARGV.each do |arg|
+  case arg
+  when "--print-last-result"
+    print_last_result = true
+  when /^-/
+    warn "unknown option: #{arg}"
+    exit 1
+  else
+    script_path ||= arg
+  end
+end
 
 if File.file?(history_path)
   contents = File.read(history_path)
@@ -103,9 +117,15 @@ def prompt_for(buffer)
   buffer.empty? ? "> " : "... "
 end
 
-if ARGV.first
-  source = File.read(ARGV.first)
-  parser.parse(source).each { |node| executer.evaluate(node) }
+if script_path
+  source = File.read(script_path)
+  last_result = nil
+
+  parser.parse(source).each do |node|
+    last_result = executer.evaluate(node)
+  end
+
+  puts Calc.format_value(last_result) if print_last_result && !last_result.nil?
 else
   buffer = +""
 

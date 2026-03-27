@@ -84,10 +84,13 @@ defined function fibonacchi.fib(n)
 ### File execution
 
 ```bash
-bin/calc path/to/program.calc
+bin/calc --print-last-result path/to/program.calc
 ```
 
 `#!` で始まる先頭行はスクリプトとして無視されます。
+`--print-last-result` を付けると、ファイル内の最後の式の結果が REPL と同じ形式で標準出力に表示されます。
+
+サンプルは [`samples/`](samples/) にあります。REPL に貼って試すか、ファイル実行の入力例として使ってください。
 
 ## Running tests
 

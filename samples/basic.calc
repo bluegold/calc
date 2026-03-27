@@ -1,0 +1,7 @@
+(define base 10)
+(define bonus 4)
+
+(do
+  (if (> (+ base bonus) 12)
+      (+ base bonus)
+      (- base bonus)))
