@@ -14,12 +14,15 @@ class BuiltinsTest < Minitest::Test
     assert_equal [true, nil], @builtins.resolve("nil")
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_marks_reserved_literals
     assert @builtins.reserved?("true")
     assert @builtins.reserved?("false")
     assert @builtins.reserved?("nil")
+
     refute @builtins.reserved?("x")
   end
+  # rubocop:enable Minitest/MultipleAssertions
 
   def test_calls_addition
     result = @builtins.call("+", [BigDecimal("1"), BigDecimal("2")])
@@ -50,7 +53,9 @@ class BuiltinsTest < Minitest::Test
     result = @builtins.call("square", [BigDecimal("4")])
 
     assert_equal BigDecimal("16"), result
+
     builtin = @builtins.builtin("square")
+
     assert_equal "Square a number", builtin.description
     assert_equal "(square 4)", builtin.example
   end
@@ -68,33 +73,33 @@ class BuiltinsTest < Minitest::Test
   end
 
   def test_calls_less_than_or_equal
-    assert_equal true, @builtins.call("<=", [BigDecimal("1"), BigDecimal("2")])
-    assert_equal false, @builtins.call("<=", [BigDecimal("3"), BigDecimal("2")])
+    assert @builtins.call("<=", [BigDecimal("1"), BigDecimal("2")])
+    refute @builtins.call("<=", [BigDecimal("3"), BigDecimal("2")])
   end
 
   def test_calls_less_than
-    assert_equal true, @builtins.call("<", [BigDecimal("1"), BigDecimal("2")])
-    assert_equal false, @builtins.call("<", [BigDecimal("2"), BigDecimal("2")])
+    assert @builtins.call("<", [BigDecimal("1"), BigDecimal("2")])
+    refute @builtins.call("<", [BigDecimal("2"), BigDecimal("2")])
   end
 
   def test_calls_greater_than
-    assert_equal true, @builtins.call(">", [BigDecimal("3"), BigDecimal("2")])
-    assert_equal false, @builtins.call(">", [BigDecimal("2"), BigDecimal("2")])
+    assert @builtins.call(">", [BigDecimal("3"), BigDecimal("2")])
+    refute @builtins.call(">", [BigDecimal("2"), BigDecimal("2")])
   end
 
   def test_calls_greater_than_or_equal
-    assert_equal true, @builtins.call(">=", [BigDecimal("3"), BigDecimal("2")])
-    assert_equal false, @builtins.call(">=", [BigDecimal("1"), BigDecimal("2")])
+    assert @builtins.call(">=", [BigDecimal("3"), BigDecimal("2")])
+    refute @builtins.call(">=", [BigDecimal("1"), BigDecimal("2")])
   end
 
   def test_calls_equal
-    assert_equal true, @builtins.call("==", [BigDecimal("2"), BigDecimal("2")])
-    assert_equal false, @builtins.call("==", [BigDecimal("1"), BigDecimal("2")])
+    assert @builtins.call("==", [BigDecimal("2"), BigDecimal("2")])
+    refute @builtins.call("==", [BigDecimal("1"), BigDecimal("2")])
   end
 
   def test_calls_not_equal
-    assert_equal true, @builtins.call("!=", [BigDecimal("1"), BigDecimal("2")])
-    assert_equal false, @builtins.call("!=", [BigDecimal("2"), BigDecimal("2")])
+    assert @builtins.call("!=", [BigDecimal("1"), BigDecimal("2")])
+    refute @builtins.call("!=", [BigDecimal("2"), BigDecimal("2")])
   end
 
   def test_concatenates_strings
@@ -140,7 +145,7 @@ class BuiltinsTest < Minitest::Test
   end
 
   def test_reduce_with_callable_runner
-    callable = Calc::LambdaValue.new(["memo", "x"], @parser.parse("(+ memo x)").first, @environment.snapshot, nil)
+    callable = Calc::LambdaValue.new(%w[memo x], @parser.parse("(+ memo x)").first, @environment.snapshot, nil)
     result = @builtins.call("reduce", [callable, BigDecimal("0"), [1, 2, 3]]) do |callable_value, values|
       Calc::Executer.new(@environment).send(:call_lambda, callable_value, values)
     end
@@ -157,6 +162,7 @@ class BuiltinsTest < Minitest::Test
     assert_equal [2, 3], result
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_enumerates_builtins
     names = @builtins.each_builtin.map(&:name)
 
@@ -174,4 +180,5 @@ class BuiltinsTest < Minitest::Test
     assert_includes names, "pow"
     assert_includes names, "sqrt"
   end
+  # rubocop:enable Minitest/MultipleAssertions
 end

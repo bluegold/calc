@@ -68,30 +68,7 @@ module Calc
       register("list", min_arity: 0, description: "Create a list", example: "(list 1 2 3)") do |args|
         args
       end
-      register("map", min_arity: 2, max_arity: 2, description: "Map a function over a list",
-                          example: "(map (lambda (x) (+ x 1)) (list 1 2 3))") do |args, &callable_runner|
-        callable, list = args
-        raise Calc::RuntimeError, "map expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "map expects a function" unless callable_runner
-
-        list.map { |item| callable_runner.call(callable, [item]) }
-      end
-      register("reduce", min_arity: 3, max_arity: 3, description: "Reduce a list with a function",
-                              example: "(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))") do |args, &callable_runner|
-        callable, memo, list = args
-        raise Calc::RuntimeError, "reduce expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "reduce expects a function" unless callable_runner
-
-        list.reduce(memo) { |accumulator, item| callable_runner.call(callable, [accumulator, item]) }
-      end
-      register("select", min_arity: 2, max_arity: 2, description: "Select items with a predicate",
-                              example: "(select (lambda (x) (> x 1)) (list 1 2 3))") do |args, &callable_runner|
-        callable, list = args
-        raise Calc::RuntimeError, "select expects a list" unless list.is_a?(Array)
-        raise Calc::NameError, "select expects a function" unless callable_runner
-
-        list.select { |item| truthy?(callable_runner.call(callable, [item])) }
-      end
+      register_higher_order_builtins
 
       Functions::Pow.register(self)
       Functions::Sqrt.register(self)
@@ -136,17 +113,46 @@ module Calc
       @functions.values.each(&block)
     end
 
-    def call(name, args, &callable_runner)
+    def call(name, args, &)
       builtin = @functions[name]
       raise Calc::NameError, "unknown function: #{name}" unless builtin
       raise Calc::RuntimeError, "wrong number of arguments for #{name}" if args.length < builtin.min_arity
       raise Calc::RuntimeError, "wrong number of arguments for #{name}" if builtin.max_arity && args.length > builtin.max_arity
 
-      builtin.callable.call(args, &callable_runner)
+      builtin.callable.call(args, &)
     end
 
     def truthy?(value)
       value != false && !value.nil?
+    end
+
+    private
+
+    def register_higher_order_builtins
+      register("map", min_arity: 2, max_arity: 2, description: "Map a function over a list",
+                      example: "(map (lambda (x) (+ x 1)) (list 1 2 3))") do |args, &block|
+        callable, list = args
+        raise Calc::RuntimeError, "map expects a list" unless list.is_a?(Array)
+        raise Calc::NameError, "map expects a function" unless block
+
+        list.map { |item| block.call(callable, [item]) }
+      end
+      register("reduce", min_arity: 3, max_arity: 3, description: "Reduce a list with a function",
+                         example: "(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))") do |args, &block|
+        callable, memo, list = args
+        raise Calc::RuntimeError, "reduce expects a list" unless list.is_a?(Array)
+        raise Calc::NameError, "reduce expects a function" unless block
+
+        list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
+      end
+      register("select", min_arity: 2, max_arity: 2, description: "Select items with a predicate",
+                         example: "(select (lambda (x) (> x 1)) (list 1 2 3))") do |args, &block|
+        callable, list = args
+        raise Calc::RuntimeError, "select expects a list" unless list.is_a?(Array)
+        raise Calc::NameError, "select expects a function" unless block
+
+        list.select { |item| truthy?(block.call(callable, [item])) }
+      end
     end
   end
 end

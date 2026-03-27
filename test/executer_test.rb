@@ -170,6 +170,7 @@ class ExecuterTest < Minitest::Test
     call_ast = @parser.parse("(crypto.twice 4)").first
 
     @executer.evaluate(ast)
+
     assert_equal BigDecimal("8"), @executer.evaluate(call_ast)
   end
 
@@ -178,6 +179,7 @@ class ExecuterTest < Minitest::Test
     call_ast = @parser.parse("(pow 2 3)").first
 
     @executer.evaluate(ast)
+
     assert_equal BigDecimal("8"), @executer.evaluate(call_ast)
   end
 
@@ -212,6 +214,7 @@ class ExecuterTest < Minitest::Test
     call_ast = @parser.parse("(fib 10)").first
 
     @executer.evaluate(ast)
+
     assert_equal BigDecimal("55"), @executer.evaluate(call_ast)
   end
 

@@ -156,8 +156,9 @@ module Calc
 
     def call_function(name, args, node = nil)
       values = args.map { |arg| evaluate(arg) }
+      callable_runner = proc { |callable, call_values| call_value_callable(callable, call_values) }
 
-      return @builtins.call(name, values) { |callable, call_values| call_value_callable(callable, call_values) } if @builtins.registered?(name)
+      return @builtins.call(name, values, &callable_runner) if @builtins.registered?(name)
 
       if @environment.bound?(name)
         value = @environment.get(name)
@@ -170,7 +171,7 @@ module Calc
       resolved_function = @namespaces.resolve_function(@current_namespace, name)
       return call_user_function(resolved_function[:value], values) if resolved_function
 
-      @builtins.call(name, values) { |callable, call_values| call_value_callable(callable, call_values) }
+      @builtins.call(name, values, &callable_runner)
     rescue Calc::NameError => e
       raise e unless node
 

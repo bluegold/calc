@@ -6,6 +6,7 @@ class ParserTest < Minitest::Test
     @parser = Calc::Parser.new
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_parses_basic_list
     ast = @parser.parse("(+ 1 2)").first
 
@@ -14,11 +15,13 @@ class ParserTest < Minitest::Test
     assert_equal BigDecimal("1"), ast.children[1].value
     assert_equal BigDecimal("2"), ast.children[2].value
   end
+  # rubocop:enable Minitest/MultipleAssertions
 
   def test_parses_nested_expression
     ast = @parser.parse("(* (+ 1 2) 3)").first
 
     inner = ast.children[1]
+
     assert_instance_of Calc::ListNode, inner
     assert_equal "+", inner.children[0].name
   end
