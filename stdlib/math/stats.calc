@@ -1,0 +1,15 @@
+(namespace std.math.stats
+  (define (sum xs)
+    (fold (lambda (memo x) (+ memo x)) 0 xs))
+
+  (define (count xs)
+    (fold (lambda (memo _x) (+ memo 1)) 0 xs))
+
+  (define (mean xs)
+    (/ (sum xs) (count xs)))
+
+  (define (min xs)
+    (fold (lambda (memo x) (if (< x memo) x memo)) (first xs) (rest xs)))
+
+  (define (max xs)
+    (fold (lambda (memo x) (if (> x memo) x memo)) (first xs) (rest xs))))

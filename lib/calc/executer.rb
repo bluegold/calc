@@ -11,8 +11,12 @@ module Calc
       @environment = environment
       @builtins = builtins
       @namespaces = namespaces
+      @parser = Parser.new
       @current_namespace = current_namespace
       @namespace_stack = [current_namespace]
+      @current_file = nil
+      @loaded_files = {}
+      @loading_stack = []
     end
 
     def evaluate(node)
@@ -45,6 +49,17 @@ module Calc
       end
     end
 
+    def evaluate_source(source, source_path: nil)
+      nodes = @parser.parse(source)
+      evaluate_nodes(nodes, source_path: source_path)
+    end
+
+    def evaluate_nodes(nodes, source_path: nil)
+      with_source_path(source_path) do
+        nodes.reduce(nil) { |_memo, node| evaluate(node) }
+      end
+    end
+
     private
 
     def evaluate_list(node)
@@ -62,6 +77,8 @@ module Calc
           evaluate_lambda(node.children)
         when "do"
           evaluate_do(node.children)
+        when "load"
+          evaluate_load(node.children)
         else
           call_function(head.name, node.children.drop(1), node)
         end

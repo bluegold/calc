@@ -1,0 +1,19 @@
+(namespace std.time.core
+  (define (now)
+    (current-time))
+
+  (define (iso t)
+    (format-time t))
+
+  (define (format t fmt)
+    (format-time t fmt))
+
+  (define (month-range t)
+    (hash :begin (beggining-of-month t)
+          :end (end-of-month t)))
+
+  (define (next-month-range t)
+    (month-range (next-month t)))
+
+  (define (prev-month-range t)
+    (month-range (prev-month t))))

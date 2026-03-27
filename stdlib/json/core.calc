@@ -1,0 +1,18 @@
+(namespace std.json.core
+  (define (parse text)
+    (parse-json text))
+
+  (define (stringify value)
+    (stringify-json value))
+
+  (define (get-in payload path)
+    (fold
+      (lambda (memo key)
+        (if (== memo nil)
+            nil
+            (get memo key)))
+      payload
+      path))
+
+  (define (assoc payload key value)
+    (set payload key value)))

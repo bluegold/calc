@@ -126,11 +126,7 @@ end
 
 if script_path
   source = File.read(script_path)
-  last_result = nil
-
-  parser.parse(source).each do |node|
-    last_result = executer.evaluate(node)
-  end
+  last_result = executer.evaluate_source(source, source_path: File.expand_path(script_path))
 
   puts Calc.format_value(last_result) if print_last_result && !last_result.nil?
 else

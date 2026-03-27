@@ -1,5 +1,6 @@
 require_relative "test_helper"
 require "bigdecimal"
+require "tmpdir"
 
 class ExecuterTest < Minitest::Test
   def setup
@@ -268,5 +269,51 @@ class ExecuterTest < Minitest::Test
     ast = @parser.parse("(namespace crypto (define (fib n) (if (<= n 1) n (+ (fib (- n 1)) (fib (- n 2))))) (fib 10))").first
 
     assert_equal BigDecimal("55"), @executer.evaluate(ast)
+  end
+
+  def test_load_imports_module_relative_to_current_file
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "math.calc"), "(namespace math (define (inc x) (+ x 1)))\n")
+      main = "(do (load \"math\") (math.inc 2))"
+
+      result = @executer.evaluate_source(main, source_path: File.join(dir, "main.calc"))
+
+      assert_equal BigDecimal("3"), result
+    end
+  end
+
+  def test_load_with_as_wraps_module_namespace
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "stats.calc"), "(namespace stats (define (inc x) (+ x 1)))\n")
+      main = "(do (load \"stats\" :as util) (util.stats.inc 2))"
+
+      result = @executer.evaluate_source(main, source_path: File.join(dir, "main.calc"))
+
+      assert_equal BigDecimal("3"), result
+    end
+  end
+
+  def test_load_with_as_wraps_top_level_definitions
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "vars.calc"), "(define answer 42)\n")
+      main = "(do (load \"vars\" :as util) util.answer)"
+
+      result = @executer.evaluate_source(main, source_path: File.join(dir, "main.calc"))
+
+      assert_equal BigDecimal("42"), result
+    end
+  end
+
+  def test_load_detects_cyclic_dependencies
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "a.calc"), "(load \"b\")\n")
+      File.write(File.join(dir, "b.calc"), "(load \"a\")\n")
+
+      error = assert_raises(Calc::RuntimeError) do
+        @executer.evaluate_source('(load "a")', source_path: File.join(dir, "main.calc"))
+      end
+
+      assert_match "cyclic load detected", error.message
+    end
   end
 end

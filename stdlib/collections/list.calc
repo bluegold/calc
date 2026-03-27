@@ -1,0 +1,15 @@
+(namespace std.collections.list
+  (define (sum xs)
+    (fold (lambda (memo x) (+ memo x)) 0 xs))
+
+  (define (count xs)
+    (fold (lambda (memo _x) (+ memo 1)) 0 xs))
+
+  (define (last xs)
+    (fold (lambda (memo x) x) nil xs))
+
+  (define (reverse xs)
+    (fold (lambda (memo x) (cons x memo)) (list) xs))
+
+  (define (append-all xss)
+    (fold (lambda (memo xs) (concat-list memo xs)) (list) xss)))

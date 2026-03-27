@@ -1,6 +1,12 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.6.0`.
+- Added `load` with extensionless module resolution and `:as` namespace wrapping.
+- Added cyclic load detection and one-time load caching.
+- Added draft `stdlib/` modules for collections, math, time, and JSON helpers.
+
+## 2026-03-27
 - Bumped the project to `0.5.4`.
 - Added builtin `type` metadata and grouped `:help` output by function category.
 - Fixed timezone-less `parse-time` handling to avoid local DST-dependent parsing drift.
