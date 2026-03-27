@@ -1,6 +1,11 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.5.4`.
+- Added builtin `type` metadata and grouped `:help` output by function category.
+- Fixed timezone-less `parse-time` handling to avoid local DST-dependent parsing drift.
+
+## 2026-03-27
 - Bumped the project to `0.5.3`.
 - Added list helpers: `cons`, `append`, and `concat-list`.
 - Added `fold` as a higher-order builtin alongside `reduce`.

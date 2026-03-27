@@ -21,6 +21,14 @@ class BuiltinsTimeTest < Minitest::Test
     end
   end
 
+  def test_parse_time_without_timezone_is_not_affected_by_dst_gaps
+    with_timezone("America/New_York") do
+      result = @builtins.call("parse-time", ["2024-03-10 02:30:00"])
+
+      assert_equal "2024-03-10T02:30:00.000000Z", @builtins.call("format-time", [result])
+    end
+  end
+
   def test_format_time_without_format_uses_iso8601
     input = BigDecimal("1774614896123456")
 

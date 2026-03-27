@@ -9,7 +9,7 @@ module Calc
       "nil" => nil
     }.freeze
 
-    Builtin = Struct.new(:name, :min_arity, :max_arity, :description, :example, :callable)
+    Builtin = Struct.new(:name, :min_arity, :max_arity, :type, :description, :example, :callable)
 
     def initialize
       @functions = {}
@@ -17,13 +17,14 @@ module Calc
       Functions.register_all(self)
     end
 
-    def register(name, min_arity: 0, max_arity: nil, description: nil, example: nil, &block)
+    def register(name, min_arity: 0, max_arity: nil, **metadata, &block)
       @functions[name] = Builtin.new(
         name: name,
         min_arity: min_arity,
         max_arity: max_arity,
-        description: description,
-        example: example,
+        type: metadata[:type],
+        description: metadata[:description],
+        example: metadata[:example],
         callable: block
       )
     end

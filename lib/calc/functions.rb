@@ -15,6 +15,7 @@ module Calc
         name,
         min_arity: min_arity,
         max_arity: max_arity,
+        type: metadata[:type],
         description: metadata[:description],
         example: metadata[:example],
         &

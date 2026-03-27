@@ -1,3 +1,5 @@
+require_relative "types"
+
 module Calc
   module Functions
     module Metadata
@@ -79,7 +81,10 @@ module Calc
       }.freeze
 
       def self.fetch(name)
-        DEFINITIONS.fetch(name)
+        definition = DEFINITIONS.fetch(name)
+        type = Types.fetch(name)
+
+        definition.merge(type: type)
       end
     end
   end

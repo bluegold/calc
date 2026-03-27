@@ -69,11 +69,14 @@ def handle_repl_command(line, parser, _executer, builtins)
     puts "  :help         Show this help"
     puts
     puts "Builtins:"
-    builtins.each_builtin.each do |builtin|
-      line = "  #{builtin.name}"
-      line += " - #{builtin.description}" if builtin.description
-      puts line
-      puts "    example: #{builtin.example}" if builtin.example
+    builtins.each_builtin.group_by { |builtin| builtin.type || "other" }.sort.each do |type, entries|
+      puts "  [#{format_builtin_group(type)}]"
+      entries.sort_by(&:name).each do |builtin|
+        line = "    #{builtin.name}"
+        line += " - #{builtin.description}" if builtin.description
+        puts line
+        puts "      example: #{builtin.example}" if builtin.example
+      end
     end
     true
   else
@@ -83,6 +86,10 @@ def handle_repl_command(line, parser, _executer, builtins)
 rescue StandardError => e
   warn "#{e.class}: #{e.message}"
   false
+end
+
+def format_builtin_group(type)
+  type.split("-").map(&:capitalize).join(" ")
 end
 
 def paren_depth(source)

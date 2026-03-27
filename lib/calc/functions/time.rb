@@ -55,16 +55,30 @@ module Calc
       def self.parse_time_input(input)
         raise Calc::RuntimeError, "parse-time expects a string" unless input.is_a?(String)
 
-        parsed = ::Time.parse(input)
         components = Date._parse(input)
-        time = if components[:offset].nil?
-                 ::Time.utc(parsed.year, parsed.month, parsed.day, parsed.hour, parsed.min, parsed.sec, parsed.usec)
-               else
-                 parsed.utc
-               end
+        parsed = ::Time.parse(input)
+        time = components[:offset].nil? ? utc_time_from_components(components, parsed) : parsed.utc
         to_epoch_usec(time)
       rescue ArgumentError => e
         raise Calc::RuntimeError, e.message
+      end
+
+      def self.utc_time_from_components(components, parsed)
+        year = components[:year] || parsed.year
+        month = components[:mon] || parsed.month
+        day = components[:mday] || parsed.day
+        hour = components[:hour] || parsed.hour
+        minute = components[:min] || parsed.min
+        second = components[:sec] || parsed.sec
+        usec = usec_from_components(components[:sec_fraction], parsed.usec)
+
+        ::Time.utc(year, month, day, hour, minute, second, usec)
+      end
+
+      def self.usec_from_components(sec_fraction, fallback_usec)
+        return fallback_usec unless sec_fraction
+
+        (sec_fraction * USEC_PER_SECOND).to_i
       end
 
       def self.shift_month(epoch_usec, delta)
@@ -105,6 +119,7 @@ module Calc
       end
       private_class_method :register_current_time, :register_parse_time, :register_format_time,
                            :register_month_shift, :register_month_boundaries, :parse_time_input,
+                           :utc_time_from_components, :usec_from_components,
                            :shift_month, :from_epoch_usec, :to_epoch_usec, :normalize_epoch_usec
     end
   end
