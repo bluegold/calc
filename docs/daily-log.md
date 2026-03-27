@@ -1,6 +1,9 @@
 # Daily Log
 
 ## 2026-03-27
+- Marked the file execution integration test task complete in the TODO list.
+
+## 2026-03-27
 - Changed file execution to print the last result only when `--print-last-result` is passed.
 
 ## 2026-03-27
