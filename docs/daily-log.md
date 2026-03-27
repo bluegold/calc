@@ -1,6 +1,11 @@
 # Daily Log
 
 ## 2026-03-27
+- Bumped the project to `0.5.2`.
+- Refactored builtin definitions into `lib/calc/functions/*` modules.
+- Split the large builtin test file into focused test files by domain.
+
+## 2026-03-27
 - Added hash/list access helpers: `keys`, `values`, `has?`, `dig`, `nth`, `first`, `rest`, and `hash-from-pairs`.
 - Extended `map`, `reduce`, and `select` to accept hash entries as `[:key, value]` pairs.
 
