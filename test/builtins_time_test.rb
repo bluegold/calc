@@ -13,6 +13,14 @@ class BuiltinsTimeTest < Minitest::Test
     assert_equal BigDecimal("1774614896123456"), result
   end
 
+  def test_parse_time_without_timezone_treated_as_utc
+    with_timezone("Asia/Tokyo") do
+      result = @builtins.call("parse-time", ["2026-03-27 12:34:56"])
+
+      assert_equal "2026-03-27T12:34:56.000000Z", @builtins.call("format-time", [result])
+    end
+  end
+
   def test_format_time_without_format_uses_iso8601
     input = BigDecimal("1774614896123456")
 
@@ -57,5 +65,15 @@ class BuiltinsTimeTest < Minitest::Test
     error = assert_raises(Calc::RuntimeError) { @builtins.call("parse-time", [123]) }
 
     assert_equal "parse-time expects a string", error.message
+  end
+
+  private
+
+  def with_timezone(tz)
+    original = ENV.fetch("TZ", nil)
+    ENV["TZ"] = tz
+    yield
+  ensure
+    original.nil? ? ENV.delete("TZ") : ENV["TZ"] = original
   end
 end
