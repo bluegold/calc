@@ -1,5 +1,10 @@
 # Daily Log
 
+## 2026-03-27
+- Reordered the README examples from simple arithmetic through higher-order functions to recursive namespace usage.
+- Noted that `list` is a builtin helper for building arrays rather than a special form.
+- Recorded the `if` special form implementation in the daily log.
+
 ## 2026-03-26
 - Updated the release workflow to keep release notes generic across versions.
 - Added `print` and string builtins, plus string literal support.
@@ -31,3 +36,4 @@
 - Updated parser and executor tests to cover the new behavior.
 - Added AST pretty printing and a `:ast` REPL debug command.
 - Switched `:ast` output to a YAML-like indented representation for readability.
+- Implemented the `if` special form.

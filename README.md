@@ -42,6 +42,20 @@ bin/calc
 例:
 
 ```text
+> (+ 1 2 3)
+6
+> (define x 10)
+10
+> (+ x 5)
+15
+> (map (lambda (x) (+ x 1)) (list 1 2 3))
+[2, 3, 4]
+> (reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))
+6
+> (select (lambda (x) (> x 1)) (list 1 2 3))
+[2, 3]
+> ((lambda (x) (+ x 1)) 4)
+5
 > (namespace fibonacchi
     (define (fib n)
       (if (<= n 1)
@@ -50,14 +64,6 @@ bin/calc
 defined function fibonacchi.fib(n)
 > (fibonacchi.fib 10)
 55
-> ((lambda (x) (+ x 1)) 4)
-5
-> (+ 1 2 3)
-6
-> (define x 10)
-10
-> (+ x 5)
-15
 > :ast (+ 1 (* 2 3))
 - type: list
   children:
