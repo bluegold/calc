@@ -51,27 +51,39 @@ module Calc
       source = line_buffer[0...cursor]
       frames = []
 
-      tokenize(source).each do |token|
-        case token[:type]
-        when :lparen
-          frames << { head: nil, namespace_name: nil, namespace_path: nil }
-        when :rparen
-          frames.pop
-        when :symbol
-          frame = frames.last
-          next unless frame
-
-          if frame[:head].nil?
-            frame[:head] = token[:value]
-          elsif frame[:head] == "namespace" && frame[:namespace_name].nil?
-            frame[:namespace_name] = token[:value]
-            parent_path = frames[0...-1].reverse.find { |candidate| candidate[:namespace_path] }&.dig(:namespace_path)
-            frame[:namespace_path] = resolve_namespace_path(parent_path, frame[:namespace_name])
-          end
-        end
-      end
+      tokenize(source).each { |token| process_namespace_token(frames, token) }
 
       frames.reverse.find { |frame| frame[:namespace_path] }&.dig(:namespace_path)
+    end
+
+    def process_namespace_token(frames, token)
+      case token[:type]
+      when :lparen
+        frames << { head: nil, namespace_name: nil, namespace_path: nil }
+      when :rparen
+        frames.pop
+      when :symbol
+        apply_symbol_to_frame(frames, token[:value])
+      end
+    end
+
+    def apply_symbol_to_frame(frames, value)
+      frame = frames.last
+      return unless frame
+
+      if frame[:head].nil?
+        frame[:head] = value
+        return
+      end
+
+      return unless frame[:head] == "namespace" && frame[:namespace_name].nil?
+
+      frame[:namespace_name] = value
+      frame[:namespace_path] = resolve_namespace_path(parent_namespace_path(frames), value)
+    end
+
+    def parent_namespace_path(frames)
+      frames[0...-1].reverse.find { |candidate| candidate[:namespace_path] }&.dig(:namespace_path)
     end
 
     def resolve_namespace_path(parent_path, name)
@@ -89,22 +101,10 @@ module Calc
 
         case char
         when ";"
-          newline = source.index("\n", index)
-          break unless newline
-
-          index = newline + 1
+          index = skip_comment(source, index)
+          break unless index
         when '"'
-          index += 1
-          while index < source.length
-            if source[index] == "\\"
-              index += 2
-            elsif source[index] == '"'
-              index += 1
-              break
-            else
-              index += 1
-            end
-          end
+          index = skip_quoted_string(source, index)
         when "("
           tokens << { type: :lparen }
           index += 1
@@ -114,17 +114,43 @@ module Calc
         when /\s/
           index += 1
         else
-          start = index
-          index += 1
-          while index < source.length && source[index] !~ /[\s()]/
-            index += 1
-          end
-
-          tokens << { type: :symbol, value: source[start...index] }
+          token, index = read_symbol(source, index)
+          tokens << token
         end
       end
 
       tokens
+    end
+
+    def skip_comment(source, index)
+      newline = source.index("\n", index)
+      return nil unless newline
+
+      newline + 1
+    end
+
+    def skip_quoted_string(source, index)
+      index += 1
+      while index < source.length
+        if source[index] == "\\"
+          index += 2
+          next
+        end
+
+        return index + 1 if source[index] == '"'
+
+        index += 1
+      end
+
+      index
+    end
+
+    def read_symbol(source, index)
+      start = index
+      index += 1
+      index += 1 while index < source.length && source[index] !~ /[\s()]/
+
+      [{ type: :symbol, value: source[start...index] }, index]
     end
 
     def token_start(line_buffer, cursor)

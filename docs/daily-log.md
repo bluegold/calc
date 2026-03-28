@@ -9,6 +9,9 @@
 - Enabled menu-style tab completion cycling in the REPL (`Tab` to rotate candidates).
 - Added context-aware namespace completion so unqualified names are suggested only inside active `namespace` forms.
 - Fixed namespace completion edge cases: skip ancestor-local symbols and fall back to nearest existing parent namespace when typing inside a new nested namespace.
+- Refactored REPL completion parser internals to satisfy RuboCop complexity/style checks.
+- Split completion-focused executor assertions into `test/executer_completion_test.rb`.
+- Bumped the project to `0.6.2`.
 
 ## 2026-03-27
 - Bumped the project to `0.6.0`.
