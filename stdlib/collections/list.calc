@@ -5,6 +5,9 @@
   (define (count xs)
     (fold (lambda (memo _x) (+ memo 1)) 0 xs))
 
+  (define (average xs)
+    (/ (sum xs) (count xs)))
+
   (define (last xs)
     (fold (lambda (memo x) x) nil xs))
 
