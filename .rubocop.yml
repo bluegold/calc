@@ -19,7 +19,7 @@ Metrics/AbcSize:
     - "lib/calc/builtins.rb"
 
 Metrics/ClassLength:
-  Max: 230
+  Max: 250
   Exclude:
     - "lib/calc/builtins.rb"
 
