@@ -1,6 +1,9 @@
 # Daily Log
 
 ## 2026-03-28
+- Expanded the README `Usage` section with feature-grouped REPL examples, tab-completion usage, and richer file execution examples.
+- Reorganized README sample documentation by feature category and expanded runnable examples.
+- Updated `samples/README.md` to match current runtime capabilities and grouped sample intent.
 - Added REPL tab completion for `:help`/`:ast`, builtins, and literals.
 - Added `test/repl_completion_test.rb` to lock command and symbol completion behavior.
 - Expanded REPL completion to include user-defined function names and namespace-qualified symbols.
