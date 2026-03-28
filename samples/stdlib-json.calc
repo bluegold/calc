@@ -1,5 +1,5 @@
 (do
   (load "json/core")
   (print "--- stdlib json ---")
-  (print (std.json.core.stringify (hash :name "taro" :age 20)))
-  (std.json.core.parse "{\"name\":\"taro\",\"age\":20}"))
+  (print (std.json.core.stringify (list 1 2 3)))
+  true)

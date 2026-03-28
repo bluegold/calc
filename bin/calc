@@ -129,7 +129,7 @@ def run_calc_tests(executer, paths)
       puts Calc.format_value(result) unless result.nil?
     rescue StandardError => e
       failures << path
-      warn CalcCli.red("FAIL", stderr_colorize) + " #{path}: #{e.class}: #{e.message}"
+      warn CalcCli.red("FAIL", stderr_colorize) + " #{path}: #{e.message}"
     end
   end
 
@@ -227,9 +227,14 @@ exit run_calc_tests(executer, remaining_args) if subcommand == "test"
 
 if script_path
   source = File.read(script_path)
-  last_result = executer.evaluate_source(source, source_path: File.expand_path(script_path))
+  begin
+    last_result = executer.evaluate_source(source, source_path: File.expand_path(script_path))
 
-  puts Calc.format_value(last_result) if print_last_result && !last_result.nil?
+    puts Calc.format_value(last_result) if print_last_result && !last_result.nil?
+  rescue StandardError => e
+    warn e.message
+    exit 1
+  end
 else
   buffer = +""
 

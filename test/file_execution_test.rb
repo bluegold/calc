@@ -108,6 +108,32 @@ class FileExecutionTest < Minitest::Test
     end
   end
 
+  def test_file_execution_reports_while_evaluating_context
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "boom.calc")
+      File.write(path, "(do (define x 1) (+ x nil))\n")
+
+      stdout, stderr, status = run_calc(path)
+
+      refute_predicate status, :success?
+      assert_empty stdout
+      assert_includes scrub_stderr(stderr), "while evaluating"
+    end
+  end
+
+  def test_file_execution_reports_failing_expression
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "boom.calc")
+      File.write(path, "(do (define x 1) (+ x nil))\n")
+
+      stdout, stderr, status = run_calc(path)
+
+      refute_predicate status, :success?
+      assert_empty stdout
+      assert_includes scrub_stderr(stderr), "(+ x nil)"
+    end
+  end
+
   private
 
   def run_calc(...)

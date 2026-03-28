@@ -1,5 +1,6 @@
 require "bigdecimal"
 require "yaml"
+require "strscan"
 
 module Calc
   def self.format_value(value)
@@ -17,31 +18,31 @@ module Calc
     end
   end
 
-  NumberNode = Struct.new(:value) do
+  NumberNode = Struct.new(:value, :line, :column) do
     def pretty_print(q)
       q.text(Calc.format_value(value))
     end
   end
 
-  SymbolNode = Struct.new(:name) do
+  SymbolNode = Struct.new(:name, :line, :column) do
     def pretty_print(q)
       q.text(name)
     end
   end
 
-  StringNode = Struct.new(:value) do
+  StringNode = Struct.new(:value, :line, :column) do
     def pretty_print(q)
       q.text(value.inspect)
     end
   end
 
-  KeywordNode = Struct.new(:name) do
+  KeywordNode = Struct.new(:name, :line, :column) do
     def pretty_print(q)
       q.text(":#{name}")
     end
   end
 
-  ListNode = Struct.new(:children) do
+  ListNode = Struct.new(:children, :line, :column) do
     def pretty_print(q)
       q.group(1, "(", ")") do
         children.each_with_index do |child, index|
@@ -52,7 +53,7 @@ module Calc
     end
   end
 
-  LambdaNode = Struct.new(:params, :body) do
+  LambdaNode = Struct.new(:params, :body, :line, :column) do
     def pretty_print(q)
       q.group(1, "(", ")") do
         q.text("lambda")
@@ -107,7 +108,47 @@ module Calc
 
     def tokenize(source)
       stripped = strip_comments_and_shebang(source)
-      stripped.scan(/"(?:\\.|[^"\\])*"|\(|\)|[^\s()]+/)
+      tokens = []
+      scanner = StringScanner.new(stripped)
+
+      until scanner.eos?
+        scanner.skip(/\s+/)
+        break if scanner.eos?
+
+        start_offset = scanner.pos
+        token = scanner.scan(/"(?:\\.|[^"\\])*"|\(|\)|[^\s()]+/)
+        raise Calc::SyntaxError, "unexpected token" unless token
+
+        line, column = line_and_column_for(stripped, start_offset)
+        type = case token
+               when "("
+                 :lparen
+               when ")"
+                 :rparen
+               else
+                 :atom
+               end
+
+        tokens << Token.new(type, token, line, column)
+      end
+
+      tokens
+    end
+
+    def line_and_column_for(source, offset)
+      line = 1
+      column = 1
+
+      source[0...offset].each_char do |char|
+        if char == "\n"
+          line += 1
+          column = 1
+        else
+          column += 1
+        end
+      end
+
+      [line, column]
     end
 
     def strip_comments_and_shebang(source)
@@ -157,10 +198,10 @@ module Calc
       token = tokens.shift
       raise Calc::SyntaxError, "unexpected end of input" if token.nil?
 
-      case token
-      when "("
+      case token.type
+      when :lparen
         children = []
-        until tokens.first == ")"
+        until tokens.first&.type == :rparen
           raise Calc::SyntaxError, "missing ')'" if tokens.empty?
 
           children << parse_expression(tokens)
@@ -168,8 +209,8 @@ module Calc
         raise Calc::SyntaxError, "empty list" if children.empty?
 
         tokens.shift
-        ListNode.new(children: children)
-      when ")"
+        ListNode.new(children: children, line: token.line, column: token.col)
+      when :rparen
         raise Calc::SyntaxError, "unexpected ')'"
       else
         atom(token)
@@ -177,16 +218,16 @@ module Calc
     end
 
     def atom(token)
-      if token.match?(/\A-?(?:\d+\.?\d*|\d*\.\d+)\z/)
-        NumberNode.new(value: BigDecimal(token))
-      elsif token.start_with?("\"")
-        raise Calc::SyntaxError, "unterminated string literal" unless token.end_with?("\"")
+      if token.value.match?(/\A-?(?:\d+\.?\d*|\d*\.\d+)\z/)
+        NumberNode.new(value: BigDecimal(token.value), line: token.line, column: token.col)
+      elsif token.value.start_with?("\"")
+        raise Calc::SyntaxError, "unterminated string literal" unless token.value.end_with?("\"")
 
-        StringNode.new(value: unescape_string(token))
-      elsif token.start_with?(":") && token.length > 1
-        KeywordNode.new(name: token[1..])
+        StringNode.new(value: unescape_string(token.value), line: token.line, column: token.col)
+      elsif token.value.start_with?(":") && token.value.length > 1
+        KeywordNode.new(name: token.value[1..], line: token.line, column: token.col)
       else
-        SymbolNode.new(name: token)
+        SymbolNode.new(name: token.value, line: token.line, column: token.col)
       end
     end
 
@@ -198,4 +239,6 @@ module Calc
         .gsub('\\"', '"')
     end
   end
+
+  Token = Struct.new(:type, :value, :line, :col)
 end

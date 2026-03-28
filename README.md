@@ -238,4 +238,5 @@ bin/calc test samples/test
 
 - AST 表示の `:ast` はデバッグ用です
 - Release 手順は [`docs/release.md`](docs/release.md) を参照してください
+- 言語仕様の参照先は [`docs/spec.md`](docs/spec.md) です
 - ルートの `docs/TODO.md` に未実装項目をまとめています

@@ -1,0 +1,57 @@
+; N-Queen問題を解くプログラム (Calc Language Implementation)
+
+(namespace n-queens
+  (define (count xs)
+    (fold (lambda (memo _x) (+ memo 1)) 0 xs))
+
+  ; 絶対値を計算する関数
+  (define (abs n)
+    (if (< n 0) (* n -1) n))
+
+  ; 配置が安全かどうかをチェックする関数
+  ; row: 現在の行, col: 配置しようとしている列, board: これまでの配置リスト
+  (define (safe? row col board)
+    (if (== board (list))
+        true
+        (safe-step? row col board 1)))
+
+  ; board の先頭から順に、行差を 1 ずつ増やして安全性を確認する
+  (define (safe-step? row col board delta-row)
+    (if (== board (list))
+        true
+        (do
+          (define prev-col (first board))
+          (define diff-col (abs (- col prev-col)))
+          (if (== col prev-col) false ; 同じ列
+            (if (== delta-row diff-col) false ; 斜め
+              (safe-step? row col (rest board) (+ delta-row 1)))))))
+
+  ; 再帰的にクイーンを配置するコアロジック
+  (define (solve-recursive n row board)
+    (if (== row n)
+        (list board) ; すべての行に配置完了
+        (reduce 
+          (lambda (acc col)
+            (if (safe? row col board)
+                (concat-list acc (solve-recursive n (+ row 1) (cons col board)))
+                acc))
+          (list)
+          (range 0 (- n 1)))))
+
+  ; 0からnまでのリストを作成するヘルパー（組み込みにない場合を想定）
+  (define (range start end)
+    (if (> start end)
+        (list)
+        (cons start (range (+ start 1) end))))
+
+  ; メイン実行関数
+  (define (solve n)
+    (solve-recursive n 0 (list))))
+
+; 実行例: 4-Queen問題を解く
+(define result (n-queens.solve 4))
+
+(print "4-Queenの解の数:")
+(print (n-queens.count result))
+(print "解のリスト (各数値は各行の列番号):")
+(print result)

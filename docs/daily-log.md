@@ -1,6 +1,10 @@
 # Daily Log
 
 ## 2026-03-28
+- Clarified truthiness and arithmetic error expectations in `docs/spec.md`.
+- Clarified truthiness in `docs/spec.md` so `0` and empty collections are documented as truthy.
+- Corrected the unqualified-name lookup order in `docs/spec.md` to match runtime behavior.
+- Added `docs/spec.md` as a Calc language reference for AI and implementation work.
 - Added colored `bin/calc test` output with PASS/FAIL labels and a summary line.
 - Added `samples/test/` wrappers so sample programs can be exercised by `bin/calc test`.
 - Added stdlib-backed sample programs for list, JSON, and time helpers.
