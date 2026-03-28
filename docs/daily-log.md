@@ -1,6 +1,7 @@
 # Daily Log
 
 ## 2026-03-28
+- Corrected README usage outputs to show full `--print-last-result` output including intermediate `print` lines.
 - Expanded the README `Usage` section with feature-grouped REPL examples, tab-completion usage, and richer file execution examples.
 - Reorganized README sample documentation by feature category and expanded runnable examples.
 - Updated `samples/README.md` to match current runtime capabilities and grouped sample intent.

@@ -73,9 +73,9 @@ defined function inc(n)
 > (append (list 1 2 3) 4)
 [1, 2, 3, 4]
 > (hash :name "taro" :age 20)
-{"name"=>"taro", "age"=>20}
+{"name" => taro, "age" => 20}
 > (dig (hash :items (list (hash :name "taro"))) :items 0 :name)
-"taro"
+taro
 ```
 
 #### Namespace と再帰
@@ -131,19 +131,27 @@ bin/calc --print-last-result path/to/program.calc
 ```
 
 `#!` で始まる先頭行はスクリプトとして無視されます。
-`--print-last-result` を付けると、ファイル内の最後の式の結果が REPL と同じ形式で標準出力に表示されます。
+`--print-last-result` を付けると、ファイル実行中の `print` 出力に続けて、最後の式の結果が REPL と同じ形式で標準出力に表示されます（最後の行が最終結果です）。
 
 例:
 
 ```bash
-bin/calc --print-last-result samples/basic.calc
-# => 14
+$ bin/calc --print-last-result samples/basic.calc
+--- basic ---
+14
+6
+14
 
-bin/calc --print-last-result samples/higher-order.calc
-# => [3, 4, 5]
+$ bin/calc --print-last-result samples/higher-order.calc
+--- higher-order ---
+[2, 3, 4, 5, 6]
+15
+[3, 4, 5]
 
-bin/calc --print-last-result samples/namespace.calc
-# => 16
+$ bin/calc --print-last-result samples/namespace.calc
+--- namespace ---
+8
+16
 ```
 
 ## Samples by Feature
