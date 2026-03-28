@@ -8,16 +8,20 @@ end
 
 module Calc
   module Functions
-    def self.register(builtins, name, min_arity: 0, max_arity: nil, &)
-      metadata = Metadata.fetch(name)
+    def self.register(builtins, name, min_arity: 0, max_arity: nil, **metadata, &)
+      builtin_metadata = begin
+        Metadata.fetch(name)
+      rescue KeyError
+        {}
+      end
 
       builtins.register(
         name,
         min_arity: min_arity,
         max_arity: max_arity,
-        type: metadata[:type],
-        description: metadata[:description],
-        example: metadata[:example],
+        type: metadata.fetch(:type, builtin_metadata[:type]),
+        description: metadata.fetch(:description, builtin_metadata[:description]),
+        example: metadata.fetch(:example, builtin_metadata[:example]),
         &
       )
     end

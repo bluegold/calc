@@ -25,6 +25,18 @@ This directory contains small Calc programs grouped by feature type.
 - `hanoi.calc`: recursive Tower of Hanoi move printer
 - `hanoi2.calc`: Tower of Hanoi using `cons`, `append`, `concat-list`, and `fold`
 
+## stdlib Usage
+
+- `stdlib-list.calc`: `stdlib/collections/list` helpers
+- `stdlib-json.calc`: `stdlib/json/core` helpers
+- `stdlib-time.calc`: `stdlib/time/core` helpers
+
+## Test Wrappers
+
+- `test/stdlib-list.calc`: sample wrapper for `samples/stdlib-list.calc`
+- `test/stdlib-json.calc`: sample wrapper for `samples/stdlib-json.calc`
+- `test/stdlib-time.calc`: sample wrapper for `samples/stdlib-time.calc`
+
 ## Run examples
 
 ```bash
@@ -32,4 +44,7 @@ bin/calc --print-last-result samples/basic.calc
 bin/calc --print-last-result samples/higher-order.calc
 bin/calc --print-last-result samples/list-ops.calc
 bin/calc --print-last-result samples/hash-ops.calc
+bin/calc --print-last-result samples/stdlib-list.calc
+bin/calc --print-last-result samples/stdlib-json.calc
+bin/calc --print-last-result samples/stdlib-time.calc
 ```

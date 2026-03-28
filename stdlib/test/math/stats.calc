@@ -1,0 +1,8 @@
+(do
+  (load "math/stats")
+  (assert-equal 6 (std.math.stats.sum (list 1 2 3)))
+  (assert-equal 3 (std.math.stats.count (list 1 2 3)))
+  (assert-equal 2 (std.math.stats.mean (list 1 2 3)))
+  (assert-equal 1 (std.math.stats.min (list 1 2 3)))
+  (assert-equal 3 (std.math.stats.max (list 1 2 3)))
+  true)

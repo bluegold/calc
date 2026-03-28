@@ -184,6 +184,12 @@ $ bin/calc --print-last-result samples/namespace.calc
 - `samples/hanoi.calc`: ハノイの塔（出力中心）
 - `samples/hanoi2.calc`: ハノイの塔（`fold` などを使った構成）
 
+### stdlib の利用例
+
+- `samples/stdlib-list.calc`: `stdlib/collections/list` の関数呼び出し
+- `samples/stdlib-json.calc`: `stdlib/json/core` の JSON 変換
+- `samples/stdlib-time.calc`: `stdlib/time/core` の日時整形と月範囲取得
+
 ### まとめて試すコマンド例
 
 ```bash
@@ -191,12 +197,33 @@ bin/calc --print-last-result samples/basic.calc
 bin/calc --print-last-result samples/higher-order.calc
 bin/calc --print-last-result samples/hash-ops.calc
 bin/calc --print-last-result samples/namespace.calc
+bin/calc --print-last-result samples/stdlib-list.calc
+bin/calc --print-last-result samples/stdlib-json.calc
+bin/calc --print-last-result samples/stdlib-time.calc
 ```
 
 ## Running tests
 
 ```bash
 rake test
+bin/calc test
+bin/calc test stdlib/test
+bin/calc test modules/test
+```
+
+`rake test` は Ruby の Minitest を実行します。`bin/calc test` は `.calc` で書いたテストを実行します。
+
+- `stdlib/test/`: 同梱 stdlib 用の回帰テスト
+- `modules/test/`: ユーザが自分の modules に置くテスト
+- `samples/test/`: `samples/` のサンプルを検証するテスト
+
+`bin/calc test` は引数なしだと上記の全体を探し、引数を付けるとそのパスだけを実行します。
+出力は `PASS` / `FAIL` と件数サマリが出て、TTY 上では少し色が付きます。
+
+サンプルと回帰テストをまとめて見るなら、次のように実行できます。
+
+```bash
+bin/calc test samples/test
 ```
 
 ## Project layout

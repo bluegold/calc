@@ -74,8 +74,12 @@ module Calc
     end
 
     def resolve_load_path(path)
+      current_file = @current_file && normalize_path(@current_file)
+
       candidates_for(path).each do |candidate|
         absolute = normalize_path(candidate)
+        next if current_file && absolute == current_file
+
         return absolute if File.file?(absolute)
       end
 
@@ -97,8 +101,48 @@ module Calc
 
     def search_roots
       from_source = @current_file ? File.dirname(@current_file) : nil
-      roots = [from_source, Dir.pwd, File.join(Dir.pwd, "stdlib")].compact
+      roots = [
+        from_source,
+        source_test_parent_root(from_source),
+        File.join(Dir.pwd, "modules"),
+        Dir.pwd,
+        user_modules_root,
+        bundled_stdlib_root
+      ].compact
       roots.uniq
+    end
+
+    def user_modules_root
+      config_home = ENV.fetch("XDG_CONFIG_HOME", nil)
+      base = if config_home && !config_home.empty?
+               File.expand_path(config_home)
+             elsif (home = safe_home_directory) && !home.empty?
+               File.join(home, ".config")
+             else
+               return nil
+             end
+
+      File.join(base, "calc", "modules")
+    end
+
+    def bundled_stdlib_root
+      File.expand_path("../../stdlib", __dir__)
+    end
+
+    def source_test_parent_root(from_source)
+      return nil unless from_source
+
+      expanded = File.expand_path(from_source)
+      return nil unless expanded.match?(%r{/((stdlib|modules|samples))/test(?:/|\z)})
+
+      parent = expanded.sub(%r{/test(?:/[^/]+)*\z}, "")
+      parent.empty? ? nil : parent
+    end
+
+    def safe_home_directory
+      Dir.home
+    rescue StandardError
+      nil
     end
 
     def normalize_path(path)

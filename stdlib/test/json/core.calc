@@ -1,0 +1,6 @@
+(do
+  (load "json/core")
+  (assert-equal "{\"name\":\"taro\"}" (std.json.core.stringify (hash :name "taro")))
+  (assert-equal "taro" (std.json.core.get-in (hash :items (list (hash :name "taro"))) (list :items 0 :name)))
+  (assert-equal (hash :name "hanako") (std.json.core.assoc (hash :name "taro") :name "hanako") )
+  true)

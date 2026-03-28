@@ -1,0 +1,6 @@
+(do
+  (load "time/core")
+  (assert-equal "2026-03-15T12:34:56.123456Z" (std.time.core.iso (parse-time "2026-03-15T12:34:56.123456Z")))
+  (assert-equal "2026-03-01T00:00:00.000000Z" (std.time.core.iso (get (std.time.core.month-range (parse-time "2026-03-15T12:00:00Z")) :begin)))
+  (assert-equal "2026-03-31T23:59:59.999999Z" (std.time.core.iso (get (std.time.core.month-range (parse-time "2026-03-15T12:00:00Z")) :end)))
+  true)

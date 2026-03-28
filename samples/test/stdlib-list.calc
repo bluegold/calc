@@ -1,0 +1,5 @@
+(do
+  (load "stdlib-list")
+  (assert-equal 6 (std.collections.list.sum (list 1 2 3)))
+  (assert-equal (list 3 2 1) (std.collections.list.reverse (list 1 2 3)))
+  true)

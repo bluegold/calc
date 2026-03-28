@@ -1,6 +1,17 @@
 # Daily Log
 
 ## 2026-03-28
+- Added colored `bin/calc test` output with PASS/FAIL labels and a summary line.
+- Added `samples/test/` wrappers so sample programs can be exercised by `bin/calc test`.
+- Added stdlib-backed sample programs for list, JSON, and time helpers.
+- Updated the README with `bin/calc test` usage and the `stdlib/test` / `modules/test` split.
+- Added `.calc` regression tests for all current stdlib modules under `stdlib/test/`.
+- Added `bin/calc test` as a minimal `.calc` test runner for `stdlib/test` and `modules/test` files.
+- Added `lib/calc/functions/testing.rb` helpers for Calc-side assertions.
+- Added the first Calc testing helpers in `lib/calc/functions/testing.rb` and a loadable stdlib test file for `std.math.stats`.
+- Added `test/executer_loader_test.rb` coverage for bundled stdlib and XDG user-module load roots.
+- Updated `load` search roots to include bundled stdlib (`lib` sibling) and XDG user modules (`$XDG_CONFIG_HOME/calc/modules` or `~/.config/calc/modules`).
+- Added `test/executer_loader_test.rb` for bundled stdlib and user-module load path resolution.
 - Corrected README usage outputs to show full `--print-last-result` output including intermediate `print` lines.
 - Expanded the README `Usage` section with feature-grouped REPL examples, tab-completion usage, and richer file execution examples.
 - Reorganized README sample documentation by feature category and expanded runnable examples.

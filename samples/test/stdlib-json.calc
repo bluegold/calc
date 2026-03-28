@@ -1,0 +1,4 @@
+(do
+  (load "stdlib-json")
+  (assert-equal "{\"name\":\"taro\",\"age\":20}" (std.json.core.stringify (hash :name "taro" :age 20)))
+  true)

@@ -1,0 +1,9 @@
+(do
+  (load "collections/list")
+  (assert-equal 6 (std.collections.list.sum (list 1 2 3)))
+  (assert-equal 3 (std.collections.list.count (list 1 2 3)))
+  (assert-equal 2 (std.collections.list.average (list 1 2 3)))
+  (assert-equal 3 (std.collections.list.last (list 1 2 3)))
+  (assert-equal (list 3 2 1) (std.collections.list.reverse (list 1 2 3)))
+  (assert-equal (list 1 2 3 4) (std.collections.list.append-all (list (list 1 2) (list 3 4))))
+  true)
