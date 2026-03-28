@@ -6,6 +6,8 @@ module Calc
   end
 
   class Executer
+    SPECIAL_FORMS = %w[define if namespace lambda do load].freeze
+
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
                    current_namespace: nil)
       @environment = environment
@@ -52,6 +54,18 @@ module Calc
     def evaluate_source(source, source_path: nil)
       nodes = @parser.parse(source)
       evaluate_nodes(nodes, source_path: source_path)
+    end
+
+    def completion_candidates(namespace_path: nil)
+      (
+        SPECIAL_FORMS +
+        @builtins.each_builtin.map(&:name) +
+        Builtins::LITERALS.keys +
+        @environment.binding_names +
+        @namespaces.accessible_unqualified_identifiers(namespace_path) +
+        @namespaces.function_identifiers +
+        @namespaces.variable_identifiers
+      ).uniq.sort
     end
 
     def evaluate_nodes(nodes, source_path: nil)

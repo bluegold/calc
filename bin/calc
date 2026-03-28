@@ -9,9 +9,18 @@ require "reline"
 parser = Calc::Parser.new
 executer = Calc::Executer.new
 builtins = executer.instance_variable_get(:@builtins)
+completion = Calc::ReplCompletion.new(
+  builtins,
+  symbol_candidates_provider: ->(namespace_path) { executer.completion_candidates(namespace_path: namespace_path) }
+)
 history_path = File.join(Dir.home, ".calc_history")
 print_last_result = false
 script_path = nil
+
+Reline.completion_proc = proc do |fragment|
+  completion.candidates(fragment, Reline.line_buffer.to_s, Reline.point || 0)
+end
+Reline.autocompletion = true
 
 ARGV.each do |arg|
   case arg

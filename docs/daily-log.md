@@ -1,5 +1,15 @@
 # Daily Log
 
+## 2026-03-28
+- Added REPL tab completion for `:help`/`:ast`, builtins, and literals.
+- Added `test/repl_completion_test.rb` to lock command and symbol completion behavior.
+- Expanded REPL completion to include user-defined function names and namespace-qualified symbols.
+- Added special forms (`define`, `if`, `namespace`, `lambda`, `do`, `load`) to REPL completion candidates.
+- Restricted namespace completion so only reachable unqualified names and qualified namespace names are suggested.
+- Enabled menu-style tab completion cycling in the REPL (`Tab` to rotate candidates).
+- Added context-aware namespace completion so unqualified names are suggested only inside active `namespace` forms.
+- Fixed namespace completion edge cases: skip ancestor-local symbols and fall back to nearest existing parent namespace when typing inside a new nested namespace.
+
 ## 2026-03-27
 - Bumped the project to `0.6.0`.
 - Added `load` with extensionless module resolution and `:as` namespace wrapping.

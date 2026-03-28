@@ -38,5 +38,10 @@ module Calc
 
       raise Calc::NameError, "unknown variable: #{name}"
     end
+
+    def binding_names
+      names = @parent ? @parent.binding_names : []
+      (names + @bindings.keys).uniq
+    end
   end
 end

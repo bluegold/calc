@@ -79,7 +79,83 @@ module Calc
       namespace&.path
     end
 
+    def function_identifiers
+      identifiers = @root.functions.keys.dup
+
+      each_namespace do |namespace|
+        namespace_path = namespace.path
+
+        namespace.functions.each_key do |name|
+          identifiers << "#{namespace_path}.#{name}" if namespace_path && namespace_path != "builtin"
+        end
+      end
+
+      identifiers.uniq
+    end
+
+    def variable_identifiers
+      identifiers = @root.variables.keys.dup
+
+      each_namespace do |namespace|
+        namespace_path = namespace.path
+
+        namespace.variables.each_key do |name|
+          identifiers << "#{namespace_path}.#{name}" if namespace_path && namespace_path != "builtin"
+        end
+      end
+
+      identifiers.uniq
+    end
+
+    def accessible_unqualified_identifiers(namespace_path)
+      namespace = nearest_existing_namespace(namespace_path)
+      return [] unless namespace
+
+      identifiers = []
+      origin = namespace
+      while namespace
+        namespace.functions.each do |name, entry|
+          identifiers << name if !entry[:local] || namespace.equal?(origin)
+        end
+
+        namespace.variables.each do |name, entry|
+          identifiers << name if !entry[:local] || namespace.equal?(origin)
+        end
+
+        namespace = namespace.parent
+      end
+
+      identifiers.uniq
+    end
+
     private
+
+    def each_namespace(namespace = @root, &block)
+      namespace.children.each_value do |child|
+        yield child
+        each_namespace(child, &block)
+      end
+    end
+
+    def nearest_existing_namespace(namespace_path)
+      current = namespace_path
+
+      while current && !current.empty?
+        namespace = namespace_or_nil(current)
+        return namespace if namespace
+
+        current = parent_namespace_path(current)
+      end
+
+      nil
+    end
+
+    def parent_namespace_path(namespace_path)
+      dot_index = namespace_path.rindex(".")
+      return nil unless dot_index
+
+      namespace_path[0...dot_index]
+    end
 
     def resolve(namespace_path, name, bucket)
       if name.to_s.include?(".")
