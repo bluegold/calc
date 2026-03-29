@@ -1,0 +1,8 @@
+require_relative "cli/history"
+require_relative "cli/test_runner"
+require_relative "cli/options"
+require_relative "cli/file_runner"
+require_relative "cli/repl_command_handler"
+require_relative "cli/repl_buffer"
+require_relative "cli/repl_runner"
+require_relative "cli/app"

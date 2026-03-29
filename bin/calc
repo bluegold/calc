@@ -3,39 +3,5 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 require "calc"
-require "reline"
 
-parser = Calc::Parser.new
-executer = Calc::Executer.new
-builtins = executer.builtins
-completion = Calc::ReplCompletion.new(
-  builtins,
-  symbol_candidates_provider: ->(namespace_path) { executer.completion_candidates(namespace_path: namespace_path) }
-)
-history_path = File.join(Dir.home, ".calc_history")
-
-Reline.completion_proc = proc do |fragment|
-  completion.candidates(fragment, Reline.line_buffer.to_s, Reline.point || 0)
-end
-Reline.autocompletion = true
-
-options = begin
-  Calc::Cli::Options.parse(ARGV)
-rescue Calc::Cli::Options::InvalidOptionError => e
-  warn e.message
-  exit 1
-end
-
-exit Calc::Cli::TestRunner.run(executer, options.remaining_args) if options.subcommand == "test"
-
-if options.script_path
-  exit Calc::Cli::FileRunner.run(executer, options.script_path, options.print_last_result)
-else
-  Calc::Cli::History.load(history_path)
-
-  command_handler = Calc::Cli::ReplCommandHandler.new(parser: parser, builtins: builtins)
-  runner = Calc::Cli::ReplRunner.new(parser: parser, executer: executer, command_handler: command_handler)
-  runner.run
-
-  Calc::Cli::History.save(history_path)
-end
+exit Calc::Cli::App.new.run
