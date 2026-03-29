@@ -43,8 +43,6 @@ argv.each do |arg|
   end
 end
 
-Calc::Cli::History.load(history_path)
-
 exit Calc::Cli::TestRunner.run(executer, remaining_args) if subcommand == "test"
 
 if script_path
@@ -58,6 +56,8 @@ if script_path
     exit 1
   end
 else
+  Calc::Cli::History.load(history_path)
+
   command_handler = Calc::Cli::ReplCommandHandler.new(parser: parser, builtins: builtins)
   runner = Calc::Cli::ReplRunner.new(parser: parser, executer: executer, command_handler: command_handler)
   runner.run
