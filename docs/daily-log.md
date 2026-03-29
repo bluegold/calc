@@ -1,5 +1,17 @@
 # Daily Log
 
+## 2026-03-29
+- Bumped the project to `0.6.3`.
+- Added the Calc language reference in `docs/spec.md`, including clearer syntax/evaluation/error semantics.
+- Added positional parsing and contextualized file error reporting (`path:line:col`) to improve runtime diagnostics.
+- Refactored `Executer` into focused modules (`special_forms`, `loader`, `completion`, `formatter`) to reduce class responsibility.
+- Adjusted RuboCop limits (`Metrics/ClassLength`) to match the current code structure.
+- Added and tuned time helpers for month-boundary behavior, including `shift_month` fixes.
+- Added RDoc comments across runtime classes and methods.
+- Added Rake tasks for doc generation/serving and gem packaging.
+- Updated release automation so tag-triggered uploads also force publish when a draft release already exists.
+- Refactored builtins helper usage to remove reflective `send` calls from function modules.
+
 ## 2026-03-28
 - Clarified truthiness and arithmetic error expectations in `docs/spec.md`.
 - Clarified truthiness in `docs/spec.md` so `0` and empty collections are documented as truthy.
@@ -37,57 +49,30 @@
 - Added `load` with extensionless module resolution and `:as` namespace wrapping.
 - Added cyclic load detection and one-time load caching.
 - Added draft `stdlib/` modules for collections, math, time, and JSON helpers.
-
-## 2026-03-27
 - Bumped the project to `0.5.4`.
 - Added builtin `type` metadata and grouped `:help` output by function category.
 - Fixed timezone-less `parse-time` handling to avoid local DST-dependent parsing drift.
-
-## 2026-03-27
 - Bumped the project to `0.5.3`.
 - Added list helpers: `cons`, `append`, and `concat-list`.
 - Added `fold` as a higher-order builtin alongside `reduce`.
 - Added `hanoi`/`hanoi2` samples and expanded file execution integration tests.
-
-## 2026-03-27
 - Bumped the project to `0.5.2`.
 - Refactored builtin definitions into `lib/calc/functions/*` modules.
 - Split the large builtin test file into focused test files by domain.
-
-## 2026-03-27
 - Added hash/list access helpers: `keys`, `values`, `has?`, `dig`, `nth`, `first`, `rest`, and `hash-from-pairs`.
 - Extended `map`, `reduce`, and `select` to accept hash entries as `[:key, value]` pairs.
-
-## 2026-03-27
 - Bumped the project to `0.5.1`.
 - Fixed `parse-json` to preserve decimal precision with `BigDecimal`.
-
-## 2026-03-27
 - Bumped the project to `0.5.0`.
-- Added dictionary helpers with `hash`, `get`, `set`, and `entries`, plus JSON parsing and stringifying.
-
-## 2026-03-27
-- Added `hash`, `get`, `set`, `entries`, `parse-json`, and `stringify-json` for dictionary and JSON handling.
+- Added dictionary/JSON helpers: `hash`, `get`, `set`, `entries`, `parse-json`, and `stringify-json`.
 - Introduced keyword-style hash keys using `:key` syntax.
-
-## 2026-03-27
 - Marked the file execution integration test task complete in the TODO list.
-
-## 2026-03-27
 - Changed file execution to print the last result only when `--print-last-result` is passed.
-
-## 2026-03-27
 - Updated file execution so `bin/calc filename` prints the final expression result like the REPL.
-
-## 2026-03-27
 - Added a `samples/` directory with small Calc programs for arithmetic, higher-order functions, recursion, and namespace usage.
 - Documented the sample programs in the README.
-
-## 2026-03-27
 - Bumped the project to `0.4.2`.
 - Formatted list output recursively so higher-order functions like `select` render readable arrays in the REPL.
-
-## 2026-03-27
 - Reordered the README examples from simple arithmetic through higher-order functions to recursive namespace usage.
 - Noted that `list` is a builtin helper for building arrays rather than a special form.
 
