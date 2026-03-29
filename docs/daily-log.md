@@ -9,6 +9,11 @@
 - Refactored `docs/spec.md` Builtins section into a fixed template plus an auto-generated block.
 - Added `script/update_spec_builtins.rb` to regenerate builtin lists from runtime type definitions.
 - Added `rake spec:update_builtins` to automate spec builtin list updates.
+- Added logical language features: `and`, `or`, and `cond` as special forms, plus `not` as a builtin.
+- Added executor and completion tests for the new logical forms and updated the language spec accordingly.
+- Bumped the project version to `0.6.5` and published release tag `v0.6.5`.
+- Added new sample programs `samples/hanoi3.calc` and `samples/nqueen2.calc` to demonstrate logical forms.
+- Extended `samples/basic.calc` with `and`/`or`/`not`/`cond` examples and refreshed `samples/README.md`.
 
 ## 2026-03-29
 - Bumped the project to `0.6.4` for the CLI refactoring release.
