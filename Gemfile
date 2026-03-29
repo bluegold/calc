@@ -9,4 +9,5 @@ group :development do
   gem "rubocop", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-rake", require: false
+  gem "webrick", require: false
 end
