@@ -1,0 +1,50 @@
+; N-Queen sample with logical special forms.
+
+(namespace n-queens2
+  (define (count xs)
+    (fold (lambda (memo _x) (+ memo 1)) 0 xs))
+
+  (define (safe? row col board)
+    (or (== board (list))
+        (safe-step? row col board 1)))
+
+  (define (safe-step? row col board delta-row)
+    (cond
+      ((== board (list)) true)
+      (else
+        (do
+          (define prev-col (first board))
+          (define diff-col (abs (- col prev-col)))
+          (and
+            (!= col prev-col)
+            (!= delta-row diff-col)
+            (safe-step? row col (rest board) (+ delta-row 1)))))))
+
+  (define (solve-recursive n row board)
+    (cond
+      ((== row n) (list board))
+      (else
+        (reduce
+          (lambda (acc col)
+            (if (safe? row col board)
+                (concat-list acc (solve-recursive n (+ row 1) (cons col board)))
+                acc))
+          (list)
+          (range 0 (- n 1))))))
+
+  (define (range start end)
+    (cond
+      ((> start end) (list))
+      (else (cons start (range (+ start 1) end)))))
+
+  (define (solve n)
+    (solve-recursive n 0 (list))))
+
+(define result (n-queens2.solve 4))
+
+(do
+  (print "--- nqueen2 ---")
+  (print "4-Queenの解の数:")
+  (print (n-queens2.count result))
+  (print "解のリスト (各数値は各行の列番号):")
+  (print result))

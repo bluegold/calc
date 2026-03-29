@@ -4,7 +4,7 @@ This directory contains small Calc programs grouped by feature type.
 
 ## Syntax and Control Flow
 
-- `basic.calc`: arithmetic, variable definition, `if`, and `print`
+- `basic.calc`: arithmetic, variable definition, `if`, `and`, `or`, `not`, `cond`, and `print`
 
 ## Higher-Order Functions
 
@@ -24,6 +24,8 @@ This directory contains small Calc programs grouped by feature type.
 - `recursion.calc`: recursive Fibonacci with intermediate output
 - `hanoi.calc`: recursive Tower of Hanoi move printer
 - `hanoi2.calc`: Tower of Hanoi using `cons`, `append`, `concat-list`, and `fold`
+- `hanoi3.calc`: Tower of Hanoi using `cond`-based branching
+- `nqueen2.calc`: N-Queens solver using `and`/`or`/`not`/`cond`
 
 ## stdlib Usage
 
@@ -44,6 +46,8 @@ bin/calc --print-last-result samples/basic.calc
 bin/calc --print-last-result samples/higher-order.calc
 bin/calc --print-last-result samples/list-ops.calc
 bin/calc --print-last-result samples/hash-ops.calc
+bin/calc --print-last-result samples/hanoi3.calc
+bin/calc --print-last-result samples/nqueen2.calc
 bin/calc --print-last-result samples/stdlib-list.calc
 bin/calc --print-last-result samples/stdlib-json.calc
 bin/calc --print-last-result samples/stdlib-time.calc

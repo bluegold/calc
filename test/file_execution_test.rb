@@ -16,6 +16,10 @@ class FileExecutionTest < Minitest::Test
       --- basic ---
       14
       6
+      true
+      true
+      true
+      base>bonus
     OUT
     "samples/higher-order.calc" => <<~OUT,
       --- higher-order ---

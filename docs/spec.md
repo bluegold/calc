@@ -245,6 +245,7 @@ Calc distinguishes at least these error classes:
 - runtime errors
 
 Common runtime failures include division by zero, unknown functions, and invalid load paths.
+
 - Arithmetic operators expect numeric values. If a `nil` or non-numeric value reaches `+`, `-`, `*`, or `/`, the runtime should raise an error instead of coercing it silently.
 
 Errors encountered in file mode are reported using the path:line:col format.
