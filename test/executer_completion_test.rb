@@ -56,10 +56,33 @@ class ExecuterCompletionTest < Minitest::Test
     assert_includes candidates, "shared"
   end
 
-  def test_completion_candidates_include_special_forms
+  def test_completion_candidates_include_special_form_define
     candidates = @executer.completion_candidates
 
     assert_includes candidates, "define"
+  end
+
+  def test_completion_candidates_include_special_form_and
+    candidates = @executer.completion_candidates
+
+    assert_includes candidates, "and"
+  end
+
+  def test_completion_candidates_include_special_form_or
+    candidates = @executer.completion_candidates
+
+    assert_includes candidates, "or"
+  end
+
+  def test_completion_candidates_include_special_form_cond
+    candidates = @executer.completion_candidates
+
+    assert_includes candidates, "cond"
+  end
+
+  def test_completion_candidates_include_special_form_load
+    candidates = @executer.completion_candidates
+
     assert_includes candidates, "load"
   end
 end

@@ -16,6 +16,7 @@ module Calc
         ">=" => "comparison",
         "==" => "comparison",
         "!=" => "comparison",
+        "not" => "comparison",
         "concat" => "string",
         "length" => "string",
         "print" => "io",

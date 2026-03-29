@@ -21,6 +21,7 @@ module Calc
         ">=" => { description: "Greater than or equal", example: "(>= 2 1)" },
         "==" => { description: "Equal", example: "(== 1 1)" },
         "!=" => { description: "Not equal", example: "(!= 1 2)" },
+        "not" => { description: "Logical negation", example: "(not true)" },
         "concat" => { description: "Concatenate strings", example: "(concat \"a\" \"b\")" },
         "length" => { description: "String length", example: "(length \"calc\")" },
         "print" => { description: "Print values", example: "(print \"hello\" 1)" },

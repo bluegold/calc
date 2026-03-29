@@ -123,6 +123,42 @@ Rules:
 - Cyclic loads must fail with a runtime error.
 - The same file should not be loaded twice in one execution.
 
+### 4.7 `and` / `or`
+
+Logical composition with short-circuit evaluation.
+
+```calc
+(and expr1 expr2 ...)
+(or expr1 expr2 ...)
+```
+
+Rules:
+
+- `and` evaluates expressions left to right and stops at the first falsey value.
+- `or` evaluates expressions left to right and stops at the first truthy value.
+- `and` with no operands returns `true`.
+- `or` with no operands returns `false`.
+- Return values are not coerced to booleans: they are the selected operand values.
+
+### 4.8 `cond`
+
+Multi-branch conditional form.
+
+```calc
+(cond
+  (test-1 expr-1)
+  (test-2 expr-2)
+  (else expr-default))
+```
+
+Rules:
+
+- Clauses are checked top-down.
+- Each clause must have exactly two elements.
+- The first matching clause evaluates and returns its expression.
+- `else` is optional and, when present, must be the last clause.
+- If no clause matches and no `else` is provided, result is `nil`.
+
 ## 5. Namespaces and Lookup
 
 ### 5.1 Lookup order
@@ -153,7 +189,7 @@ Run `bundle exec rake spec:update_builtins` after adding or removing builtins.
 
 <!-- BUILTINS:BEGIN -->
 - Arithmetic: `*`, `+`, `-`, `/`
-- Comparison: `!=`, `<`, `<=`, `==`, `>`, `>=`
+- Comparison: `!=`, `<`, `<=`, `==`, `>`, `>=`, `not`
 - Math: `abs`, `ceil`, `floor`, `mod`, `pow`, `round`, `sqrt`
 - Higher-order: `fold`, `map`, `reduce`, `select`
 - List: `append`, `concat-list`, `cons`, `first`, `list`, `nth`, `rest`

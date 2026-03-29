@@ -182,6 +182,48 @@ class ExecuterTest < Minitest::Test
     assert_equal BigDecimal("1"), @executer.evaluate(ast)
   end
 
+  def test_and_short_circuits_on_falsey_value
+    ast = @parser.parse("(and false unknown)").first
+
+    refute @executer.evaluate(ast)
+  end
+
+  def test_and_returns_last_truthy_value
+    ast = @parser.parse("(and true 1 2)").first
+
+    assert_equal BigDecimal("2"), @executer.evaluate(ast)
+  end
+
+  def test_or_short_circuits_on_first_truthy_value
+    ast = @parser.parse("(or true unknown)").first
+
+    assert @executer.evaluate(ast)
+  end
+
+  def test_or_returns_false_when_no_truthy_value_exists
+    ast = @parser.parse("(or false nil)").first
+
+    refute @executer.evaluate(ast)
+  end
+
+  def test_cond_returns_first_matching_branch
+    ast = @parser.parse("(cond ((> 1 2) 10) ((< 1 2) 20) (else 30))").first
+
+    assert_equal BigDecimal("20"), @executer.evaluate(ast)
+  end
+
+  def test_cond_does_not_evaluate_later_clauses_after_match
+    ast = @parser.parse("(cond (true 10) (else unknown))").first
+
+    assert_equal BigDecimal("10"), @executer.evaluate(ast)
+  end
+
+  def test_cond_requires_else_to_be_last_clause
+    ast = @parser.parse("(cond (else 10) (true 20))").first
+
+    assert_raises(Calc::SyntaxError) { @executer.evaluate(ast) }
+  end
+
   def test_namespace_keeps_defined_variables
     ast = @parser.parse("(namespace crypto (define _tmp 7))").first
 

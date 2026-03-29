@@ -132,6 +132,71 @@ module Calc
         truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
       end
 
+      # Evaluates the `and` special form with short-circuit semantics.
+      # Returns false on the first falsey value, otherwise returns the last value.
+      # With no operands, returns true.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `and` expression.
+      # @return [Object] The first falsey value or the last truthy value.
+      def evaluate_and(children)
+        values = children.drop(1)
+        return true if values.empty?
+
+        result = true
+        values.each do |value_node|
+          result = evaluate(value_node)
+          return result unless truthy?(result)
+        end
+
+        result
+      end
+
+      # Evaluates the `or` special form with short-circuit semantics.
+      # Returns the first truthy value. With no operands, returns false.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `or` expression.
+      # @return [Object] The first truthy value or false when no operand is truthy.
+      def evaluate_or(children)
+        values = children.drop(1)
+        return false if values.empty?
+
+        values.each do |value_node|
+          result = evaluate(value_node)
+          return result if truthy?(result)
+        end
+
+        false
+      end
+
+      # Evaluates the `cond` special form.
+      # Each clause must be `(test expr)` or `(else expr)`.
+      # Clauses are checked in order and the first matching expression is evaluated.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `cond` expression.
+      # @return [Object, nil] The matched branch result, or nil when no clause matches.
+      # @raise [Calc::SyntaxError] If a clause has invalid shape or `else` is not the final clause.
+      def evaluate_cond(children)
+        clauses = children.drop(1)
+        raise Calc::SyntaxError, "invalid cond" if clauses.empty?
+
+        clauses.each_with_index do |clause_node, index|
+          raise Calc::SyntaxError, "invalid cond" unless clause_node.is_a?(ListNode) && clause_node.children.length == 2
+
+          test_node, body_node = clause_node.children
+          is_else_clause = test_node.is_a?(SymbolNode) && test_node.name == "else"
+
+          if is_else_clause
+            raise Calc::SyntaxError, "invalid cond" unless index == clauses.length - 1
+
+            return evaluate(body_node)
+          end
+
+          return evaluate(body_node) if truthy?(evaluate(test_node))
+        end
+
+        nil
+      end
+
       # Determines if a value is truthy (not false and not nil).
       #
       # @param value [Object] The value to check.

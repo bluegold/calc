@@ -29,7 +29,7 @@ module Calc
     attr_reader :builtins
 
     # A list of keywords for special forms.
-    SPECIAL_FORMS = %w[define if namespace lambda do load].freeze
+    SPECIAL_FORMS = %w[define if and or cond namespace lambda do load].freeze
 
     # Initializes a new instance of Executer.
     #
@@ -141,6 +141,12 @@ module Calc
           handle_define(node.children)
         when "if"
           evaluate_if(node.children)
+        when "and"
+          evaluate_and(node.children)
+        when "or"
+          evaluate_or(node.children)
+        when "cond"
+          evaluate_cond(node.children)
         when "namespace"
           evaluate_namespace(node.children)
         when "lambda"

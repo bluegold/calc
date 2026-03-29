@@ -62,6 +62,11 @@ module Calc
         Functions.register(builtins, "!=", min_arity: 2, max_arity: 2) do |args|
           args[0] != args[1]
         end
+        # Logical negation: `(not value)`
+        Functions.register(builtins, "not", min_arity: 1, max_arity: 1) do |args|
+          value = args.first
+          value == false || value.nil?
+        end
 
         # String concatenation: `(concat "a" "b" "c")`
         Functions.register(builtins, "concat", min_arity: 0, &:join)

@@ -72,20 +72,18 @@ class BuiltinsCoreTest < Minitest::Test
     assert_equal "division by zero", error.message
   end
 
-  # rubocop:disable Minitest/MultipleAssertions
   def test_calls_rounding_helpers
     assert_equal BigDecimal("3"), @builtins.call("floor", [BigDecimal("3.9")])
     assert_equal BigDecimal("4"), @builtins.call("ceil", [BigDecimal("3.1")])
     assert_equal BigDecimal("4"), @builtins.call("round", [BigDecimal("3.6")])
   end
-  # rubocop:enable Minitest/MultipleAssertions
 
   def test_calls_sqrt
     assert_equal BigDecimal("3"), @builtins.call("sqrt", [BigDecimal("9")])
   end
 
   # rubocop:disable Minitest/MultipleAssertions
-  def test_calls_comparison_operators
+  def test_calls_relational_comparison_operators
     assert @builtins.call("<=", [BigDecimal("1"), BigDecimal("2")])
     refute @builtins.call("<=", [BigDecimal("3"), BigDecimal("2")])
     assert @builtins.call("<", [BigDecimal("1"), BigDecimal("2")])
@@ -94,10 +92,20 @@ class BuiltinsCoreTest < Minitest::Test
     refute @builtins.call(">", [BigDecimal("2"), BigDecimal("2")])
     assert @builtins.call(">=", [BigDecimal("3"), BigDecimal("2")])
     refute @builtins.call(">=", [BigDecimal("1"), BigDecimal("2")])
+  end
+
+  def test_calls_equality_comparison_operators
     assert @builtins.call("==", [BigDecimal("2"), BigDecimal("2")])
     refute @builtins.call("==", [BigDecimal("1"), BigDecimal("2")])
     assert @builtins.call("!=", [BigDecimal("1"), BigDecimal("2")])
     refute @builtins.call("!=", [BigDecimal("2"), BigDecimal("2")])
+  end
+
+  def test_calls_not_with_truthy_and_falsey_values
+    refute @builtins.call("not", [true])
+    assert @builtins.call("not", [false])
+    assert @builtins.call("not", [nil])
+    refute @builtins.call("not", [BigDecimal("0")])
   end
   # rubocop:enable Minitest/MultipleAssertions
 
@@ -144,6 +152,7 @@ class BuiltinsCoreTest < Minitest::Test
     assert_includes names, ">="
     assert_includes names, "=="
     assert_includes names, "!="
+    assert_includes names, "not"
     assert_includes names, "concat"
     assert_includes names, "length"
     assert_includes names, "pow"
