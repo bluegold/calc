@@ -1,5 +1,15 @@
 # Daily Log
 
+## 2026-03-30
+- Added `std.collections.list.min` and `std.collections.list.max` in `stdlib/collections/list.calc`.
+- Expanded Calc-language stdlib tests for `min`/`max` with negative, decimal, and single-item list cases.
+- Added scalar math builtins: `abs`, `mod`, `floor`, `ceil`, and `round`.
+- Added Ruby test coverage for new math builtins in `test/builtins_core_test.rb`.
+- Updated builtin metadata/type maps for the new math builtins.
+- Refactored `docs/spec.md` Builtins section into a fixed template plus an auto-generated block.
+- Added `script/update_spec_builtins.rb` to regenerate builtin lists from runtime type definitions.
+- Added `rake spec:update_builtins` to automate spec builtin list updates.
+
 ## 2026-03-29
 - Bumped the project to `0.6.4` for the CLI refactoring release.
 - Completed phased CLI refactoring from `bin/calc` into dedicated components (`History`, `TestRunner`, `Options`, `FileRunner`, `ReplCommandHandler`, `ReplBuffer`, `ReplRunner`, `App`).

@@ -20,6 +20,13 @@ end
 
 task :default => [:test, :doc]
 
+namespace :spec do
+  desc "Update docs/spec.md builtin list from runtime type map"
+  task :update_builtins do
+    sh "ruby script/update_spec_builtins.rb"
+  end
+end
+
 desc "Generate RDoc documentation"
 task :doc => :rdoc
 

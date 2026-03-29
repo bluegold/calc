@@ -148,15 +148,21 @@ They are not intended to be resolved from other namespaces.
 
 Builtins are registered functions available without loading additional files.
 
-The current baseline includes, at minimum:
+The following list is auto-generated from runtime builtin registrations.
+Run `bundle exec rake spec:update_builtins` after adding or removing builtins.
 
-- Arithmetic and comparison: `+`, `-`, `*`, `/`, `<`, `<=`, `>`, `>=`, `==`, `!=`
-- Utility: `print`, `list`, `concat`, `length`
-- Higher-order: `map`, `reduce`, `fold`, `select`
-- Collections: `hash`, `get`, `set`, `entries`, `keys`, `values`, `has?`, `dig`, `hash-from-pairs`
-- List helpers: `cons`, `append`, `concat-list`, `nth`, `first`, `rest`
+<!-- BUILTINS:BEGIN -->
+- Arithmetic: `*`, `+`, `-`, `/`
+- Comparison: `!=`, `<`, `<=`, `==`, `>`, `>=`
+- Math: `abs`, `ceil`, `floor`, `mod`, `pow`, `round`, `sqrt`
+- Higher-order: `fold`, `map`, `reduce`, `select`
+- List: `append`, `concat-list`, `cons`, `first`, `list`, `nth`, `rest`
+- Hash: `dig`, `entries`, `get`, `has?`, `hash`, `hash-from-pairs`, `keys`, `set`, `values`
+- String: `concat`, `length`
+- IO: `print`
 - JSON: `parse-json`, `stringify-json`
-- Time: `current-time`, `parse-time`, `format-time`, `next-month`, `prev-month`, `beggining-of-month`, `end-of-month`
+- Time: `beggining-of-month`, `current-time`, `end-of-month`, `format-time`, `next-month`, `parse-time`, `prev-month`
+<!-- BUILTINS:END -->
 
 ## 7. Data Types
 
