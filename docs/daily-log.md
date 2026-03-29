@@ -1,6 +1,7 @@
 # Daily Log
 
 ## 2026-03-29
+- Bumped the project to `0.6.4` for the CLI refactoring release.
 - Completed phased CLI refactoring from `bin/calc` into dedicated components (`History`, `TestRunner`, `Options`, `FileRunner`, `ReplCommandHandler`, `ReplBuffer`, `ReplRunner`, `App`).
 - Added `lib/calc/cli.rb` to aggregate CLI requires and keep `lib/calc.rb` concise.
 - Slimmed `bin/calc` down to a thin entrypoint that delegates to `Calc::Cli::App`.
