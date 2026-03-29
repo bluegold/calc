@@ -68,35 +68,7 @@ argv.each do |arg|
   end
 end
 
-if File.file?(history_path)
-  contents = File.read(history_path)
-
-  begin
-    entries = JSON.parse(contents)
-    if entries.is_a?(Array)
-      entries.each do |entry|
-        next unless entry.is_a?(String)
-        next if entry.strip.empty?
-
-        Reline::HISTORY << entry
-      end
-    else
-      contents.each_line(chomp: true).each do |entry|
-        next if entry.strip.empty?
-
-        Reline::HISTORY << entry
-      end
-    end
-  rescue JSON::ParserError
-    contents.each_line(chomp: true).each do |entry|
-      next if entry.strip.empty?
-
-      Reline::HISTORY << entry
-    end
-  end
-elsif File.exist?(history_path)
-  warn "ignoring non-regular history file: #{history_path}"
-end
+Calc::Cli::History.load(history_path)
 
 def run_calc_tests(executer, paths)
   explicit_targets = !paths.empty?
@@ -277,9 +249,5 @@ else
     buffer.clear
   end
 
-  begin
-    File.write(history_path, JSON.pretty_generate(Reline::HISTORY.to_a))
-  rescue SystemCallError => e
-    warn "failed to write history: #{e.message}"
-  end
+  Calc::Cli::History.save(history_path)
 end
