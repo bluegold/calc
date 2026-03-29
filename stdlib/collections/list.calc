@@ -8,6 +8,12 @@
   (define (average xs)
     (/ (sum xs) (count xs)))
 
+  (define (min xs)
+    (fold (lambda (memo x) (if (< x memo) x memo)) (first xs) (rest xs)))
+
+  (define (max xs)
+    (fold (lambda (memo x) (if (> x memo) x memo)) (first xs) (rest xs)))
+
   (define (last xs)
     (fold (lambda (memo x) x) nil xs))
 
