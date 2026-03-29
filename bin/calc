@@ -45,75 +45,6 @@ end
 
 Calc::Cli::History.load(history_path)
 
-def handle_repl_command(line, parser, _executer, builtins)
-  command, payload = line[1..].split(/\s+/, 2)
-
-  case command
-  when "ast"
-    source = payload.to_s.strip
-    puts Calc::ASTPrinter.pretty(parser.parse(source))
-    true
-  when "help"
-    puts "Commands:"
-    puts "  :ast <expr>   Print the AST for an expression"
-    puts "  :help         Show this help"
-    puts
-    puts "Builtins:"
-    builtins.each_builtin.group_by { |builtin| builtin.type || "other" }.sort.each do |type, entries|
-      puts "  [#{format_builtin_group(type)}]"
-      entries.sort_by(&:name).each do |builtin|
-        line = "    #{builtin.name}"
-        line += " - #{builtin.description}" if builtin.description
-        puts line
-        puts "      example: #{builtin.example}" if builtin.example
-      end
-    end
-    true
-  else
-    warn "unknown command: :#{command}"
-    false
-  end
-rescue StandardError => e
-  warn "#{e.class}: #{e.message}"
-  false
-end
-
-def format_builtin_group(type)
-  type.split("-").map(&:capitalize).join(" ")
-end
-
-def paren_depth(source)
-  depth = 0
-
-  source.each_line do |line|
-    code = line.sub(/;.*$/, "")
-
-    code.each_char do |char|
-      case char
-      when "("
-        depth += 1
-      when ")"
-        depth -= 1
-        return depth if depth.negative?
-      end
-    end
-  end
-
-  depth
-end
-
-def balanced_parens?(source)
-  paren_depth(source).zero?
-end
-
-def unmatched_closing_paren?(source)
-  paren_depth(source).negative?
-end
-
-def prompt_for(buffer)
-  buffer.empty? ? "> " : "... "
-end
-
 exit Calc::Cli::TestRunner.run(executer, remaining_args) if subcommand == "test"
 
 if script_path
@@ -127,46 +58,9 @@ if script_path
     exit 1
   end
 else
-  buffer = +""
-
-  loop do
-    line = Reline.readline(prompt_for(buffer), false)
-    break unless line
-
-    next if buffer.empty? && line.strip.empty?
-
-    buffer << line << "\n"
-
-    if unmatched_closing_paren?(buffer)
-      warn "unexpected ')'"
-      buffer.clear
-      next
-    end
-
-    next unless balanced_parens?(buffer)
-
-    source = buffer.strip
-    buffer.clear
-
-    next if source.empty?
-
-    if source.start_with?(":")
-      Reline::HISTORY << source if handle_repl_command(source, parser, executer, builtins)
-      next
-    end
-
-    last_result = nil
-    parser.parse(source).each do |node|
-      last_result = executer.evaluate(node)
-    end
-
-    puts Calc.format_value(last_result) unless last_result.nil?
-
-    Reline::HISTORY << source
-  rescue StandardError => e
-    warn "#{e.class}: #{e.message}"
-    buffer.clear
-  end
+  command_handler = Calc::Cli::ReplCommandHandler.new(parser: parser, builtins: builtins)
+  runner = Calc::Cli::ReplRunner.new(parser: parser, executer: executer, command_handler: command_handler)
+  runner.run
 
   Calc::Cli::History.save(history_path)
 end
