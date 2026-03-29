@@ -13,48 +13,23 @@ completion = Calc::ReplCompletion.new(
   symbol_candidates_provider: ->(namespace_path) { executer.completion_candidates(namespace_path: namespace_path) }
 )
 history_path = File.join(Dir.home, ".calc_history")
-print_last_result = false
-script_path = nil
-subcommand = nil
-remaining_args = []
 
 Reline.completion_proc = proc do |fragment|
   completion.candidates(fragment, Reline.line_buffer.to_s, Reline.point || 0)
 end
 Reline.autocompletion = true
 
-argv = ARGV.dup
-
-subcommand = argv.shift if argv.first == "test"
-
-argv.each do |arg|
-  case arg
-  when "--print-last-result"
-    print_last_result = true
-  when /^-/
-    warn "unknown option: #{arg}"
-    exit 1
-  else
-    if subcommand == "test"
-      remaining_args << arg
-    else
-      script_path ||= arg
-    end
-  end
+options = begin
+  Calc::Cli::Options.parse(ARGV)
+rescue Calc::Cli::Options::InvalidOptionError => e
+  warn e.message
+  exit 1
 end
 
-exit Calc::Cli::TestRunner.run(executer, remaining_args) if subcommand == "test"
+exit Calc::Cli::TestRunner.run(executer, options.remaining_args) if options.subcommand == "test"
 
-if script_path
-  source = File.read(script_path)
-  begin
-    last_result = executer.evaluate_source(source, source_path: File.expand_path(script_path))
-
-    puts Calc.format_value(last_result) if print_last_result && !last_result.nil?
-  rescue StandardError => e
-    warn e.message
-    exit 1
-  end
+if options.script_path
+  exit Calc::Cli::FileRunner.run(executer, options.script_path, options.print_last_result)
 else
   Calc::Cli::History.load(history_path)
 
