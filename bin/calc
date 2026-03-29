@@ -32,7 +32,7 @@ end
 
 parser = Calc::Parser.new
 executer = Calc::Executer.new
-builtins = executer.instance_variable_get(:@builtins)
+builtins = executer.builtins
 completion = Calc::ReplCompletion.new(
   builtins,
   symbol_candidates_provider: ->(namespace_path) { executer.completion_candidates(namespace_path: namespace_path) }

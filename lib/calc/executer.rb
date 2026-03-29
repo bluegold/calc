@@ -26,6 +26,8 @@ module Calc
     include Loader
     include Completion
 
+    attr_reader :builtins
+
     # A list of keywords for special forms.
     SPECIAL_FORMS = %w[define if namespace lambda do load].freeze
 
