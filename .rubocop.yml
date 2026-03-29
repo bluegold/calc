@@ -23,6 +23,11 @@ Metrics/ClassLength:
   Exclude:
     - "lib/calc/builtins.rb"
 
+Metrics/ModuleLength:
+  Max: 150
+  Exclude:
+    - "lib/calc/builtins.rb"
+
 Metrics/CyclomaticComplexity:
   Max: 13
 

@@ -1,3 +1,8 @@
+require_relative "executer/formatter"
+require_relative "executer/special_forms"
+require_relative "executer/loader"
+require_relative "executer/completion"
+
 module Calc
   LambdaValue = Struct.new(:params, :body, :environment, :namespace) do
     def pretty_print(q)
@@ -6,6 +11,11 @@ module Calc
   end
 
   class Executer
+    include Formatter
+    include SpecialForms
+    include Loader
+    include Completion
+
     SPECIAL_FORMS = %w[define if namespace lambda do load].freeze
 
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
@@ -28,20 +38,7 @@ module Calc
       when KeywordNode
         ":#{node.name}"
       when SymbolNode
-        return @environment.get_local(node.name) if @environment.bound_local?(node.name)
-
-        found, builtin = @builtins.resolve(node.name)
-        return builtin if found
-
-        return @environment.get(node.name) if @environment.bound?(node.name)
-
-        resolved_variable = @namespaces.resolve_variable(@current_namespace, node.name)
-        return resolved_variable[:value] if resolved_variable
-
-        resolved_function = @namespaces.resolve_function(@current_namespace, node.name)
-        return resolved_function[:value] if resolved_function
-
-        @environment.get(node.name)
+        resolve_symbol(node)
       when ListNode
         evaluate_list(node)
       when LambdaNode
@@ -56,18 +53,6 @@ module Calc
       evaluate_nodes(nodes, source_path: source_path)
     end
 
-    def completion_candidates(namespace_path: nil)
-      (
-        SPECIAL_FORMS +
-        @builtins.each_builtin.map(&:name) +
-        Builtins::LITERALS.keys +
-        @environment.binding_names +
-        @namespaces.accessible_unqualified_identifiers(namespace_path) +
-        @namespaces.function_identifiers +
-        @namespaces.variable_identifiers
-      ).uniq.sort
-    end
-
     def evaluate_nodes(nodes, source_path: nil)
       with_source_path(source_path) do
         nodes.reduce(nil) do |_memo, node|
@@ -80,44 +65,24 @@ module Calc
       end
     end
 
-    def contextualize_error(error, node)
-      return error if error.message.include?("while evaluating")
-
-      location = format_location(node)
-      context = format_node(node)
-      message = [location, error.class, error.message, "while evaluating #{context}"].compact.join(": ")
-      error.class.new(message).tap do |wrapped|
-        wrapped.set_backtrace(error.backtrace)
-      end
-    end
-
-    def format_location(node)
-      return nil unless node.respond_to?(:line) && node.line
-
-      path = @current_file || "<input>"
-      "#{path}:#{node.line}:#{node.column || 1}"
-    end
-
-    def format_node(node)
-      case node
-      when NumberNode
-        Calc.format_value(node.value)
-      when StringNode
-        node.value.inspect
-      when KeywordNode
-        ":#{node.name}"
-      when SymbolNode
-        node.name
-      when LambdaNode
-        "(lambda (#{node.params.join(' ')}) #{format_node(node.body)})"
-      when ListNode
-        "(#{node.children.map { |child| format_node(child) }.join(' ')})"
-      else
-        Calc::ASTPrinter.pretty([node]).strip
-      end
-    end
-
     private
+
+    def resolve_symbol(node)
+      return @environment.get_local(node.name) if @environment.bound_local?(node.name)
+
+      found, builtin = @builtins.resolve(node.name)
+      return builtin if found
+
+      return @environment.get(node.name) if @environment.bound?(node.name)
+
+      resolved_variable = @namespaces.resolve_variable(@current_namespace, node.name)
+      return resolved_variable[:value] if resolved_variable
+
+      resolved_function = @namespaces.resolve_function(@current_namespace, node.name)
+      return resolved_function[:value] if resolved_function
+
+      @environment.get(node.name)
+    end
 
     def evaluate_list(node)
       head = node.children.first
@@ -125,7 +90,7 @@ module Calc
       when SymbolNode
         case head.name
         when "define"
-          function_definition?(node.children) ? define_function(node.children) : define_variable(node.children)
+          handle_define(node.children)
         when "if"
           evaluate_if(node.children)
         when "namespace"
@@ -147,87 +112,6 @@ module Calc
 
         raise Calc::SyntaxError, "invalid expression"
       end
-    end
-
-    def define_variable(children)
-      name_node = children[1]
-      value_node = children[2]
-      raise Calc::SyntaxError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
-      raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
-      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
-
-      value = evaluate(value_node)
-      @environment.set(name_node.name, value) if @current_namespace.nil?
-      @namespaces.define_variable(@current_namespace, name_node.name, value, local: name_node.name.start_with?("_"))
-      value
-    end
-
-    def function_definition?(children)
-      children[1].is_a?(ListNode)
-    end
-
-    def define_function(children)
-      signature = children[1]
-      name_node = signature.children.first
-      param_nodes = signature.children.drop(1)
-      body_node = children[2]
-
-      raise Calc::SyntaxError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
-      raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
-      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
-
-      lambda_value = build_lambda_value(param_nodes, body_node)
-
-      @namespaces.define_function(@current_namespace, name_node.name, lambda_value, local: name_node.name.start_with?("_"))
-      function_label = [@current_namespace, name_node.name].compact.join(".")
-      "defined function #{function_label}(#{lambda_value.params.join(', ')})"
-    end
-
-    def evaluate_lambda(children)
-      params_node = children[1]
-      body_node = children[2]
-      raise Calc::SyntaxError, "invalid lambda" unless params_node.is_a?(ListNode) && body_node
-
-      param_nodes = params_node.children
-      build_lambda_value(param_nodes, body_node)
-    end
-
-    def evaluate_do(children)
-      raise Calc::SyntaxError, "invalid do" if children.length < 2
-
-      children.drop(1).reduce(nil) { |_memo, node| evaluate(node) }
-    end
-
-    def evaluate_namespace(children)
-      namespace_node = children[1]
-      body_nodes = children.drop(2)
-      raise Calc::SyntaxError, "invalid namespace" unless namespace_node.is_a?(SymbolNode)
-
-      previous_namespace = @current_namespace
-      next_namespace = namespace_path(namespace_node.name)
-      @current_namespace = next_namespace
-      @namespace_stack << next_namespace
-      @namespaces.ensure_namespace(@current_namespace)
-
-      result = body_nodes.reduce(nil) { |_memo, body_node| evaluate(body_node) }
-      result
-    ensure
-      @namespace_stack.pop
-      @current_namespace = previous_namespace
-    end
-
-    def evaluate_if(children)
-      condition_node = children[1]
-      then_node = children[2]
-      else_node = children[3]
-      raise Calc::SyntaxError, "invalid if" unless children.length == 4 && condition_node && then_node && else_node
-
-      condition = evaluate(condition_node)
-      truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
-    end
-
-    def truthy?(value)
-      value != false && !value.nil?
     end
 
     def call_function(name, args, node = nil)
@@ -290,13 +174,6 @@ module Calc
       end
 
       LambdaValue.new(params, body_node, @environment.snapshot, @current_namespace)
-    end
-
-    def namespace_path(name)
-      return name if name.include?(".")
-
-      parent = @namespace_stack.last
-      parent.nil? ? name : [parent, name].join(".")
     end
   end
 end
