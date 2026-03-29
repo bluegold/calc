@@ -3,32 +3,7 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 require "calc"
-require "json"
 require "reline"
-
-module CalcCli
-  module_function
-
-  def tty?(io)
-    io.respond_to?(:tty?) && io.tty?
-  end
-
-  def color(text, code, enabled)
-    enabled ? "\e[#{code}m#{text}\e[0m" : text
-  end
-
-  def green(text, enabled)
-    color(text, 32, enabled)
-  end
-
-  def red(text, enabled)
-    color(text, 31, enabled)
-  end
-
-  def cyan(text, enabled)
-    color(text, 36, enabled)
-  end
-end
 
 parser = Calc::Parser.new
 executer = Calc::Executer.new
@@ -69,62 +44,6 @@ argv.each do |arg|
 end
 
 Calc::Cli::History.load(history_path)
-
-def run_calc_tests(executer, paths)
-  explicit_targets = !paths.empty?
-  test_paths = explicit_targets ? paths.flat_map { |path| collect_test_files(path) }.uniq : default_test_paths
-
-  if explicit_targets && test_paths.empty?
-    warn "no .calc test files matched: #{paths.join(' ')}"
-    return 1
-  end
-
-  if test_paths.empty?
-    warn "no .calc test files found"
-    return 1
-  end
-
-  stdout_colorize = CalcCli.tty?($stdout)
-  stderr_colorize = CalcCli.tty?($stderr)
-  total = test_paths.length
-  passed = 0
-  failures = []
-
-  puts CalcCli.cyan("Running #{total} calc tests", stdout_colorize)
-
-  test_paths.each do |path|
-    source = File.read(path)
-    begin
-      result = executer.evaluate_source(source, source_path: File.expand_path(path))
-      passed += 1
-      puts CalcCli.green("PASS", stdout_colorize) + " #{path}"
-      puts Calc.format_value(result) unless result.nil?
-    rescue StandardError => e
-      failures << path
-      warn CalcCli.red("FAIL", stderr_colorize) + " #{path}: #{e.message}"
-    end
-  end
-
-  failed = failures.length
-  summary = "#{passed} passed, #{failed} failed"
-  puts CalcCli.cyan(summary, stdout_colorize)
-
-  failures.empty? ? 0 : 1
-end
-
-def default_test_paths
-  %w[stdlib/test modules/test samples/test]
-    .select { |path| Dir.exist?(path) }
-    .flat_map { |path| collect_test_files(path) }
-end
-
-def collect_test_files(path)
-  return [path] if File.file?(path) && path.end_with?(".calc")
-
-  return [] unless Dir.exist?(path)
-
-  Dir.glob(File.join(path, "**", "*.calc"))
-end
 
 def handle_repl_command(line, parser, _executer, builtins)
   command, payload = line[1..].split(/\s+/, 2)
@@ -195,7 +114,7 @@ def prompt_for(buffer)
   buffer.empty? ? "> " : "... "
 end
 
-exit run_calc_tests(executer, remaining_args) if subcommand == "test"
+exit Calc::Cli::TestRunner.run(executer, remaining_args) if subcommand == "test"
 
 if script_path
   source = File.read(script_path)
