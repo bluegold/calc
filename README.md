@@ -228,10 +228,14 @@ bin/calc test samples/test
 
 ## Project layout
 
-- `bin/calc`: REPL とファイル実行のエントリポイント
-- `lib/calc/parser.rb`: AST の構築と AST 表示
-- `lib/calc/executer.rb`: 評価ロジック
-- `lib/calc/namespace_registry.rb`: namespace 管理
+- `bin/calc`: CLI エントリポイント（実体は `Calc::Cli::App` に委譲）
+- `lib/calc.rb`: ライブラリの読み込みエントリ
+- `lib/calc/`: 言語処理本体（パーサ、評価器、組み込み、補完など）
+- `lib/calc/executer/`: 評価器の責務分割モジュール
+- `lib/calc/functions/`: 組み込み関数の機能別実装
+- `lib/calc/cli/`: CLI 実行フローと REPL 補助機能
+- `samples/`: 機能別のサンプル `.calc` プログラム
+- `stdlib/`: 同梱標準ライブラリとその `.calc` テスト
 - `test/`: Minitest のテスト
 
 ## Notes
