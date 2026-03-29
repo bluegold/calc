@@ -2,7 +2,14 @@ require_relative "types"
 
 module Calc
   module Functions
+    # Module responsible for storing and retrieving metadata about built-in functions.
+    # This metadata includes descriptions, example usage, and type information,
+    # which can be used for documentation, help systems, or static analysis.
     module Metadata
+      # A hash containing metadata definitions for various built-in functions.
+      # Each key is a function name (String), and its value is a hash
+      # containing `:description` and `:example` keys. Type information is
+      # merged dynamically from the `Types` module.
       DEFINITIONS = {
         "+" => { description: "Add numbers", example: "(+ 1 2 3)" },
         "-" => { description: "Subtract numbers", example: "(- 5 2)" },
@@ -80,6 +87,12 @@ module Calc
         "end-of-month" => { description: "Return end of month for epoch microseconds", example: "(end-of-month (current-time))" }
       }.freeze
 
+      # Retrieves the complete metadata for a given function name.
+      # This includes description, example, and dynamically merged type information.
+      #
+      # @param name [String] The name of the function.
+      # @return [Hash] A hash containing all available metadata for the function.
+      # @raise [KeyError] If no definition exists for the given function name.
       def self.fetch(name)
         definition = DEFINITIONS.fetch(name)
         type = Types.fetch(name)

@@ -1,7 +1,13 @@
 module Calc
   module Functions
+    # This module registers built-in functions for testing within Calc scripts.
+    # It provides assertion functions to verify expectations and report failures.
     module Testing
+      # Registers all testing functions with the Builtins registry.
+      #
+      # @param builtins [Builtins] The Builtins instance to register functions with.
       def self.register(builtins)
+        # Raises a runtime error, indicating a test failure: `(fail "assertion failed")`
         Functions.register(
           builtins,
           "fail",
@@ -15,6 +21,7 @@ module Calc
           raise Calc::RuntimeError, message.to_s
         end
 
+        # Asserts that two values are equal: `(assert-equal 2 (+ 1 1))`
         Functions.register(
           builtins,
           "assert-equal",
@@ -32,6 +39,7 @@ module Calc
           raise Calc::RuntimeError, error_message
         end
 
+        # Asserts that a value is truthy (not false and not nil): `(assert-true (> 2 1))`
         Functions.register(
           builtins,
           "assert-true",
@@ -49,6 +57,7 @@ module Calc
           raise Calc::RuntimeError, error_message
         end
 
+        # Asserts that a value is falsey (false or nil): `(assert-false false)`
         Functions.register(
           builtins,
           "assert-false",

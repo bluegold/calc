@@ -1,6 +1,10 @@
 module Calc
   module Functions
+    # Module responsible for categorizing built-in functions by type.
+    # This categorization can be used for documentation, filtering, or type checking.
     module Types
+      # A hash mapping built-in function names to their functional categories (e.g., "arithmetic", "list", " "hash").
+      # This map defines the high-level type or domain of each function.
       MAP = {
         "+" => "arithmetic",
         "-" => "arithmetic",
@@ -48,6 +52,11 @@ module Calc
         "end-of-month" => "time"
       }.freeze
 
+      # Retrieves the functional category for a given built-in function name.
+      #
+      # @param name [String] The name of the function.
+      # @return [String] The functional category of the function.
+      # @raise [KeyError] If no type is defined for the given function name.
       def self.fetch(name)
         MAP.fetch(name)
       end

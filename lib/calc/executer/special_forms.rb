@@ -1,12 +1,26 @@
 module Calc
   class Executer
+    # Module encapsulating the evaluation logic for Calc's special forms
+    # (`define`, `if`, `namespace`, `lambda`, `do`, `load`).
+    # Defines the post-parsing processing for each special form.
     module SpecialForms
       private
 
+      # Handles the `define` special form. Distinguishes between variable and function definitions
+      # and calls the appropriate handler.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes of the `define` expression.
+      # @return [Object] The value of the defined variable or function.
       def handle_define(children)
         function_definition?(children) ? define_function(children) : define_variable(children)
       end
 
+      # Processes variable definition (`define symbol value`).
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the variable definition.
+      # @return [Object] The value of the defined variable.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
+      # @raise [Calc::NameError] If attempting to redefine a reserved literal.
       def define_variable(children)
         name_node = children[1]
         value_node = children[2]
@@ -20,10 +34,21 @@ module Calc
         value
       end
 
+      # Determines if an expression is in the form of a function definition
+      # (`(define (func-name params...) body)`).
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes of the `define` expression.
+      # @return [Boolean] True if it's a function definition, false otherwise.
       def function_definition?(children)
         children[1].is_a?(ListNode)
       end
 
+      # Processes function definition (`define (func-name params...) body`).
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the function definition.
+      # @return [String] A string indicating the defined function.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
+      # @raise [Calc::NameError] If attempting to redefine a reserved literal.
       def define_function(children)
         signature = children[1]
         name_node = signature.children.first
@@ -41,6 +66,11 @@ module Calc
         "defined function #{function_label}(#{lambda_value.params.join(', ')})"
       end
 
+      # Evaluates a lambda expression (`lambda (params...) body`) and constructs a `LambdaValue` object.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the lambda expression.
+      # @return [LambdaValue] The constructed lambda value.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
       def evaluate_lambda(children)
         params_node = children[1]
         body_node = children[2]
@@ -50,12 +80,24 @@ module Calc
         build_lambda_value(param_nodes, body_node)
       end
 
+      # Evaluates a `do` block. Sequentially evaluates multiple expressions and returns
+      # the result of the last expression.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `do` expression.
+      # @return [Object] The result of the last expression evaluated in the block.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
       def evaluate_do(children)
         raise Calc::SyntaxError, "invalid do" if children.length < 2
 
         children.drop(1).reduce(nil) { |_memo, node| evaluate(node) }
       end
 
+      # Evaluates the `namespace` special form. Evaluates a block of expressions within
+      # the specified namespace.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `namespace` expression.
+      # @return [Object] The result of the last expression evaluated in the block.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
       def evaluate_namespace(children)
         namespace_node = children[1]
         body_nodes = children.drop(2)
@@ -74,6 +116,12 @@ module Calc
         @current_namespace = previous_namespace
       end
 
+      # Evaluates the `if` special form. Evaluates the `then` or `else` block based on
+      # the truthiness of the condition expression.
+      #
+      # @param children [Array<Calc::Node>] An array of child nodes for the `if` expression.
+      # @return [Object] The final result of the evaluated branch.
+      # @raise [Calc::SyntaxError] If the syntax is invalid.
       def evaluate_if(children)
         condition_node = children[1]
         then_node = children[2]
@@ -84,10 +132,18 @@ module Calc
         truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
       end
 
+      # Determines if a value is truthy (not false and not nil).
+      #
+      # @param value [Object] The value to check.
+      # @return [Boolean] True if truthy, false otherwise.
       def truthy?(value)
         value != false && !value.nil?
       end
 
+      # Resolves a relative namespace name to a full namespace path.
+      #
+      # @param name [String] The namespace name to resolve.
+      # @return [String] The resolved full namespace path.
       def namespace_path(name)
         return name if name.include?(".")
 
