@@ -209,19 +209,22 @@ module Calc
     # @return [Object] The result of evaluating the lambda body.
     # @raise [Calc::RuntimeError] If the number of arguments is incorrect.
     def call_lambda(callable, values)
+      previous_environment = @environment
+      previous_namespace = @current_namespace
+      pushed_namespace = false
+
       params = callable.params
       raise Calc::RuntimeError, "wrong number of arguments" unless params.length == values.length
 
-      previous_environment = @environment
-      previous_namespace = @current_namespace
       @environment = Environment.new(callable.environment)
       params.zip(values).each { |param, value| @environment.set(param, value) }
       @current_namespace = callable.namespace
       @namespace_stack << @current_namespace
+      pushed_namespace = true
 
       evaluate(callable.body)
     ensure
-      @namespace_stack.pop
+      @namespace_stack.pop if pushed_namespace
       @environment = previous_environment
       @current_namespace = previous_namespace
     end
