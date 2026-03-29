@@ -127,8 +127,6 @@ module Calc
       value != false && !value.nil?
     end
 
-    private
-
     # Normalizes a hash key, converting keyword strings to plain strings.
     #
     # @param key [String] The key to normalize.
@@ -256,6 +254,24 @@ module Calc
       end
     end
 
+    # Normalizes a collection (Array or Hash) into an iterable format.
+    # Hashes are converted to arrays of key-value pairs.
+    #
+    # @param collection [Array, Hash] The collection to normalize.
+    # @param name [String] The name of the calling function (for error messages).
+    # @return [Array] The normalized iterable.
+    # @raise [Calc::RuntimeError] If the collection is not an Array or Hash.
+    def normalize_iterable(collection, name)
+      case collection
+      when Array
+        collection
+      when Hash
+        entries_from_hash(collection)
+      else
+        raise Calc::RuntimeError, "#{name} expects a list or hash"
+      end
+    end
+
     # Normalizes an index value, converting BigDecimal to Integer if it's a whole number.
     #
     # @param key [Integer, BigDecimal] The value to normalize as an index.
@@ -270,6 +286,8 @@ module Calc
         key.to_i
       end
     end
+
+    private
 
     # Recursively converts parsed JSON values into Calc's internal data types.
     #
@@ -289,6 +307,8 @@ module Calc
         value
       end
     end
+
+    public
 
     # Recursively converts Calc's internal data types into JSON-serializable types.
     # Handles BigDecimal to Float/Integer conversion for JSON compatibility.
@@ -311,24 +331,6 @@ module Calc
         value.to_s("F")
       else
         value
-      end
-    end
-
-    # Normalizes a collection (Array or Hash) into an iterable format.
-    # Hashes are converted to arrays of key-value pairs.
-    #
-    # @param collection [Array, Hash] The collection to normalize.
-    # @param name [String] The name of the calling function (for error messages).
-    # @return [Array] The normalized iterable.
-    # @raise [Calc::RuntimeError] If the collection is not an Array or Hash.
-    def normalize_iterable(collection, name)
-      case collection
-      when Array
-        collection
-      when Hash
-        entries_from_hash(collection)
-      else
-        raise Calc::RuntimeError, "#{name} expects a list or hash"
       end
     end
   end

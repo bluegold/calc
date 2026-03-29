@@ -23,20 +23,20 @@ module Calc
           raise Calc::RuntimeError, "hash expects key/value pairs" if args.length.odd?
 
           args.each_slice(2).with_object({}) do |(key, value), result|
-            result[builtins.send(:normalize_hash_key, key)] = value
+            result[builtins.normalize_hash_key(key)] = value
           end
         end
 
         # Retrieves a value from a hash or list: `(get user :name)`
         Functions.register(builtins, "get", min_arity: 2, max_arity: 2) do |args|
           container, key = args
-          builtins.send(:get_value, container, key)
+          builtins.get_value(container, key)
         end
 
         # Returns a new hash or list with an updated value (immutable set): `(set user :name "taro")`
         Functions.register(builtins, "set", min_arity: 3, max_arity: 3) do |args|
           container, key, value = args
-          builtins.send(:set_value, container, key, value)
+          builtins.set_value(container, key, value)
         end
       end
 
@@ -49,7 +49,7 @@ module Calc
           container = args.first
           raise Calc::RuntimeError, "entries expects a hash" unless container.is_a?(Hash)
 
-          builtins.send(:entries_from_hash, container)
+          builtins.entries_from_hash(container)
         end
 
         # Returns a list of all keys in a hash: `(keys user)`
@@ -57,7 +57,7 @@ module Calc
           container = args.first
           raise Calc::RuntimeError, "keys expects a hash" unless container.is_a?(Hash)
 
-          container.keys.map { |key| builtins.send(:keyword_for_key, key) }
+          container.keys.map { |key| builtins.keyword_for_key(key) }
         end
 
         # Returns a list of all values in a hash: `(values user)`
@@ -71,7 +71,7 @@ module Calc
         # Checks if a hash contains a key or if a list contains an index: `(has? user :name)`
         Functions.register(builtins, "has?", min_arity: 2, max_arity: 2) do |args|
           container, key = args
-          builtins.send(:value_exists, container, key)
+          builtins.value_exists(container, key)
         end
       end
 
@@ -82,7 +82,7 @@ module Calc
         # Traverses nested hashes/lists using a path of keys/indices: `(dig payload :items 0 :name)`
         Functions.register(builtins, "dig", min_arity: 2) do |args|
           container, *path = args
-          builtins.send(:dig_value, container, path)
+          builtins.dig_value(container, path)
         end
 
         # Builds a hash from a list of `[key, value]` pairs: `(hash-from-pairs (list (list :name "taro")))`
@@ -94,7 +94,7 @@ module Calc
             raise Calc::RuntimeError, "hash-from-pairs expects [key, value] pairs" unless pair.is_a?(Array) && pair.length == 2
 
             key, value = pair
-            result[builtins.send(:normalize_hash_key, key)] = value
+            result[builtins.normalize_hash_key(key)] = value
           end
         end
       end
@@ -105,12 +105,12 @@ module Calc
       def self.register_json_helpers(builtins)
         # Parses a JSON string into Calc values: `(parse-json "{\"name\":\"taro\"}")`
         Functions.register(builtins, "parse-json", min_arity: 1, max_arity: 1) do |args|
-          builtins.send(:parse_json_value, args.first)
+          builtins.parse_json_value(args.first)
         end
 
         # Converts Calc values to a JSON string: `(stringify-json (hash :name "taro"))`
         Functions.register(builtins, "stringify-json", min_arity: 1, max_arity: 1) do |args|
-          JSON.generate(builtins.send(:jsonify_value, args.first))
+          JSON.generate(builtins.jsonify_value(args.first))
         end
       end
     end

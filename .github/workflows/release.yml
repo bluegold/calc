@@ -35,6 +35,7 @@ jobs:
           tag_name="${GITHUB_REF_NAME}"
           if gh release view "$tag_name" >/dev/null 2>&1; then
             gh release upload "$tag_name" calc-*.gem --clobber
+            gh release edit "$tag_name" --draft=false
           else
             gh release create "$tag_name" calc-*.gem --title "$tag_name" --notes "Release ${tag_name}"
           fi
