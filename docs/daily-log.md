@@ -1,6 +1,12 @@
 # Daily Log
 
 ## 2026-03-29
+- Completed phased CLI refactoring from `bin/calc` into dedicated components (`History`, `TestRunner`, `Options`, `FileRunner`, `ReplCommandHandler`, `ReplBuffer`, `ReplRunner`, `App`).
+- Added `lib/calc/cli.rb` to aggregate CLI requires and keep `lib/calc.rb` concise.
+- Slimmed `bin/calc` down to a thin entrypoint that delegates to `Calc::Cli::App`.
+- Scoped history loading to REPL mode only to avoid unnecessary I/O in test/file execution paths.
+- Switched REPL history lifecycle to block style with `History.with_session`.
+- Added concise method comments across `lib/calc/cli/*` to improve readability and maintenance.
 - Bumped the project to `0.6.3`.
 - Added the Calc language reference in `docs/spec.md`, including clearer syntax/evaluation/error semantics.
 - Added positional parsing and contextualized file error reporting (`path:line:col`) to improve runtime diagnostics.

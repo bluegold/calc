@@ -3,6 +3,7 @@ require "reline"
 module Calc
   module Cli
     class App
+      # Builds a CLI app runner with injectable I/O and argv for tests.
       def initialize(argv: ARGV, out: $stdout, err: $stderr, history_path: File.join(Dir.home, ".calc_history"))
         @argv = argv
         @out = out
@@ -10,6 +11,7 @@ module Calc
         @history_path = history_path
       end
 
+      # Dispatches to test mode, file mode, or interactive REPL mode.
       def run
         parser = Calc::Parser.new
         executer = Calc::Executer.new
@@ -36,6 +38,7 @@ module Calc
 
       private
 
+      # Enables Reline completion backed by current builtin and symbol candidates.
       def configure_completion(executer, builtins)
         completion = Calc::ReplCompletion.new(
           builtins,
@@ -48,6 +51,7 @@ module Calc
         Reline.autocompletion = true
       end
 
+      # Parses CLI options and reports invalid options to stderr.
       def parse_options
         Options.parse(@argv)
       rescue Options::InvalidOptionError => e
@@ -55,19 +59,19 @@ module Calc
         nil
       end
 
+      # Runs the interactive loop with history lifecycle management.
       def run_repl(parser, executer, builtins)
-        History.load(@history_path, warning_io: @err)
+        History.with_session(@history_path, warning_io: @err) do
+          command_handler = ReplCommandHandler.new(parser: parser, builtins: builtins, out: @out, err: @err)
+          runner = ReplRunner.new(
+            parser: parser,
+            executer: executer,
+            command_handler: command_handler,
+            io: { out: @out, err: @err }
+          )
+          runner.run
+        end
 
-        command_handler = ReplCommandHandler.new(parser: parser, builtins: builtins, out: @out, err: @err)
-        runner = ReplRunner.new(
-          parser: parser,
-          executer: executer,
-          command_handler: command_handler,
-          io: { out: @out, err: @err }
-        )
-        runner.run
-
-        History.save(@history_path, warning_io: @err)
         0
       end
     end

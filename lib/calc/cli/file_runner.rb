@@ -3,6 +3,7 @@ module Calc
     module FileRunner
       module_function
 
+      # Executes a Calc source file and optionally prints the final value.
       def run(executer, script_path, print_last_result, out: $stdout, err: $stderr)
         source = File.read(script_path)
         last_result = executer.evaluate_source(source, source_path: File.expand_path(script_path))

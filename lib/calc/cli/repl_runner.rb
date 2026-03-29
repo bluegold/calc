@@ -3,6 +3,7 @@ require "reline"
 module Calc
   module Cli
     class ReplRunner
+      # Builds the interactive REPL runner with pluggable parser/executer/IO.
       def initialize(parser:, executer:, command_handler:, history: Reline::HISTORY, io: {})
         @parser = parser
         @executer = executer
@@ -12,6 +13,7 @@ module Calc
         @err = io.fetch(:err, $stderr)
       end
 
+      # Runs the read-eval-print loop until EOF.
       def run
         buffer = ReplBuffer.new
 
@@ -52,6 +54,7 @@ module Calc
 
       private
 
+      # Parses and evaluates a complete source block and returns its last value.
       def evaluate_source(source)
         last_result = nil
         @parser.parse(source).each do |node|

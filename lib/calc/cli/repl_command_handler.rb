@@ -1,6 +1,7 @@
 module Calc
   module Cli
     class ReplCommandHandler
+      # Builds a handler for REPL colon commands such as :help and :ast.
       def initialize(parser:, builtins:, out: $stdout, err: $stderr)
         @parser = parser
         @builtins = builtins
@@ -8,6 +9,7 @@ module Calc
         @err = err
       end
 
+      # Handles a single REPL command line and reports command-specific output.
       def handle(line)
         command, payload = line[1..].split(/\s+/, 2)
 
@@ -30,6 +32,7 @@ module Calc
 
       private
 
+      # Prints command help and grouped builtin reference lines.
       def print_help
         @out.puts "Commands:"
         @out.puts "  :ast <expr>   Print the AST for an expression"
@@ -47,6 +50,7 @@ module Calc
         end
       end
 
+      # Converts builtin metadata group keys to a display label.
       def format_builtin_group(type)
         type.split("-").map(&:capitalize).join(" ")
       end

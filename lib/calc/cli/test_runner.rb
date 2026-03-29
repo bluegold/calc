@@ -3,6 +3,7 @@ module Calc
     module TestRunner
       module_function
 
+      # Discovers and executes calc test files, then returns a process exit code.
       def run(executer, paths, out: $stdout, err: $stderr)
         explicit_targets = !paths.empty?
         test_paths = explicit_targets ? paths.flat_map { |path| collect_test_files(path) }.uniq : default_test_paths
@@ -45,12 +46,14 @@ module Calc
         failures.empty? ? 0 : 1
       end
 
+      # Returns default directories scanned when no explicit test path is given.
       def default_test_paths
         %w[stdlib/test modules/test samples/test]
           .select { |path| Dir.exist?(path) }
           .flat_map { |path| collect_test_files(path) }
       end
 
+      # Expands a file or directory path into matching .calc test files.
       def collect_test_files(path)
         return [path] if File.file?(path) && path.end_with?(".calc")
 
@@ -59,22 +62,27 @@ module Calc
         Dir.glob(File.join(path, "**", "*.calc"))
       end
 
+      # Checks whether a stream supports TTY features.
       def tty?(io)
         io.respond_to?(:tty?) && io.tty?
       end
 
+      # Wraps text in ANSI color codes when color output is enabled.
       def color(text, code, enabled)
         enabled ? "\e[#{code}m#{text}\e[0m" : text
       end
 
+      # Colors text in green for PASS output.
       def green(text, enabled)
         color(text, 32, enabled)
       end
 
+      # Colors text in red for FAIL output.
       def red(text, enabled)
         color(text, 31, enabled)
       end
 
+      # Colors text in cyan for headers and summaries.
       def cyan(text, enabled)
         color(text, 36, enabled)
       end

@@ -14,6 +14,7 @@ module Calc
 
       module_function
 
+      # Parses argv into a normalized option/result object.
       def parse(argv)
         args = argv.dup
         subcommand = args.shift if args.first == "test"
