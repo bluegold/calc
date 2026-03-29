@@ -68,6 +68,11 @@ module Calc
           example: "(select (lambda (x) (> x 1)) (list 1 2 3))"
         },
         "pow" => { description: "Raise a number to a power", example: "(pow 2 3)" },
+        "abs" => { description: "Absolute value", example: "(abs -3.5)" },
+        "mod" => { description: "Modulo remainder", example: "(mod 10 3)" },
+        "floor" => { description: "Round down to integer", example: "(floor 3.9)" },
+        "ceil" => { description: "Round up to integer", example: "(ceil 3.1)" },
+        "round" => { description: "Round to nearest integer", example: "(round 3.6)" },
         "sqrt" => { description: "Square root", example: "(sqrt 9)" },
         "current-time" => { description: "Return current time as epoch microseconds", example: "(current-time)" },
         "parse-time" => {

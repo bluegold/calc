@@ -56,6 +56,30 @@ class BuiltinsCoreTest < Minitest::Test
     assert_equal BigDecimal("8"), @builtins.call("pow", [BigDecimal("2"), BigDecimal("3")])
   end
 
+  def test_calls_abs
+    assert_equal BigDecimal("3.5"), @builtins.call("abs", [BigDecimal("-3.5")])
+  end
+
+  def test_calls_mod
+    assert_equal BigDecimal("1"), @builtins.call("mod", [BigDecimal("10"), BigDecimal("3")])
+  end
+
+  def test_mod_by_zero_raises_custom_error
+    error = assert_raises(Calc::DivisionByZeroError) do
+      @builtins.call("mod", [BigDecimal("8"), BigDecimal("0")])
+    end
+
+    assert_equal "division by zero", error.message
+  end
+
+  # rubocop:disable Minitest/MultipleAssertions
+  def test_calls_rounding_helpers
+    assert_equal BigDecimal("3"), @builtins.call("floor", [BigDecimal("3.9")])
+    assert_equal BigDecimal("4"), @builtins.call("ceil", [BigDecimal("3.1")])
+    assert_equal BigDecimal("4"), @builtins.call("round", [BigDecimal("3.6")])
+  end
+  # rubocop:enable Minitest/MultipleAssertions
+
   def test_calls_sqrt
     assert_equal BigDecimal("3"), @builtins.call("sqrt", [BigDecimal("9")])
   end
@@ -123,6 +147,11 @@ class BuiltinsCoreTest < Minitest::Test
     assert_includes names, "concat"
     assert_includes names, "length"
     assert_includes names, "pow"
+    assert_includes names, "abs"
+    assert_includes names, "mod"
+    assert_includes names, "floor"
+    assert_includes names, "ceil"
+    assert_includes names, "round"
     assert_includes names, "sqrt"
     assert_includes names, "list"
     assert_includes names, "print"
