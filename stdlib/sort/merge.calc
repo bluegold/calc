@@ -1,0 +1,30 @@
+; --- 実装 (std.sort) ---
+(namespace std.sort
+  ; リストの前半を取得するヘルパー
+  (define (_merge_take n items)
+    (if (or (<= n 0) (== (count items) 0))
+        (list)
+        (cons (first items) (_merge_take (- n 1) (rest items)))))
+
+  ; リストの後半を取得するヘルパー
+  (define (_merge_drop n items)
+    (if (or (<= n 0) (== (count items) 0))
+        items
+        (_merge_drop (- n 1) (rest items))))
+
+  (define (_merge_join left right)
+    (cond
+      ((== (count left) 0) right)
+      ((== (count right) 0) left)
+      ((<= (first left) (first right))
+       (cons (first left) (_merge_join (rest left) right)))
+      (else
+       (cons (first right) (_merge_join left (rest right))))))
+
+  (define (merge items)
+    (if (<= (count items) 1)
+        items
+        (_merge_join
+          (merge (_merge_take (floor (/ (count items) 2)) items))
+          (merge (_merge_drop (floor (/ (count items) 2)) items))))))
+

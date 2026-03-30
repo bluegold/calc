@@ -1,0 +1,8 @@
+(load "sort/merge")
+
+(define data (list 5 3 8 1 9 2))
+(println "Original:")
+(println data)
+(println "Sorted (Merge Sort):")
+(println (std.sort.merge data)) ; 期待値: (1 2 3 5 8 9)
+

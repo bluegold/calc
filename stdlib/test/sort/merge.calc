@@ -1,0 +1,10 @@
+(do
+  (load "sort/merge")
+
+  (assert-equal (list) (std.sort.merge (list)))
+  (assert-equal (list 42) (std.sort.merge (list 42)))
+  (assert-equal (list 1 3 5 8) (std.sort.merge (list 5 3 8 1)))
+  (assert-equal (list 1 2 3 5 8 9) (std.sort.merge (list 5 3 8 1 9 2)))
+  (assert-equal (list 1 1 2 2 3 3) (std.sort.merge (list 3 1 2 3 2 1)))
+
+  true)

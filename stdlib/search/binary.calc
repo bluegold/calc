@@ -1,0 +1,13 @@
+(namespace std.search
+  (define (binary items target)
+    (define (_search low high)
+      (if (> low high)
+          nil ; 見つからない場合はnilを返す
+          (do
+            (define mid (floor (/ (+ low high) 2))) ; インデックスを整数化
+            (define val (nth mid items))
+            (cond
+              ((== val target) mid)
+              ((> val target) (_search low (- mid 1)))
+              (else (_search (+ mid 1) high))))))
+    (_search 0 (- (count items) 1))))

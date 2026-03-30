@@ -1,0 +1,10 @@
+(load "search/binary")
+; --- 実行 ---
+(define sorted-list (list 10 20 30 40 50))
+(println (concat "Searching for 30 in (10 20 30 40 50):"
+  (std.search.binary sorted-list 30)))
+  ; 期待値: 2
+
+(println (concat "Searching for 99 (not in list):"
+  (std.search.binary sorted-list 99)))
+  ; 期待値: nil

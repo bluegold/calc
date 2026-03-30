@@ -1,0 +1,13 @@
+(do
+  (load "search/binary")
+  (define items (list 10 20 30 40 50))
+
+  (assert-equal 0 (std.search.binary items 10))
+  (assert-equal 2 (std.search.binary items 30))
+  (assert-equal 4 (std.search.binary items 50))
+  (assert-false (std.search.binary items 99))
+
+  (assert-false (std.search.binary (list) 10))
+  (assert-equal 0 (std.search.binary (list 42) 42))
+  (assert-false (std.search.binary (list 42) 7))
+  true)
