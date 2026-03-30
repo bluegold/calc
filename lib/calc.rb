@@ -1,6 +1,8 @@
 require_relative "calc/version"
 require_relative "calc/errors"
 require_relative "calc/parser"
+require_relative "calc/bytecode"
+require_relative "calc/compiler"
 require_relative "calc/builtins"
 require_relative "calc/functions"
 require_relative "calc/namespace_registry"

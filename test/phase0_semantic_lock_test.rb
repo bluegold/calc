@@ -18,11 +18,11 @@ class Phase0SemanticLockTest < Minitest::Test
   end
 
   def test_and_with_no_operands_returns_true
-    assert_equal true, eval_expr("(and)")
+    assert eval_expr("(and)")
   end
 
   def test_or_with_no_operands_returns_false
-    assert_equal false, eval_expr("(or)")
+    refute eval_expr("(or)")
   end
 
   def test_and_returns_first_falsey_value_not_booleanized

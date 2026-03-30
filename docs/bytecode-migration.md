@@ -115,6 +115,35 @@ AST を bytecode へ変換する。
 - `leave_ns`
 - `load_file`
 
+## Stack Machine Conventions
+
+Phase 1 ではスタックマシン前提を以下で固定する。
+
+### Evaluation Order
+
+- 式は左から右に評価する
+- 関数呼び出しでは `callable` を先に積み、その後に `arg1..argN` を積む
+- `call N` は `[callable, arg1, ... argN]` を消費し、`result` を 1 つ push する
+
+### Instruction Stack Effects
+
+- `push_const x`: `[] -> [x]`
+- `push_keyword k`: `[] -> [":k"]`
+- `load name`: `[] -> [value]`
+- `load_fn name`: `[] -> [callable]`
+- `store name`: `[value] -> [value]`
+- `store_fn name`: `[closure] -> [defined-function-label]`
+- `make_closure meta`: `[] -> [closure]`
+- `call n`: `[callable, arg1, ... argN] -> [result]`
+- `pop`: `[x] -> []`
+- `dup`: `[x] -> [x, x]`
+- `jump target`: no stack effect
+- `jump_false target`: `[cond] -> []`
+- `jump_true target`: `[cond] -> []`
+- `enter_ns name`: no stack effect
+- `leave_ns`: no stack effect
+- `load_file meta`: `[] -> [result-or-nil]`
+
 ## Phased Migration Plan
 
 ### Phase 0: Documentation and Spec Lock
