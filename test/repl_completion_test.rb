@@ -11,6 +11,12 @@ class ReplCompletionTest < Minitest::Test
     assert_equal [":help"], @completion.candidates(":he", line, line.length)
   end
 
+  def test_completes_bytecode_command_at_head
+    line = ":by"
+
+    assert_equal [":bytecode"], @completion.candidates(":by", line, line.length)
+  end
+
   def test_does_not_suggest_commands_in_expression_context
     line = "(hash :he"
 

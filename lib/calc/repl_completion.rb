@@ -4,7 +4,7 @@ module Calc
   # based on the current input buffer and cursor position.
   class ReplCompletion
     # List of built-in REPL commands that can be completed.
-    COMMANDS = [":ast", ":help"].freeze
+    COMMANDS = [":ast", ":bytecode", ":help"].freeze
     # Regular expression for token delimiters, used to identify the start of a completion fragment.
     TOKEN_DELIMITERS = /[\s(){}\[\]]/
 

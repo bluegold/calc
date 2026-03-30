@@ -2,9 +2,10 @@ module Calc
   module Cli
     class ReplCommandHandler
       # Builds a handler for REPL colon commands such as :help and :ast.
-      def initialize(parser:, builtins:, out: $stdout, err: $stderr)
+      def initialize(parser:, builtins:, compiler: nil, out: $stdout, err: $stderr)
         @parser = parser
         @builtins = builtins
+        @compiler = compiler || Calc::Compiler.new(builtins)
         @out = out
         @err = err
       end
@@ -17,6 +18,11 @@ module Calc
         when "ast"
           source = payload.to_s.strip
           @out.puts Calc::ASTPrinter.pretty(@parser.parse(source))
+          true
+        when "bytecode"
+          source = payload.to_s.strip
+          nodes = @parser.parse(source)
+          @out.puts @compiler.compile_program(nodes, name: "<repl>").disassemble
           true
         when "help"
           print_help
@@ -36,6 +42,7 @@ module Calc
       def print_help
         @out.puts "Commands:"
         @out.puts "  :ast <expr>   Print the AST for an expression"
+        @out.puts "  :bytecode <expr>   Print bytecode for an expression"
         @out.puts "  :help         Show this help"
         @out.puts
         @out.puts "Builtins:"
