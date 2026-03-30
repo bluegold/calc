@@ -1,6 +1,7 @@
 require_relative "test_helper"
 require "bigdecimal"
 require "fileutils"
+require "stringio"
 require "tmpdir"
 
 class ExecuterVmTest < Minitest::Test
@@ -100,5 +101,43 @@ class ExecuterVmTest < Minitest::Test
 
       assert_equal BigDecimal("5"), result
     end
+  end
+
+  def test_vm_trace_mode_writes_instruction_trace
+    trace = StringIO.new
+    executer = Calc::Executer.new(
+      Calc::Environment.new,
+      Calc::Builtins.new,
+      Calc::NamespaceRegistry.new,
+      execution_mode: "vm",
+      vm_trace: true,
+      vm_trace_io: trace
+    )
+
+    ast = @parser.parse("(+ 1 2)").first
+
+    assert_equal BigDecimal("3"), executer.evaluate(ast)
+    assert_includes trace.string, "=== VM trace <expr> ==="
+    assert_includes trace.string, "op=load_fn"
+  end
+
+  def test_vm_trace_mode_includes_stack_and_result
+    trace = StringIO.new
+    executer = Calc::Executer.new(
+      Calc::Environment.new,
+      Calc::Builtins.new,
+      Calc::NamespaceRegistry.new,
+      execution_mode: "vm",
+      vm_trace: true,
+      vm_trace_io: trace
+    )
+
+    ast = @parser.parse("(+ 1 2)").first
+
+    executer.evaluate(ast)
+
+    assert_includes trace.string, "=== VM trace <expr> ==="
+    assert_includes trace.string, "stack_after=[<builtin +>]"
+    assert_includes trace.string, "=> 3"
   end
 end

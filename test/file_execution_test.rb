@@ -166,6 +166,23 @@ class FileExecutionTest < Minitest::Test
     assert_includes scrub_stderr(stderr), "bytecode requires a script path"
   end
 
+  def test_file_execution_can_trace_vm_to_stderr
+    stdout, stderr, status = run_calc("--trace-vm", "--print-last-result", "samples/recursion.calc")
+    expected_stdout = SAMPLE_WITH_PRINT_OUTPUTS.fetch("samples/recursion.calc") +
+                      SAMPLE_WITH_LAST_RESULT.fetch("samples/recursion.calc")
+
+    assert_predicate status, :success?
+    assert_equal expected_stdout, stdout
+    assert_includes scrub_stderr(stderr), "=== VM trace"
+  end
+
+  def test_file_execution_trace_includes_call_instruction
+    _stdout, stderr, status = run_calc("--trace-vm", "--print-last-result", "samples/recursion.calc")
+
+    assert_predicate status, :success?
+    assert_includes scrub_stderr(stderr), "op=call"
+  end
+
   private
 
   def run_calc(...)

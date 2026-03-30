@@ -2,9 +2,11 @@ module Calc
   # Stack-based virtual machine for executing Calc bytecode.
   # Phase 2 supports a safe subset (literals, symbol load, builtin function call).
   class Vm
-    def initialize(executer:, builtins:)
+    def initialize(executer:, builtins:, trace_enabled: false, trace_io: $stderr)
       @executer = executer
       @builtins = builtins
+      @trace_enabled = trace_enabled
+      @trace_io = trace_io
     end
 
     # Executes a compiled CodeObject and returns the top value of the stack.
@@ -14,11 +16,17 @@ module Calc
       ip = 0
       namespace_frames = []
 
+      trace_header(code)
+
       while ip < code.instructions.length
         instruction = code.instructions[ip]
-        ip = execute_instruction(instruction, stack, namespace_frames, ip)
+        stack_before = stack.dup
+        next_ip = execute_instruction(instruction, stack, namespace_frames, ip)
+        trace_instruction(code, ip, instruction, stack_before, stack, next_ip)
+        ip = next_ip
       end
 
+      trace_footer(stack.last)
       stack.last
     ensure
       namespace_frames.reverse_each do |previous_namespace|
@@ -166,6 +174,64 @@ module Calc
 
     def load_file(metadata)
       @executer.send(:load_runtime_file, metadata.fetch(:path), namespace: metadata[:namespace])
+    end
+
+    def trace_header(code)
+      return unless @trace_enabled
+
+      @trace_io.puts("=== VM trace #{code.name || '<expr>'} ===")
+    end
+
+    # rubocop:disable Metrics/ParameterLists
+    def trace_instruction(code, ip, instruction, stack_before, stack_after, next_ip)
+      return unless @trace_enabled
+
+      @trace_io.puts(
+        format(
+          "%<name>s ip=%<ip>04d op=%<op>s arg=%<arg>s next=%<next>04d stack_before=%<before>s stack_after=%<after>s",
+          name: code.name || "<expr>",
+          ip: ip,
+          op: instruction.op,
+          arg: format_trace_operand(instruction.a),
+          next: next_ip,
+          before: format_trace_stack(stack_before),
+          after: format_trace_stack(stack_after)
+        )
+      )
+    end
+    # rubocop:enable Metrics/ParameterLists
+
+    def trace_footer(result)
+      return unless @trace_enabled
+
+      @trace_io.puts("=> #{format_trace_value(result)}")
+    end
+
+    def format_trace_stack(values)
+      "[#{values.map { |value| format_trace_value(value) }.join(', ')}]"
+    end
+
+    def format_trace_operand(value)
+      value.nil? ? "-" : format_trace_value(value)
+    end
+
+    def format_trace_value(value)
+      case value
+      when LambdaValue
+        "<lambda params=#{value.params.inspect}>"
+      when Array
+        format_trace_array(value)
+      when Hash, String
+        value.inspect
+      else
+        Calc.format_value(value)
+      end
+    end
+
+    def format_trace_array(value)
+      return "<builtin #{value[1]}>" if value.length == 2 && value[0] == :builtin
+
+      "[#{value.map { |item| format_trace_value(item) }.join(', ')}]"
     end
   end
 end

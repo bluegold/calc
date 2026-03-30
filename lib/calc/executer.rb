@@ -38,14 +38,19 @@ module Calc
     # @param namespaces [NamespaceRegistry] The namespace registry.
     # @param current_namespace [String, nil] The current namespace.
     # @param execution_mode [String] Evaluation mode (`tree` or `vm`).
+    # @param vm_trace [Boolean] Whether to trace VM instruction execution.
+    # @param vm_trace_io [IO] Output destination for VM trace logs.
+    # rubocop:disable Metrics/ParameterLists
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
-                   current_namespace: nil, execution_mode: ENV.fetch("CALC_EXECUTER_MODE", "vm"))
+                   current_namespace: nil,
+                   execution_mode: ENV.fetch("CALC_EXECUTER_MODE", "vm"),
+                   vm_trace: trace_env_enabled?("CALC_VM_TRACE"), vm_trace_io: $stderr)
       @environment = environment
       @builtins = builtins
       @namespaces = namespaces
       @parser = Parser.new
       @compiler = Compiler.new(@builtins)
-      @vm = Vm.new(executer: self, builtins: @builtins)
+      @vm = Vm.new(executer: self, builtins: @builtins, trace_enabled: vm_trace, trace_io: vm_trace_io)
       @current_namespace = current_namespace
       @namespace_stack = [current_namespace]
       @current_file = nil
@@ -53,6 +58,7 @@ module Calc
       @loading_stack = []
       @execution_mode = execution_mode
     end
+    # rubocop:enable Metrics/ParameterLists
 
     # Evaluates a single AST node.
     # Calls the appropriate evaluation logic based on the node type.
@@ -373,6 +379,11 @@ module Calc
 
     def vm_enabled?
       @execution_mode == "vm"
+    end
+
+    def trace_env_enabled?(name)
+      value = ENV.fetch(name, nil)
+      %w[1 true yes on].include?(value.to_s.downcase)
     end
 
     def vm_eligible_nodes?(nodes)

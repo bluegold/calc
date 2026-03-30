@@ -13,21 +13,22 @@ module Calc
 
       # Dispatches to test mode, file mode, or interactive REPL mode.
       def run
+        options = parse_options
+        return 1 unless options
+
         parser = Calc::Parser.new
-        executer = Calc::Executer.new
+
+        if options.subcommand == "bytecode"
+          compiler = Calc::Compiler.new(Calc::Builtins.new)
+          return BytecodeRunner.run(parser, compiler, options.script_path, out: @out, err: @err)
+        end
+
+        executer = build_executer(options)
         builtins = executer.builtins
 
         configure_completion(executer, builtins)
 
-        options = parse_options
-        return 1 unless options
-
         return TestRunner.run(executer, options.remaining_args, out: @out, err: @err) if options.subcommand == "test"
-
-        if options.subcommand == "bytecode"
-          compiler = Calc::Compiler.new(builtins)
-          return BytecodeRunner.run(parser, compiler, options.script_path, out: @out, err: @err)
-        end
 
         if options.script_path
           return FileRunner.run(
@@ -63,6 +64,10 @@ module Calc
       rescue Options::InvalidOptionError => e
         @err.puts e.message
         nil
+      end
+
+      def build_executer(options)
+        Calc::Executer.new(vm_trace: options.trace_vm, vm_trace_io: @err)
       end
 
       # Runs the interactive loop with history lifecycle management.

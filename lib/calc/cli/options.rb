@@ -1,7 +1,7 @@
 module Calc
   module Cli
     module Options
-      Result = Struct.new(:subcommand, :print_last_result, :script_path, :remaining_args)
+      Result = Struct.new(:subcommand, :print_last_result, :trace_vm, :script_path, :remaining_args)
       SUBCOMMANDS = %w[test bytecode].freeze
 
       class InvalidOptionError < StandardError
@@ -21,6 +21,7 @@ module Calc
         subcommand = args.shift if SUBCOMMANDS.include?(args.first)
 
         print_last_result = false
+        trace_vm = false
         script_path = nil
         remaining_args = []
 
@@ -28,6 +29,8 @@ module Calc
           case arg
           when "--print-last-result"
             print_last_result = true
+          when "--trace-vm"
+            trace_vm = true
           when /^-/
             raise InvalidOptionError, arg
           else
@@ -42,6 +45,7 @@ module Calc
         Result.new(
           subcommand: subcommand,
           print_last_result: print_last_result,
+          trace_vm: trace_vm,
           script_path: script_path,
           remaining_args: remaining_args
         )
