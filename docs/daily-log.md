@@ -1,6 +1,7 @@
 # Daily Log
 
 ## 2026-03-30
+- Decided to keep the tree-walk executer as a maintained fallback until the next major language feature makes dual maintenance clearly break down or too costly.
 - Switched the default executer mode from tree-walk to VM for Phase 4 while keeping `CALC_EXECUTER_MODE=tree` as an explicit fallback.
 - Updated CI to run the Ruby test matrix in both `vm` and `tree` execution modes.
 - Completed Phase 3 of the bytecode migration by executing special forms, lambda closures, namespace blocks, and `load` through the VM while keeping tree/vm compatibility.
