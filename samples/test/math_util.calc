@@ -1,0 +1,7 @@
+(do
+  (load "math_util")
+  (assert-equal 20 (npr 5 2))
+  (assert-equal 720 (npr 10 3))
+  (assert-equal 10 (ncr 5 2))
+  (assert-equal 252 (ncr 10 5))
+  true)

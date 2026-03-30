@@ -1,0 +1,18 @@
+; gcd.calc
+; ユークリッドの互除法を用いた最大公約数の計算
+
+(define (gcd a b)
+  (if (== b 0)
+      (abs a)                  ; bが0ならaの絶対値を返す
+      (gcd b (mod a b))))      ; 再帰呼び出し
+
+; --- 実行サンプル ---
+
+(println "GCD of 48 and 18:")
+(println (gcd 48 18))            ; 期待される結果: 6
+
+(println "GCD of 101 and 10:")
+(println (gcd 101 10))           ; 期待される結果: 1 (互いに素)
+
+(println "GCD of -24 and 60:")
+(println (gcd -24 60))           ; 期待される結果: 12

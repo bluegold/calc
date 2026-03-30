@@ -1,0 +1,26 @@
+; math_util.calc
+
+; 1. 階乗 (n!)
+(define (factorial n)
+  (if (== n 0)
+      1
+      (* n (factorial (- n 1)))))
+
+; 2. 順列 (npr = n! / (n-r)!)
+(define (npr n r)
+  (/ (factorial n) (factorial (- n r))))
+
+; 3. 組合せ (ncr = n! / (r! * (n-r)!))
+(define (ncr n r)
+  (/ (factorial n) 
+     (* (factorial r) (factorial (- n r)))))
+
+; --- 実行サンプル ---
+
+(println "--- Permutations (npr) ---")
+(println (concat "5P2 = " (npr 5 2)))    ; 期待値: 20
+(println (concat "10P3 = " (npr 10 3)))  ; 期待値: 720
+
+(println "--- Combinations (ncr) ---")
+(println (concat "5C2 = " (ncr 5 2)))    ; 期待値: 10
+(println (concat "10C5 = " (ncr 10 5)))  ; 期待値: 252

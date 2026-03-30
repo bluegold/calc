@@ -1,0 +1,6 @@
+(do
+  (load "gcd")
+  (assert-equal 6 (gcd 48 18))
+  (assert-equal 1 (gcd 101 10))
+  (assert-equal 12 (gcd -24 60))
+  true)

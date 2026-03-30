@@ -25,10 +25,15 @@ This directory contains small Calc programs grouped by feature type.
 ## Recursion
 
 - `recursion.calc`: recursive Fibonacci with intermediate output
+- `gcd.calc`: Euclidean algorithm for greatest common divisor
 - `hanoi.calc`: recursive Tower of Hanoi move printer
 - `hanoi2.calc`: Tower of Hanoi using `cons`, `append`, `concat-list`, and `fold`
 - `hanoi3.calc`: Tower of Hanoi using `cond`-based branching
 - `nqueen2.calc`: N-Queens solver using `and`/`or`/`not`/`cond`
+
+## Math Utilities
+
+- `math_util.calc`: `factorial`, `npr`, and `ncr` examples
 
 ## stdlib Usage
 
@@ -41,6 +46,8 @@ This directory contains small Calc programs grouped by feature type.
 - `test/stdlib-list.calc`: sample wrapper for `samples/stdlib-list.calc`
 - `test/stdlib-json.calc`: sample wrapper for `samples/stdlib-json.calc`
 - `test/stdlib-time.calc`: sample wrapper for `samples/stdlib-time.calc`
+- `test/gcd.calc`: sample wrapper for `samples/gcd.calc`
+- `test/math_util.calc`: sample wrapper for `samples/math_util.calc`
 
 ## Run examples
 
@@ -50,6 +57,8 @@ bin/calc --print-last-result samples/higher-order.calc
 bin/calc --print-last-result samples/higher-order-predicates.calc
 bin/calc --print-last-result samples/higher-order-flat-map.calc
 bin/calc --print-last-result samples/higher-order-mixed.calc
+bin/calc --print-last-result samples/gcd.calc
+bin/calc --print-last-result samples/math_util.calc
 bin/calc --print-last-result samples/list-ops.calc
 bin/calc --print-last-result samples/hash-ops.calc
 bin/calc --print-last-result samples/hanoi3.calc
