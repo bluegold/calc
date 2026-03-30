@@ -1,6 +1,7 @@
 # Daily Log
 
 ## 2026-03-30
+- Split `Calc::Builtins` helper responsibilities into `builtins/collection_helpers.rb` and `builtins/json_helpers.rb` while keeping the public API stable.
 - Added `std.collections.list.min` and `std.collections.list.max` in `stdlib/collections/list.calc`.
 - Expanded Calc-language stdlib tests for `min`/`max` with negative, decimal, and single-item list cases.
 - Added scalar math builtins: `abs`, `mod`, `floor`, `ceil`, and `round`.

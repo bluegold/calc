@@ -37,7 +37,7 @@ module Calc
           index, list = args
           raise Calc::RuntimeError, "nth expects a list" unless list.is_a?(Array)
 
-          normalized_index = builtins.send(:normalize_index, index)
+          normalized_index = builtins.normalize_index(index)
           next nil if normalized_index.nil? || normalized_index.negative? || normalized_index >= list.length
 
           list[normalized_index]
