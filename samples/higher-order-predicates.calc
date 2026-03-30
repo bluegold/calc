@@ -1,0 +1,10 @@
+(define values (list 1 2 3 4 5))
+
+(do
+  (print "--- higher-order predicates ---")
+  (print (find (lambda (x) (> x 3)) values))
+  (print (any? (lambda (x) (== x 4)) values))
+  (print (all? (lambda (x) (> x 0)) values))
+  (print (none? (lambda (x) (< x 0)) values))
+  (print (count values))
+  (count (lambda (x) (> x 2)) values))

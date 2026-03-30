@@ -9,6 +9,9 @@ This directory contains small Calc programs grouped by feature type.
 ## Higher-Order Functions
 
 - `higher-order.calc`: `map`, `reduce`, and `select`
+- `higher-order-predicates.calc`: `find`, `any?`, `all?`, `none?`, and `count`
+- `higher-order-flat-map.calc`: `flat-map` for map + one-level flatten
+- `higher-order-mixed.calc`: combines aliases (`collect`/`filter`) with `flat-map` and `find`
 
 ## Collections
 
@@ -44,6 +47,9 @@ This directory contains small Calc programs grouped by feature type.
 ```bash
 bin/calc --print-last-result samples/basic.calc
 bin/calc --print-last-result samples/higher-order.calc
+bin/calc --print-last-result samples/higher-order-predicates.calc
+bin/calc --print-last-result samples/higher-order-flat-map.calc
+bin/calc --print-last-result samples/higher-order-mixed.calc
 bin/calc --print-last-result samples/list-ops.calc
 bin/calc --print-last-result samples/hash-ops.calc
 bin/calc --print-last-result samples/hanoi3.calc

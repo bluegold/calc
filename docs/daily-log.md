@@ -2,6 +2,11 @@
 
 ## 2026-03-31
 - Consolidated all executer higher-order behavior tests into `test/executer_high_order_test.rb` and removed high-order cases from `test/executer_test.rb` to keep class size manageable.
+- Added higher-order builtins `find`, `any?`, `all?`, `none?`, `flat-map`, and `count` with tests at both builtin and executer levels.
+- Refactored higher-order builtin registration into smaller helper methods to satisfy RuboCop complexity limits.
+- Regenerated `docs/spec.md` builtin list after extending higher-order function coverage.
+- Added three new sample programs for higher-order functions: `higher-order-predicates.calc`, `higher-order-flat-map.calc`, and `higher-order-mixed.calc`.
+- Updated `samples/README.md` with descriptions and run commands for the new higher-order samples.
 
 ## 2026-03-30
 - Added builtin alias registration support and switched higher-order synonyms to aliases (`collect` -> `map`, `fold` -> `reduce`, `filter` -> `select`).

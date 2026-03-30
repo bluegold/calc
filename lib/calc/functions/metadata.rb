@@ -72,6 +72,30 @@ module Calc
           description: "Select items with a predicate",
           example: "(select (lambda (x) (> x 1)) (list 1 2 3))"
         },
+        "find" => {
+          description: "Find first item matching a predicate",
+          example: "(find (lambda (x) (> x 1)) (list 1 2 3))"
+        },
+        "any?" => {
+          description: "Return true if any item matches a predicate",
+          example: "(any? (lambda (x) (> x 1)) (list 1 2 3))"
+        },
+        "all?" => {
+          description: "Return true if all items match a predicate",
+          example: "(all? (lambda (x) (> x 0)) (list 1 2 3))"
+        },
+        "none?" => {
+          description: "Return true if no items match a predicate",
+          example: "(none? (lambda (x) (< x 0)) (list 1 2 3))"
+        },
+        "flat-map" => {
+          description: "Map and flatten one level",
+          example: "(flat-map (lambda (x) (list x (+ x 10))) (list 1 2))"
+        },
+        "count" => {
+          description: "Count items or items matching a predicate",
+          example: "(count (lambda (x) (> x 1)) (list 1 2 3))"
+        },
         "filter" => {
           description: "Alias for select",
           example: "(filter (lambda (x) (> x 1)) (list 1 2 3))"

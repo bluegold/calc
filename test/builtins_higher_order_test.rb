@@ -73,6 +73,58 @@ class BuiltinsHigherOrderTest < Minitest::Test
     assert_same @builtins.builtin("reduce").callable, @builtins.builtin("fold").callable
   end
 
+  def test_find_returns_first_matching_item
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
+
+    result = @builtins.call("find", [callable, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal 2, result
+  end
+
+  def test_any_all_none_with_callable_runner
+    greater_than_one = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
+    positive = Calc::LambdaValue.new(["x"], @parser.parse("(> x 0)").first, @environment.snapshot, nil)
+    negative = Calc::LambdaValue.new(["x"], @parser.parse("(< x 0)").first, @environment.snapshot, nil)
+
+    any_result = @builtins.call("any?", [greater_than_one, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+    all_result = @builtins.call("all?", [positive, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+    none_result = @builtins.call("none?", [negative, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert any_result
+    assert all_result
+    assert none_result
+  end
+
+  def test_flat_map_flattens_one_level
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(list x (+ x 10))").first, @environment.snapshot, nil)
+
+    result = @builtins.call("flat-map", [callable, [1, 2]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal [1, BigDecimal("11"), 2, BigDecimal("12")], result
+  end
+
+  def test_count_counts_all_or_matching_items
+    greater_than_one = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
+
+    total = @builtins.call("count", [[1, 2, 3]])
+    matched = @builtins.call("count", [greater_than_one, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal BigDecimal("3"), total
+    assert_equal BigDecimal("2"), matched
+  end
+
   # rubocop:disable Minitest/MultipleAssertions
   def test_higher_order_functions_accept_hash_iterables
     pair_to_value = Calc::LambdaValue.new(["pair"], @parser.parse("(get pair 1)").first, @environment.snapshot, nil)
