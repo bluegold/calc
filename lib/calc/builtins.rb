@@ -54,6 +54,27 @@ module Calc
       )
     end
 
+    # Registers an alias for an existing built-in function.
+    #
+    # @param name [String] Alias name to register.
+    # @param target [String] Existing built-in function name.
+    # @param metadata [Hash] Optional metadata override for the alias.
+    # @raise [Calc::NameError] If the target built-in does not exist.
+    def register_alias(name, target, **metadata)
+      target_builtin = @functions[target]
+      raise Calc::NameError, "unknown function: #{target}" unless target_builtin
+
+      @functions[name] = Builtin.new(
+        name: name,
+        min_arity: target_builtin.min_arity,
+        max_arity: target_builtin.max_arity,
+        type: metadata.fetch(:type, target_builtin.type),
+        description: metadata.fetch(:description, target_builtin.description),
+        example: metadata.fetch(:example, target_builtin.example),
+        callable: target_builtin.callable
+      )
+    end
+
     # Checks if a given name corresponds to a special literal value.
     #
     # @param name [String] The name to check.

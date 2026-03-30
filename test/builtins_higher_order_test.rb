@@ -49,6 +49,30 @@ class BuiltinsHigherOrderTest < Minitest::Test
     assert_equal [2, 3], result
   end
 
+  def test_collect_aliases_map
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(+ x 1)").first, @environment.snapshot, nil)
+
+    result = @builtins.call("collect", [callable, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal [BigDecimal("2"), BigDecimal("3"), BigDecimal("4")], result
+  end
+
+  def test_filter_aliases_select
+    callable = Calc::LambdaValue.new(["x"], @parser.parse("(> x 1)").first, @environment.snapshot, nil)
+
+    result = @builtins.call("filter", [callable, [1, 2, 3]]) do |callable_value, values|
+      @executer.send(:call_lambda, callable_value, values)
+    end
+
+    assert_equal [2, 3], result
+  end
+
+  def test_fold_aliases_reduce_callable
+    assert_same @builtins.builtin("reduce").callable, @builtins.builtin("fold").callable
+  end
+
   # rubocop:disable Minitest/MultipleAssertions
   def test_higher_order_functions_accept_hash_iterables
     pair_to_value = Calc::LambdaValue.new(["pair"], @parser.parse("(get pair 1)").first, @environment.snapshot, nil)

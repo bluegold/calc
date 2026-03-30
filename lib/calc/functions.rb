@@ -39,6 +39,29 @@ module Calc
       )
     end
 
+    # Registers a built-in alias, inheriting callable/arity from target.
+    # Alias metadata prefers explicit alias metadata, then target metadata.
+    def self.register_alias(builtins, alias_name, target_name, **metadata)
+      alias_metadata = begin
+        Metadata.fetch(alias_name)
+      rescue KeyError
+        {}
+      end
+      target_metadata = begin
+        Metadata.fetch(target_name)
+      rescue KeyError
+        {}
+      end
+
+      builtins.register_alias(
+        alias_name,
+        target_name,
+        type: metadata.fetch(:type, alias_metadata[:type] || target_metadata[:type]),
+        description: metadata.fetch(:description, alias_metadata[:description] || target_metadata[:description]),
+        example: metadata.fetch(:example, alias_metadata[:example] || target_metadata[:example])
+      )
+    end
+
     # Discovers all modules/classes within `Calc::Functions` that implement
     # a `register` class method. These are considered function registrars.
     #

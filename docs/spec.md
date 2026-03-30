@@ -191,7 +191,7 @@ Run `bundle exec rake spec:update_builtins` after adding or removing builtins.
 - Arithmetic: `*`, `+`, `-`, `/`
 - Comparison: `!=`, `<`, `<=`, `==`, `>`, `>=`, `not`
 - Math: `abs`, `ceil`, `floor`, `mod`, `pow`, `round`, `sqrt`
-- Higher-order: `fold`, `map`, `reduce`, `select`
+- Higher-order: `collect`, `filter`, `fold`, `map`, `reduce`, `select`
 - List: `append`, `concat-list`, `cons`, `first`, `list`, `nth`, `rest`
 - Hash: `dig`, `entries`, `get`, `has?`, `hash`, `hash-from-pairs`, `keys`, `set`, `values`
 - String: `concat`, `length`

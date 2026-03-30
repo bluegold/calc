@@ -1,8 +1,7 @@
 module Calc
   module Functions
     # This module registers higher-order functions that operate on collections
-    # and can take other functions as arguments. These include `map`, `reduce`,
-    # `fold`, and `select`.
+    # and can take other functions as arguments.
     module HigherOrder
       # Registers all higher-order functions with the Builtins registry.
       #
@@ -28,16 +27,6 @@ module Calc
           list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
         end
 
-        # Folds a list using a function and an initial seed value. Similar to reduce.
-        # `(fold (lambda (memo x) (+ memo x)) 0 (list 1 2 3))`
-        Functions.register(builtins, "fold", min_arity: 3, max_arity: 3) do |args, &block|
-          callable, memo, collection = args
-          list = builtins.normalize_iterable(collection, "fold")
-          raise Calc::NameError, "fold expects a function" unless block
-
-          list.reduce(memo) { |accumulator, item| block.call(callable, [accumulator, item]) }
-        end
-
         # Selects items from a list that satisfy a given predicate function:
         # `(select (lambda (x) (> x 1)) (list 1 2 3))`
         Functions.register(builtins, "select", min_arity: 2, max_arity: 2) do |args, &block|
@@ -47,6 +36,10 @@ module Calc
 
           list.select { |item| builtins.truthy?(block.call(callable, [item])) }
         end
+
+        Functions.register_alias(builtins, "collect", "map")
+        Functions.register_alias(builtins, "fold", "reduce")
+        Functions.register_alias(builtins, "filter", "select")
       end
     end
   end

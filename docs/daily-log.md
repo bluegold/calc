@@ -1,6 +1,12 @@
 # Daily Log
 
+## 2026-03-31
+- Consolidated all executer higher-order behavior tests into `test/executer_high_order_test.rb` and removed high-order cases from `test/executer_test.rb` to keep class size manageable.
+
 ## 2026-03-30
+- Added builtin alias registration support and switched higher-order synonyms to aliases (`collect` -> `map`, `fold` -> `reduce`, `filter` -> `select`).
+- Added runtime and evaluator tests for `collect`/`filter` aliases and a shared-callable assertion for `fold`/`reduce`.
+- Regenerated the Builtins section in `docs/spec.md` so higher-order aliases are listed.
 - Bumped the project version to `0.7.0` and prepared release tag `v0.7.0`.
 - Decided to keep the tree-walk executer as a maintained fallback until the next major language feature makes dual maintenance clearly break down or too costly.
 - Switched the default executer mode from tree-walk to VM for Phase 4 while keeping `CALC_EXECUTER_MODE=tree` as an explicit fallback.

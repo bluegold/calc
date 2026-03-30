@@ -56,6 +56,10 @@ module Calc
           description: "Map a function over a list",
           example: "(map (lambda (x) (+ x 1)) (list 1 2 3))"
         },
+        "collect" => {
+          description: "Alias for map",
+          example: "(collect (lambda (x) (+ x 1)) (list 1 2 3))"
+        },
         "reduce" => {
           description: "Reduce a list with a function",
           example: "(reduce (lambda (memo x) (+ memo x)) 0 (list 1 2 3))"
@@ -67,6 +71,10 @@ module Calc
         "select" => {
           description: "Select items with a predicate",
           example: "(select (lambda (x) (> x 1)) (list 1 2 3))"
+        },
+        "filter" => {
+          description: "Alias for select",
+          example: "(filter (lambda (x) (> x 1)) (list 1 2 3))"
         },
         "pow" => { description: "Raise a number to a power", example: "(pow 2 3)" },
         "abs" => { description: "Absolute value", example: "(abs -3.5)" },
