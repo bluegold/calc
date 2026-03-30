@@ -1,6 +1,8 @@
 # Daily Log
 
 ## 2026-03-30
+- Switched the default executer mode from tree-walk to VM for Phase 4 while keeping `CALC_EXECUTER_MODE=tree` as an explicit fallback.
+- Updated CI to run the Ruby test matrix in both `vm` and `tree` execution modes.
 - Completed Phase 3 of the bytecode migration by executing special forms, lambda closures, namespace blocks, and `load` through the VM while keeping tree/vm compatibility.
 - Extended VM coverage tests for `if`/`and`/`or`/`cond`/`define`/`lambda`/`do`/`namespace`/`load`, and verified the full suite passes in both default mode and `CALC_EXECUTER_MODE=vm`.
 - Started Phase 2 by adding a stack VM (`lib/calc/vm.rb`) and feature-flag execution mode switching via `CALC_EXECUTER_MODE=tree|vm`.

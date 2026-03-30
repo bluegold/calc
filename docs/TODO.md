@@ -14,6 +14,7 @@
 - [x] safe subset（リテラル/シンボル/通常関数呼び出し）を VM 実行する
 - [x] special form（`if` / `and` / `or` / `cond` / `define` / `lambda` / `do`）を VM 実行する
 - [x] `namespace` / `load` を VM 実行する
+- [x] VM を既定の実行系に切り替える
 - [x] 四則演算を評価する
 - [x] 変数定義を扱う
 - [x] `if` を special form として扱う

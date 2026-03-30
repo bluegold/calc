@@ -15,6 +15,12 @@ jobs:
           - "3.2"
           - "3.3"
           - "4.0"
+        execution-mode:
+          - vm
+          - tree
+
+    env:
+      CALC_EXECUTER_MODE: ${{ matrix.execution-mode }}
 
     steps:
       - name: Checkout

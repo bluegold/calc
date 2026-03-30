@@ -40,6 +40,11 @@ bin/calc
 ```
 
 `bin/calc` は gem の executable としても配布される想定です。
+既定の実行系は VM です。従来の tree-walk に戻したい場合は `CALC_EXECUTER_MODE=tree` を付けます。
+
+```bash
+CALC_EXECUTER_MODE=tree bin/calc
+```
 
 よく使う操作を機能別に並べると次のようになります。
 
@@ -162,6 +167,12 @@ $ bin/calc --print-last-result samples/namespace.calc
 --- namespace ---
 8
 16
+```
+
+tree-walk 実行で比較したいときは次のように切り替えられます。
+
+```bash
+CALC_EXECUTER_MODE=tree bin/calc --print-last-result samples/basic.calc
 ```
 
 ### File bytecode

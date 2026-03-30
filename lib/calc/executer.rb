@@ -39,7 +39,7 @@ module Calc
     # @param current_namespace [String, nil] The current namespace.
     # @param execution_mode [String] Evaluation mode (`tree` or `vm`).
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
-                   current_namespace: nil, execution_mode: ENV.fetch("CALC_EXECUTER_MODE", "tree"))
+                   current_namespace: nil, execution_mode: ENV.fetch("CALC_EXECUTER_MODE", "vm"))
       @environment = environment
       @builtins = builtins
       @namespaces = namespaces
