@@ -37,17 +37,21 @@ module Calc
     # @param builtins [Builtins] Built-in functions and literals.
     # @param namespaces [NamespaceRegistry] The namespace registry.
     # @param current_namespace [String, nil] The current namespace.
+    # @param execution_mode [String] Evaluation mode (`tree` or `vm`).
     def initialize(environment = Environment.new, builtins = Builtins.new, namespaces = NamespaceRegistry.new,
-                   current_namespace: nil)
+                   current_namespace: nil, execution_mode: ENV.fetch("CALC_EXECUTER_MODE", "tree"))
       @environment = environment
       @builtins = builtins
       @namespaces = namespaces
       @parser = Parser.new
+      @compiler = Compiler.new(@builtins)
+      @vm = Vm.new(executer: self, builtins: @builtins)
       @current_namespace = current_namespace
       @namespace_stack = [current_namespace]
       @current_file = nil
       @loaded_files = {}
       @loading_stack = []
+      @execution_mode = execution_mode
     end
 
     # Evaluates a single AST node.
@@ -57,6 +61,13 @@ module Calc
     # @return [Object] The result of the evaluation.
     # @raise [Calc::RuntimeError] If an unknown node type is passed.
     def evaluate(node)
+      return @vm.run(@compiler.compile(node)) if vm_enabled? && vm_eligible_node?(node)
+
+      evaluate_tree(node)
+    end
+
+    # Tree-walk fallback evaluator.
+    def evaluate_tree(node)
       case node
       when NumberNode, StringNode
         node.value
@@ -91,6 +102,10 @@ module Calc
     # @return [Object, nil] The result of the last expression evaluated.
     def evaluate_nodes(nodes, source_path: nil)
       with_source_path(source_path) do
+        if vm_enabled? && vm_eligible_nodes?(nodes)
+          return @vm.run(@compiler.compile_program(nodes, name: source_path || "<input>"))
+        end
+
         nodes.reduce(nil) do |_memo, node|
           evaluate(node)
         rescue StandardError => e
@@ -110,20 +125,29 @@ module Calc
     # @param node [SymbolNode] The symbol node to resolve.
     # @return [Object] The value corresponding to the symbol.
     def resolve_symbol(node)
-      return @environment.get_local(node.name) if @environment.bound_local?(node.name)
+      resolve_symbol_name(node.name)
+    end
 
-      found, builtin = @builtins.resolve(node.name)
+    # Resolves a symbol name and retrieves its value.
+    # Searches in locals, built-in literals, environment, and namespace entries.
+    #
+    # @param name [String] The symbol name to resolve.
+    # @return [Object] The resolved value.
+    def resolve_symbol_name(name)
+      return @environment.get_local(name) if @environment.bound_local?(name)
+
+      found, builtin = @builtins.resolve(name)
       return builtin if found
 
-      return @environment.get(node.name) if @environment.bound?(node.name)
+      return @environment.get(name) if @environment.bound?(name)
 
-      resolved_variable = @namespaces.resolve_variable(@current_namespace, node.name)
+      resolved_variable = @namespaces.resolve_variable(@current_namespace, name)
       return resolved_variable[:value] if resolved_variable
 
-      resolved_function = @namespaces.resolve_function(@current_namespace, node.name)
+      resolved_function = @namespaces.resolve_function(@current_namespace, name)
       return resolved_function[:value] if resolved_function
 
-      @environment.get(node.name)
+      @environment.get(name)
     end
 
     # Evaluates a list node.
@@ -264,6 +288,33 @@ module Calc
       end
 
       LambdaValue.new(params, body_node, @environment.snapshot, @current_namespace)
+    end
+
+    def vm_enabled?
+      @execution_mode == "vm"
+    end
+
+    def vm_eligible_nodes?(nodes)
+      nodes.all? { |node| vm_eligible_node?(node) }
+    end
+
+    def vm_eligible_node?(node)
+      case node
+      when NumberNode, StringNode, KeywordNode, SymbolNode
+        true
+      when ListNode
+        vm_eligible_call?(node)
+      else
+        false
+      end
+    end
+
+    def vm_eligible_call?(node)
+      head = node.children.first
+      return false unless head.is_a?(SymbolNode)
+      return false if SPECIAL_FORMS.include?(head.name)
+
+      node.children.drop(1).all? { |child| vm_eligible_node?(child) }
     end
   end
 end

@@ -10,6 +10,8 @@
 
 ## Executor
 - [x] bytecode 化検討の設計ドキュメントを作成する
+- [x] `CALC_EXECUTER_MODE` で tree/vm を切り替える
+- [x] safe subset（リテラル/シンボル/通常関数呼び出し）を VM 実行する
 - [x] 四則演算を評価する
 - [x] 変数定義を扱う
 - [x] `if` を special form として扱う

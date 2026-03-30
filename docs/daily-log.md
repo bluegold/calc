@@ -1,6 +1,8 @@
 # Daily Log
 
 ## 2026-03-30
+- Started Phase 2 by adding a stack VM (`lib/calc/vm.rb`) and feature-flag execution mode switching via `CALC_EXECUTER_MODE=tree|vm`.
+- Implemented VM safe-subset execution fallback in `Executer` (literals/symbols/plain calls on VM, special forms on tree-walk) and added `test/executer_vm_test.rb`.
 - Added `bin/calc bytecode <file>` to compile a script file and print bytecode disassembly without executing it.
 - Handled `Interrupt` in the REPL loop so pressing Ctrl+C exits gracefully without an exception dump, and added `test/repl_runner_test.rb`.
 - Added Phase 1 bytecode scaffolding (`lib/calc/bytecode.rb`, `lib/calc/compiler.rb`) and `test/compiler_test.rb` without switching runtime execution from tree-walk.
