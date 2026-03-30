@@ -1,6 +1,8 @@
 # Daily Log
 
 ## 2026-03-30
+- Locked Phase 0 decisions for bytecode migration and added `test/phase0_semantic_lock_test.rb` to pin current `if`/`and`/`or`/`cond` semantics before VM work.
+- Added `docs/bytecode-migration.md` to document phased migration from tree-walk `Executer` to bytecode+VM, including compatibility requirements and risk mitigations.
 - Split `Calc::Builtins` helper responsibilities into `builtins/collection_helpers.rb` and `builtins/json_helpers.rb` while keeping the public API stable.
 - Added `std.collections.list.min` and `std.collections.list.max` in `stdlib/collections/list.calc`.
 - Expanded Calc-language stdlib tests for `min`/`max` with negative, decimal, and single-item list cases.
