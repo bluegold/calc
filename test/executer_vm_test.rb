@@ -118,7 +118,25 @@ class ExecuterVmTest < Minitest::Test
 
     assert_equal BigDecimal("3"), executer.evaluate(ast)
     assert_includes trace.string, "=== VM trace <expr> ==="
-    assert_includes trace.string, "op=load_fn"
+    assert_includes trace.string, "bc[0000]"
+  end
+
+  def test_vm_trace_mode_includes_opcode_name
+    trace = StringIO.new
+    executer = Calc::Executer.new(
+      Calc::Environment.new,
+      Calc::Builtins.new,
+      Calc::NamespaceRegistry.new,
+      execution_mode: "vm",
+      vm_trace: true,
+      vm_trace_io: trace
+    )
+    ast = @parser.parse("(+ 1 2)").first
+
+    executer.evaluate(ast)
+
+    assert_includes trace.string, "bc[0000]"
+    assert_includes trace.string, "load_fn"
   end
 
   def test_vm_trace_mode_includes_stack_and_result
@@ -137,7 +155,47 @@ class ExecuterVmTest < Minitest::Test
     executer.evaluate(ast)
 
     assert_includes trace.string, "=== VM trace <expr> ==="
-    assert_includes trace.string, "stack_after=[<builtin +>]"
+    assert_includes trace.string, "bc[0000]"
+    assert_includes trace.string, "stack: [] -> [<builtin +>]"
+  end
+
+  def test_vm_trace_mode_includes_flow_and_result
+    trace = StringIO.new
+    executer = Calc::Executer.new(
+      Calc::Environment.new,
+      Calc::Builtins.new,
+      Calc::NamespaceRegistry.new,
+      execution_mode: "vm",
+      vm_trace: true,
+      vm_trace_io: trace
+    )
+    ast = @parser.parse("(+ 1 2)").first
+
+    executer.evaluate(ast)
+
+    assert_includes trace.string, "flow : function call executed"
     assert_includes trace.string, "=> 3"
+  end
+
+  def test_vm_trace_mode_can_be_toggled
+    trace = StringIO.new
+    executer = Calc::Executer.new(
+      Calc::Environment.new,
+      Calc::Builtins.new,
+      Calc::NamespaceRegistry.new,
+      execution_mode: "vm",
+      vm_trace: false,
+      vm_trace_io: trace
+    )
+    ast = @parser.parse("(+ 1 2)").first
+
+    executer.evaluate(ast)
+
+    assert_empty trace.string
+
+    executer.vm_trace = true
+    executer.evaluate(ast)
+
+    assert_includes trace.string, "=== VM trace <expr> ==="
   end
 end

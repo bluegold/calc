@@ -2,11 +2,17 @@ module Calc
   # Stack-based virtual machine for executing Calc bytecode.
   # Phase 2 supports a safe subset (literals, symbol load, builtin function call).
   class Vm
+    attr_writer :trace_enabled
+
     def initialize(executer:, builtins:, trace_enabled: false, trace_io: $stderr)
       @executer = executer
       @builtins = builtins
       @trace_enabled = trace_enabled
       @trace_io = trace_io
+    end
+
+    def trace_enabled?
+      @trace_enabled
     end
 
     # Executes a compiled CodeObject and returns the top value of the stack.
@@ -179,32 +185,32 @@ module Calc
     def trace_header(code)
       return unless @trace_enabled
 
-      @trace_io.puts("=== VM trace #{code.name || '<expr>'} ===")
+      @trace_io.puts(colorize("=== VM trace #{code.name || '<expr>'} ===", :header))
     end
 
     # rubocop:disable Metrics/ParameterLists
     def trace_instruction(code, ip, instruction, stack_before, stack_after, next_ip)
       return unless @trace_enabled
 
-      @trace_io.puts(
-        format(
-          "%<name>s ip=%<ip>04d op=%<op>s arg=%<arg>s next=%<next>04d stack_before=%<before>s stack_after=%<after>s",
-          name: code.name || "<expr>",
-          ip: ip,
-          op: instruction.op,
-          arg: format_trace_operand(instruction.a),
-          next: next_ip,
-          before: format_trace_stack(stack_before),
-          after: format_trace_stack(stack_after)
-        )
+      header = format(
+        "%<name>s bc[%<ip>04d] %<op>s arg=%<arg>s next=%<next>04d",
+        name: code.name || "<expr>",
+        ip: ip,
+        op: format_trace_op(instruction.op),
+        arg: format_trace_operand(instruction.a),
+        next: next_ip
       )
+      flow = format_trace_flow(instruction, next_ip, ip)
+      @trace_io.puts(header)
+      @trace_io.puts("    stack: #{format_trace_stack(stack_before)} -> #{format_trace_stack(stack_after)}")
+      @trace_io.puts("    flow : #{flow}") if flow
     end
     # rubocop:enable Metrics/ParameterLists
 
     def trace_footer(result)
       return unless @trace_enabled
 
-      @trace_io.puts("=> #{format_trace_value(result)}")
+      @trace_io.puts(colorize("=> #{format_trace_value(result)}", :result))
     end
 
     def format_trace_stack(values)
@@ -213,6 +219,35 @@ module Calc
 
     def format_trace_operand(value)
       value.nil? ? "-" : format_trace_value(value)
+    end
+
+    def format_trace_op(op)
+      op_text = op.to_s
+      case op
+      when :call, :load_fn, :make_closure
+        colorize(op_text, :call)
+      when :jump, :jump_false, :jump_true
+        colorize(op_text, :jump)
+      when :store, :store_fn
+        colorize(op_text, :store)
+      else
+        op_text
+      end
+    end
+
+    def format_trace_flow(instruction, next_ip, ip)
+      case instruction.op
+      when :jump
+        colorize("unconditional jump to #{next_ip}", :jump)
+      when :jump_false, :jump_true
+        return nil if next_ip == ip + 1
+
+        colorize("branch taken to #{next_ip}", :jump)
+      when :call
+        colorize("function call executed", :call)
+      when :make_closure
+        colorize("closure created", :call)
+      end
     end
 
     def format_trace_value(value)
@@ -232,6 +267,30 @@ module Calc
       return "<builtin #{value[1]}>" if value.length == 2 && value[0] == :builtin
 
       "[#{value.map { |item| format_trace_value(item) }.join(', ')}]"
+    end
+
+    def colorize(text, role)
+      return text unless color_enabled?
+
+      code = case role
+             when :header
+               36
+             when :result
+               32
+             when :call
+               35
+             when :jump
+               33
+             when :store
+               34
+             else
+               0
+             end
+      "\e[#{code}m#{text}\e[0m"
+    end
+
+    def color_enabled?
+      @trace_io.respond_to?(:tty?) && @trace_io.tty?
     end
   end
 end

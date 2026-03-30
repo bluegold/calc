@@ -180,7 +180,7 @@ class FileExecutionTest < Minitest::Test
     _stdout, stderr, status = run_calc("--trace-vm", "--print-last-result", "samples/recursion.calc")
 
     assert_predicate status, :success?
-    assert_includes scrub_stderr(stderr), "op=call"
+    assert_includes scrub_stderr(stderr), "call arg="
   end
 
   private

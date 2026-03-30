@@ -2,12 +2,13 @@ module Calc
   module Cli
     class ReplCommandHandler
       # Builds a handler for REPL colon commands such as :help and :ast.
-      def initialize(parser:, builtins:, compiler: nil, out: $stdout, err: $stderr)
+      def initialize(parser:, builtins:, executer:, compiler: nil, io: { out: $stdout, err: $stderr })
         @parser = parser
         @builtins = builtins
+        @executer = executer
         @compiler = compiler || Calc::Compiler.new(builtins)
-        @out = out
-        @err = err
+        @out = io.fetch(:out)
+        @err = io.fetch(:err)
       end
 
       # Handles a single REPL command line and reports command-specific output.
@@ -27,6 +28,8 @@ module Calc
         when "help"
           print_help
           true
+        when "trace-vm"
+          handle_trace_vm_command?(payload)
         else
           @err.puts "unknown command: :#{command}"
           false
@@ -43,6 +46,7 @@ module Calc
         @out.puts "Commands:"
         @out.puts "  :ast <expr>   Print the AST for an expression"
         @out.puts "  :bytecode <expr>   Print bytecode for an expression"
+        @out.puts "  :trace-vm <on|off|status>   Toggle VM trace output"
         @out.puts "  :help         Show this help"
         @out.puts
         @out.puts "Builtins:"
@@ -60,6 +64,28 @@ module Calc
       # Converts builtin metadata group keys to a display label.
       def format_builtin_group(type)
         type.split("-").map(&:capitalize).join(" ")
+      end
+
+      def handle_trace_vm_command?(payload)
+        action = payload.to_s.strip
+
+        case action
+        when "on"
+          @executer.vm_trace = true
+          @out.puts "VM trace: ON"
+          true
+        when "off"
+          @executer.vm_trace = false
+          @out.puts "VM trace: OFF"
+          true
+        when "status", ""
+          status = @executer.vm_trace_enabled? ? "ON" : "OFF"
+          @out.puts "VM trace: #{status}"
+          true
+        else
+          @err.puts "usage: :trace-vm <on|off|status>"
+          false
+        end
       end
     end
   end

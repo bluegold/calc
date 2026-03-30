@@ -17,6 +17,12 @@ class ReplCompletionTest < Minitest::Test
     assert_equal [":bytecode"], @completion.candidates(":by", line, line.length)
   end
 
+  def test_completes_trace_vm_command_at_head
+    line = ":tr"
+
+    assert_equal [":trace-vm"], @completion.candidates(":tr", line, line.length)
+  end
+
   def test_does_not_suggest_commands_in_expression_context
     line = "(hash :he"
 

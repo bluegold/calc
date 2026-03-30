@@ -130,6 +130,14 @@ module Calc
       end
     end
 
+    def vm_trace=(enabled)
+      @vm.trace_enabled = enabled
+    end
+
+    def vm_trace_enabled?
+      @vm.trace_enabled?
+    end
+
     private
 
     # Resolves a symbol node and retrieves its value.

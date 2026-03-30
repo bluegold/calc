@@ -73,7 +73,12 @@ module Calc
       # Runs the interactive loop with history lifecycle management.
       def run_repl(parser, executer, builtins)
         History.with_session(@history_path, warning_io: @err) do
-          command_handler = ReplCommandHandler.new(parser: parser, builtins: builtins, out: @out, err: @err)
+          command_handler = ReplCommandHandler.new(
+            parser: parser,
+            builtins: builtins,
+            executer: executer,
+            io: { out: @out, err: @err }
+          )
           runner = ReplRunner.new(
             parser: parser,
             executer: executer,

@@ -5,13 +5,14 @@ class ReplCommandHandlerTest < Minitest::Test
   def setup
     @parser = Calc::Parser.new
     @builtins = Calc::Builtins.new
+    @executer = Calc::Executer.new(execution_mode: "vm")
     @out = StringIO.new
     @err = StringIO.new
     @handler = Calc::Cli::ReplCommandHandler.new(
       parser: @parser,
       builtins: @builtins,
-      out: @out,
-      err: @err
+      executer: @executer,
+      io: { out: @out, err: @err }
     )
   end
 
@@ -39,5 +40,42 @@ class ReplCommandHandlerTest < Minitest::Test
 
     assert handled
     assert_includes @out.string, ":bytecode <expr>"
+  end
+
+  def test_help_lists_trace_vm_command
+    @handler.handle(":help")
+
+    assert_includes @out.string, ":trace-vm <on|off|status>"
+  end
+
+  def test_trace_vm_command_enables_trace
+    handled = @handler.handle(":trace-vm on")
+
+    assert handled
+    assert_predicate @executer, :vm_trace_enabled?
+    assert_includes @out.string, "VM trace: ON"
+  end
+
+  def test_trace_vm_command_disables_trace
+    @handler.handle(":trace-vm on")
+    handled = @handler.handle(":trace-vm off")
+
+    assert handled
+    refute_predicate @executer, :vm_trace_enabled?
+    assert_includes @out.string, "VM trace: OFF"
+  end
+
+  def test_trace_vm_command_reports_status
+    handled = @handler.handle(":trace-vm status")
+
+    assert handled
+    assert_includes @out.string, "VM trace: OFF"
+  end
+
+  def test_trace_vm_command_rejects_invalid_argument
+    handled = @handler.handle(":trace-vm maybe")
+
+    refute handled
+    assert_includes @err.string, "usage: :trace-vm <on|off|status>"
   end
 end
