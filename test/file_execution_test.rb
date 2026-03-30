@@ -167,7 +167,12 @@ class FileExecutionTest < Minitest::Test
   end
 
   def test_file_execution_can_trace_vm_to_stderr
-    stdout, stderr, status = run_calc("--trace-vm", "--print-last-result", "samples/recursion.calc")
+    stdout, stderr, status = run_calc_with_env(
+      { "CALC_EXECUTER_MODE" => "vm" },
+      "--trace-vm",
+      "--print-last-result",
+      "samples/recursion.calc"
+    )
     expected_stdout = SAMPLE_WITH_PRINT_OUTPUTS.fetch("samples/recursion.calc") +
                       SAMPLE_WITH_LAST_RESULT.fetch("samples/recursion.calc")
 
@@ -177,7 +182,12 @@ class FileExecutionTest < Minitest::Test
   end
 
   def test_file_execution_trace_includes_call_instruction
-    _stdout, stderr, status = run_calc("--trace-vm", "--print-last-result", "samples/recursion.calc")
+    _stdout, stderr, status = run_calc_with_env(
+      { "CALC_EXECUTER_MODE" => "vm" },
+      "--trace-vm",
+      "--print-last-result",
+      "samples/recursion.calc"
+    )
 
     assert_predicate status, :success?
     assert_includes scrub_stderr(stderr), "call arg="
@@ -187,6 +197,10 @@ class FileExecutionTest < Minitest::Test
 
   def run_calc(...)
     Open3.capture3(RbConfig.ruby, "-Ilib", "bin/calc", ...)
+  end
+
+  def run_calc_with_env(env, ...)
+    Open3.capture3(env, RbConfig.ruby, "-Ilib", "bin/calc", ...)
   end
 
   def scrub_stderr(stderr)
