@@ -127,7 +127,7 @@ module Calc
       signature = children[1]
       name_node = signature.children.first
       param_nodes = signature.children.drop(1)
-      body_node = children[2]
+      body_node = normalized_body_node(children, 2)
       raise Calc::SyntaxError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
 
       params = normalize_param_nodes(param_nodes)
@@ -140,7 +140,7 @@ module Calc
 
     def compile_lambda(children, code)
       params_node = children[1]
-      body_node = children[2]
+      body_node = normalized_body_node(children, 2)
       raise Calc::SyntaxError, "invalid lambda" unless params_node.is_a?(ListNode) && body_node
 
       params = normalize_param_nodes(params_node.children)
@@ -319,6 +319,16 @@ module Calc
       body_code = CodeObject.new(name: name)
       compile_node(node, body_code)
       body_code
+    end
+
+    def normalized_body_node(children, start_index)
+      body_nodes = children.drop(start_index)
+      return nil if body_nodes.empty?
+      return body_nodes.first if body_nodes.length == 1
+
+      first = body_nodes.first
+      do_symbol = SymbolNode.new("do", first.line, first.column)
+      ListNode.new([do_symbol, *body_nodes], first.line, first.column)
     end
 
     def normalize_param_nodes(param_nodes)

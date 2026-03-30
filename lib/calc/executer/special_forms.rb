@@ -53,7 +53,7 @@ module Calc
         signature = children[1]
         name_node = signature.children.first
         param_nodes = signature.children.drop(1)
-        body_node = children[2]
+        body_node = normalized_body_node(children, 2)
 
         raise Calc::SyntaxError, "invalid function definition" unless name_node.is_a?(SymbolNode) && body_node
         raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
@@ -73,11 +73,20 @@ module Calc
       # @raise [Calc::SyntaxError] If the syntax is invalid.
       def evaluate_lambda(children)
         params_node = children[1]
-        body_node = children[2]
+        body_node = normalized_body_node(children, 2)
         raise Calc::SyntaxError, "invalid lambda" unless params_node.is_a?(ListNode) && body_node
 
         param_nodes = params_node.children
         build_lambda_value(param_nodes, body_node)
+      end
+
+      def normalized_body_node(children, start_index)
+        body_nodes = children.drop(start_index)
+        return nil if body_nodes.empty?
+        return body_nodes.first if body_nodes.length == 1
+
+        do_symbol = SymbolNode.new("do", body_nodes.first.line, body_nodes.first.column)
+        ListNode.new([do_symbol, *body_nodes], body_nodes.first.line, body_nodes.first.column)
       end
 
       # Evaluates a `do` block. Sequentially evaluates multiple expressions and returns

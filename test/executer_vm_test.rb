@@ -67,6 +67,29 @@ class ExecuterVmTest < Minitest::Test
     assert_equal BigDecimal("5"), @executer.evaluate(immediate_lambda_ast)
   end
 
+  def test_vm_mode_supports_define_function_with_multiple_body_expressions
+    source = <<~CALC
+      (define (binary items target)
+        (define (_search low high)
+          (if (> low high)
+              nil
+              (do
+                (define mid (floor (/ (+ low high) 2)))
+                (define val (nth mid items))
+                (cond
+                  ((== val target) mid)
+                  ((> val target) (_search low (- mid 1)))
+                  (else (_search (+ mid 1) high))))))
+        (_search 0 (- (count items) 1)))
+    CALC
+    define_ast = @parser.parse(source).first
+    call_ast = @parser.parse("(binary (list 10 20 30 40 50) 30)").first
+
+    @executer.evaluate(define_ast)
+
+    assert_equal BigDecimal("2"), @executer.evaluate(call_ast)
+  end
+
   def test_vm_mode_evaluates_do_blocks
     ast = @parser.parse("(do (define x 10) (define y 5) (+ x y))").first
 
