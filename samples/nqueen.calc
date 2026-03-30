@@ -51,7 +51,7 @@
 ; 実行例: 4-Queen問題を解く
 (define result (n-queens.solve 4))
 
-(print "4-Queenの解の数:")
-(print (n-queens.count result))
-(print "解のリスト (各数値は各行の列番号):")
-(print result)
+(println "4-Queenの解の数:")
+(println (n-queens.count result))
+(println "解のリスト (各数値は各行の列番号):")
+(println result)

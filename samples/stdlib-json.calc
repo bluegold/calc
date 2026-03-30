@@ -1,5 +1,5 @@
 (do
   (load "json/core")
-  (print "--- stdlib json ---")
-  (print (std.json.core.stringify (list 1 2 3)))
+  (println "--- stdlib json ---")
+  (println (std.json.core.stringify (list 1 2 3)))
   true)

@@ -4,6 +4,6 @@
       (+ (fib (- n 1)) (fib (- n 2)))))
 
 (do
-  (print "--- recursion ---")
-  (print (fib 8))
+  (println "--- recursion ---")
+  (println (fib 8))
   (fib 10))

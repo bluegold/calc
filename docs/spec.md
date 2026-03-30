@@ -195,7 +195,7 @@ Run `bundle exec rake spec:update_builtins` after adding or removing builtins.
 - List: `append`, `concat-list`, `cons`, `first`, `list`, `nth`, `rest`
 - Hash: `dig`, `entries`, `get`, `has?`, `hash`, `hash-from-pairs`, `keys`, `set`, `values`
 - String: `concat`, `length`
-- IO: `print`
+- IO: `print`, `println`
 - JSON: `parse-json`, `stringify-json`
 - Time: `beggining-of-month`, `current-time`, `end-of-month`, `format-time`, `next-month`, `parse-time`, `prev-month`
 <!-- BUILTINS:END -->

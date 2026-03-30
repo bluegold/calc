@@ -1,7 +1,7 @@
 (define values (list 1 2 3))
 
 (do
-  (print "--- higher-order flat-map ---")
-  (print (flat-map (lambda (x) (list x (+ x 10))) values))
-  (print (flat-map (lambda (x) x) values))
+  (println "--- higher-order flat-map ---")
+  (println (flat-map (lambda (x) (list x (+ x 10))) values))
+  (println (flat-map (lambda (x) x) values))
   (flat-map (lambda (x) (list (* x 2) (* x 3))) values))

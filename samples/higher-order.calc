@@ -1,7 +1,7 @@
 (define values (list 1 2 3 4 5))
 
 (do
-  (print "--- higher-order ---")
-  (print (map (lambda (x) (+ x 1)) values))
-  (print (reduce (lambda (memo x) (+ memo x)) 0 values))
+  (println "--- higher-order ---")
+  (println (map (lambda (x) (+ x 1)) values))
+  (println (reduce (lambda (memo x) (+ memo x)) 0 values))
   (select (lambda (x) (> x 2)) values))

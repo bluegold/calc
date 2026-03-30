@@ -2,13 +2,13 @@
 (define bonus 4)
 
 (do
-  (print "--- basic ---")
-  (print (+ base bonus))
-  (print (- base bonus))
-  (print (and (> base 5) (< bonus 10)))
-  (print (or false (> base bonus)))
-  (print (not (== base bonus)))
-  (print (cond
+  (println "--- basic ---")
+  (println (+ base bonus))
+  (println (- base bonus))
+  (println (and (> base 5) (< bonus 10)))
+  (println (or false (> base bonus)))
+  (println (not (== base bonus)))
+  (println (cond
            ((> base bonus) "base>bonus")
            ((== base bonus) "equal")
            (else "base<bonus")))

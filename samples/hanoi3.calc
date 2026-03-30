@@ -25,14 +25,14 @@
 (define moves (hanoi-moves 3 :A :C :B))
 
 (do
-  (print "--- hanoi3 ---")
-  (print (list :initial :A (get initial-state :A) :B (get initial-state :B) :C (get initial-state :C)))
-  (print moves)
+  (println "--- hanoi3 ---")
+  (println (list :initial :A (get initial-state :A) :B (get initial-state :B) :C (get initial-state :C)))
+  (println moves)
   (fold
     (lambda (state move)
       (do
         (define next-state (apply-move state move))
-        (print (list :move move :A (get next-state :A) :B (get next-state :B) :C (get next-state :C)))
+        (println (list :move move :A (get next-state :A) :B (get next-state :B) :C (get next-state :C)))
         next-state))
     initial-state
     moves))

@@ -113,18 +113,35 @@ class BuiltinsCoreTest < Minitest::Test
     assert_equal "calc", @builtins.call("concat", %w[cal c])
   end
 
+  def test_concatenates_formatted_values
+    result = @builtins.call("concat", ["x=", BigDecimal("2"), ", list=", [BigDecimal("1"), BigDecimal("2")]])
+
+    assert_equal "x=2, list=[1, 2]", result
+  end
+
   def test_returns_string_length
     assert_equal 4, @builtins.call("length", ["calc"])
   end
 
-  def test_prints_values_to_stdout_and_returns_nil
+  def test_prints_values_without_newline_and_returns_nil
     out, err = capture_io do
       result = @builtins.call("print", ["calc", BigDecimal("1.5"), true])
 
       assert_nil result
     end
 
-    assert_equal "calc\n1.5\ntrue\n", out
+    assert_equal "calc1.5true", out
+    assert_empty err
+  end
+
+  def test_println_prints_values_with_newline_and_returns_nil
+    out, err = capture_io do
+      result = @builtins.call("println", ["calc", BigDecimal("1.5"), true])
+
+      assert_nil result
+    end
+
+    assert_equal "calc1.5true\n", out
     assert_empty err
   end
 
@@ -155,6 +172,7 @@ class BuiltinsCoreTest < Minitest::Test
     assert_includes names, "not"
     assert_includes names, "concat"
     assert_includes names, "length"
+    assert_includes names, "println"
     assert_includes names, "pow"
     assert_includes names, "abs"
     assert_includes names, "mod"

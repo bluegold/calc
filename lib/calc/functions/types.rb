@@ -20,6 +20,7 @@ module Calc
         "concat" => "string",
         "length" => "string",
         "print" => "io",
+        "println" => "io",
         "list" => "list",
         "hash" => "hash",
         "get" => "hash",

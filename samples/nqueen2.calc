@@ -43,8 +43,8 @@
 (define result (n-queens2.solve 4))
 
 (do
-  (print "--- nqueen2 ---")
-  (print "4-Queenの解の数:")
-  (print (n-queens2.count result))
-  (print "解のリスト (各数値は各行の列番号):")
-  (print result))
+  (println "--- nqueen2 ---")
+  (println "4-Queenの解の数:")
+  (println (n-queens2.count result))
+  (println "解のリスト (各数値は各行の列番号):")
+  (println result))

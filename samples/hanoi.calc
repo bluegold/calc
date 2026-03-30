@@ -1,11 +1,11 @@
 (define (hanoi n from to via)
   (if (<= n 1)
-      (print (concat from " -> " to))
+      (println (concat from " -> " to))
       (do
         (hanoi (- n 1) from via to)
-        (print (concat from " -> " to))
+        (println (concat from " -> " to))
         (hanoi (- n 1) via to from))))
 
 (do
-  (print "--- hanoi ---")
+  (println "--- hanoi ---")
   (hanoi 3 "A" "C" "B"))

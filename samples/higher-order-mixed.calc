@@ -1,7 +1,7 @@
 (define values (list 1 2 3 4 5 6))
 
 (do
-  (print "--- higher-order mixed ---")
-  (print (collect (lambda (x) (+ x 100)) (filter (lambda (x) (== (mod x 2) 0)) values)))
-  (print (reduce (lambda (memo x) (+ memo x)) 0 (flat-map (lambda (x) (list x x)) (list 1 2 3))))
+  (println "--- higher-order mixed ---")
+  (println (collect (lambda (x) (+ x 100)) (filter (lambda (x) (== (mod x 2) 0)) values)))
+  (println (reduce (lambda (memo x) (+ memo x)) 0 (flat-map (lambda (x) (list x x)) (list 1 2 3))))
   (find (lambda (x) (> x 5)) values))

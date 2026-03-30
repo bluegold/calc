@@ -68,22 +68,44 @@ module Calc
           value == false || value.nil?
         end
 
-        # String concatenation: `(concat "a" "b" "c")`
-        Functions.register(builtins, "concat", min_arity: 0, &:join)
+        register_concat(builtins)
         # String length: `(length "hello")`
         Functions.register(builtins, "length", min_arity: 1, max_arity: 1) do |args|
           args.first.to_s.length
         end
 
-        # Prints values to standard output: `(print "hello" 1)`
-        Functions.register(builtins, "print", min_arity: 0) do |args|
-          args.each { |value| $stdout.puts Calc.format_value(value) }
-          nil
-        end
+        register_print(builtins)
+        register_println(builtins)
 
         # Creates a new list: `(list 1 2 "a")`
         Functions.register(builtins, "list", min_arity: 0) { |args| args }
       end
+
+      def self.register_concat(builtins)
+        # String concatenation: `(concat "a" "b" 10)`
+        Functions.register(builtins, "concat", min_arity: 0) do |args|
+          args.map { |value| Calc.format_value(value) }.join
+        end
+      end
+
+      def self.register_print(builtins)
+        # Prints values to standard output without a trailing newline.
+        Functions.register(builtins, "print", min_arity: 0) do |args|
+          args.each { |value| $stdout.print Calc.format_value(value) }
+          nil
+        end
+      end
+
+      def self.register_println(builtins)
+        # Prints values to standard output and appends a trailing newline.
+        Functions.register(builtins, "println", min_arity: 0) do |args|
+          args.each { |value| $stdout.print Calc.format_value(value) }
+          $stdout.puts
+          nil
+        end
+      end
+
+      private_class_method :register_concat, :register_print, :register_println
     end
   end
 end

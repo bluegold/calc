@@ -1,6 +1,6 @@
 (do
   (load "collections/list")
-  (print "--- stdlib list ---")
-  (print (std.collections.list.sum (list 1 2 3)))
-  (print (std.collections.list.reverse (list 1 2 3)))
+  (println "--- stdlib list ---")
+  (println (std.collections.list.sum (list 1 2 3)))
+  (println (std.collections.list.reverse (list 1 2 3)))
   (std.collections.list.append-all (list (list 1 2) (list 3 4))))
