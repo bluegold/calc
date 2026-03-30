@@ -62,7 +62,8 @@ module Calc
 
     def compile_lambda_node(node, code)
       body_code = compile_body_node(node.body)
-      code.emit(:make_closure, { params: node.params, code: body_code }, line: node.line, column: node.column)
+      code.emit(:make_closure, { params: node.params, ast_body: node.body, code: body_code },
+                line: node.line, column: node.column)
     end
 
     def compile_list(node, code)
@@ -132,7 +133,8 @@ module Calc
       params = normalize_param_nodes(param_nodes)
       body_code = compile_body_node(body_node, name: name_node.name)
 
-      code.emit(:make_closure, { params: params, code: body_code }, line: name_node.line, column: name_node.column)
+      code.emit(:make_closure, { params: params, ast_body: body_node, code: body_code },
+                line: name_node.line, column: name_node.column)
       code.emit(:store_fn, name_node.name, line: name_node.line, column: name_node.column)
     end
 
@@ -143,7 +145,8 @@ module Calc
 
       params = normalize_param_nodes(params_node.children)
       body_code = compile_body_node(body_node)
-      code.emit(:make_closure, { params: params, code: body_code }, line: params_node.line, column: params_node.column)
+      code.emit(:make_closure, { params: params, ast_body: body_node, code: body_code },
+                line: params_node.line, column: params_node.column)
     end
 
     def compile_if(children, code)
@@ -302,9 +305,14 @@ module Calc
       return nil unless as_index
 
       namespace_node = children[as_index + 1]
-      raise Calc::SyntaxError, "load namespace must be a string" unless namespace_node.is_a?(StringNode)
-
-      namespace_node.value
+      case namespace_node
+      when StringNode
+        namespace_node.value
+      when SymbolNode
+        namespace_node.name
+      else
+        raise Calc::SyntaxError, "load namespace must be a symbol or string"
+      end
     end
 
     def compile_body_node(node, name: nil)

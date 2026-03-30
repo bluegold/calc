@@ -9,7 +9,7 @@ module Calc
   # @attr body [Calc::Node] The AST node representing the body of the lambda.
   # @attr environment [Environment] The environment (closure) in which the lambda was defined.
   # @attr namespace [String] The namespace in which the lambda was defined.
-  LambdaValue = Struct.new(:params, :body, :environment, :namespace) do
+  LambdaValue = Struct.new(:params, :body, :environment, :namespace, :code_body) do
     # Debug method to visually represent the object.
     def pretty_print(q)
       q.text(Calc::ASTPrinter.pretty([LambdaNode.new(params, body)]).strip)
@@ -61,7 +61,15 @@ module Calc
     # @return [Object] The result of the evaluation.
     # @raise [Calc::RuntimeError] If an unknown node type is passed.
     def evaluate(node)
-      return @vm.run(@compiler.compile(node)) if vm_enabled? && vm_eligible_node?(node)
+      if vm_enabled? && vm_eligible_node?(node)
+        begin
+          return @vm.run(@compiler.compile(node))
+        rescue Calc::NameError => e
+          raise e unless node.is_a?(ListNode)
+
+          raise Calc::NameError, "#{e.message} while evaluating #{Calc::ASTPrinter.pretty([node]).strip}"
+        end
+      end
 
       evaluate_tree(node)
     end
@@ -78,7 +86,7 @@ module Calc
       when ListNode
         evaluate_list(node)
       when LambdaNode
-        LambdaValue.new(node.params, node.body, @environment.snapshot, @current_namespace)
+        LambdaValue.new(node.params, node.body, @environment.snapshot, @current_namespace, nil)
       else
         raise Calc::RuntimeError, "unknown node: #{node.class}"
       end
@@ -102,7 +110,7 @@ module Calc
     # @return [Object, nil] The result of the last expression evaluated.
     def evaluate_nodes(nodes, source_path: nil)
       with_source_path(source_path) do
-        if vm_enabled? && vm_eligible_nodes?(nodes)
+        if vm_enabled? && source_path.nil? && vm_eligible_nodes?(nodes)
           return @vm.run(@compiler.compile_program(nodes, name: source_path || "<input>"))
         end
 
@@ -246,7 +254,7 @@ module Calc
       @namespace_stack << @current_namespace
       pushed_namespace = true
 
-      evaluate(callable.body)
+      callable.code_body ? @vm.run(callable.code_body) : evaluate(callable.body)
     ensure
       @namespace_stack.pop if pushed_namespace
       @environment = previous_environment
@@ -287,7 +295,80 @@ module Calc
         param.name
       end
 
-      LambdaValue.new(params, body_node, @environment.snapshot, @current_namespace)
+      build_runtime_lambda(params, body_node: body_node)
+    end
+
+    def build_runtime_lambda(params, body_node:, code_body: nil)
+      LambdaValue.new(params, body_node, @environment.snapshot, @current_namespace, code_body)
+    end
+
+    def define_runtime_variable(name, value)
+      raise Calc::NameError, "cannot redefine reserved literal: #{name}" if @builtins.reserved?(name)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
+
+      @environment.set(name, value) if @current_namespace.nil?
+      @namespaces.define_variable(@current_namespace, name, value, local: name.start_with?("_"))
+      value
+    end
+
+    def define_runtime_function(name, lambda_value)
+      raise Calc::NameError, "cannot redefine reserved literal: #{name}" if @builtins.reserved?(name)
+      raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
+
+      @namespaces.define_function(@current_namespace, name, lambda_value, local: name.start_with?("_"))
+      function_label = [@current_namespace, name].compact.join(".")
+      "defined function #{function_label}(#{lambda_value.params.join(', ')})"
+    end
+
+    def resolve_callable_name(name)
+      return [:builtin, name] if @builtins.registered?(name)
+
+      if @environment.bound?(name)
+        value = @environment.get(name)
+        raise Calc::SyntaxError, "invalid expression" unless value.is_a?(LambdaValue)
+
+        return value
+      end
+
+      resolved_function = @namespaces.resolve_function(@current_namespace, name)
+      return resolved_function[:value] if resolved_function
+
+      raise Calc::NameError, "unknown function: #{name}"
+    end
+
+    def enter_runtime_namespace(name)
+      next_namespace = namespace_path(name)
+      previous_namespace = @current_namespace
+      @current_namespace = next_namespace
+      @namespace_stack << next_namespace
+      @namespaces.ensure_namespace(@current_namespace)
+      previous_namespace
+    end
+
+    def leave_runtime_namespace(previous_namespace)
+      @namespace_stack.pop
+      @current_namespace = previous_namespace
+    end
+
+    def load_runtime_file(path, namespace: nil)
+      resolved_path = resolve_load_path(path)
+      return nil if @loaded_files[resolved_path]
+
+      raise Calc::RuntimeError, "cyclic load detected: #{resolved_path}" if @loading_stack.include?(resolved_path)
+
+      source = File.read(resolved_path)
+      @loading_stack << resolved_path
+
+      result = if namespace
+                 with_namespace(namespace_path(namespace)) { evaluate_source(source, source_path: resolved_path) }
+               else
+                 evaluate_source(source, source_path: resolved_path)
+               end
+
+      @loaded_files[resolved_path] = true
+      result
+    ensure
+      @loading_stack.pop if defined?(resolved_path) && @loading_stack.last == resolved_path
     end
 
     def vm_enabled?
@@ -300,21 +381,11 @@ module Calc
 
     def vm_eligible_node?(node)
       case node
-      when NumberNode, StringNode, KeywordNode, SymbolNode
+      when NumberNode, StringNode, KeywordNode, SymbolNode, LambdaNode, ListNode
         true
-      when ListNode
-        vm_eligible_call?(node)
       else
         false
       end
-    end
-
-    def vm_eligible_call?(node)
-      head = node.children.first
-      return false unless head.is_a?(SymbolNode)
-      return false if SPECIAL_FORMS.include?(head.name)
-
-      node.children.drop(1).all? { |child| vm_eligible_node?(child) }
     end
   end
 end

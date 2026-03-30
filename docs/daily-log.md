@@ -1,6 +1,8 @@
 # Daily Log
 
 ## 2026-03-30
+- Completed Phase 3 of the bytecode migration by executing special forms, lambda closures, namespace blocks, and `load` through the VM while keeping tree/vm compatibility.
+- Extended VM coverage tests for `if`/`and`/`or`/`cond`/`define`/`lambda`/`do`/`namespace`/`load`, and verified the full suite passes in both default mode and `CALC_EXECUTER_MODE=vm`.
 - Started Phase 2 by adding a stack VM (`lib/calc/vm.rb`) and feature-flag execution mode switching via `CALC_EXECUTER_MODE=tree|vm`.
 - Implemented VM safe-subset execution fallback in `Executer` (literals/symbols/plain calls on VM, special forms on tree-walk) and added `test/executer_vm_test.rb`.
 - Added `bin/calc bytecode <file>` to compile a script file and print bytecode disassembly without executing it.

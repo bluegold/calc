@@ -1,5 +1,7 @@
 require_relative "test_helper"
 require "bigdecimal"
+require "fileutils"
+require "tmpdir"
 
 class ExecuterVmTest < Minitest::Test
   def setup
@@ -36,5 +38,67 @@ class ExecuterVmTest < Minitest::Test
     ast = @parser.parse("(+ x 5)").first
 
     assert_equal BigDecimal("15"), @executer.evaluate(ast)
+  end
+
+  def test_vm_mode_evaluates_if_without_touching_unselected_branch
+    ast = @parser.parse("(if true 1 unknown)").first
+
+    assert_equal BigDecimal("1"), @executer.evaluate(ast)
+  end
+
+  def test_vm_mode_evaluates_and_or_and_cond
+    and_ast = @parser.parse("(and true 1 2)").first
+    or_ast = @parser.parse("(or false nil 7)").first
+    cond_ast = @parser.parse("(cond ((> 2 3) 10) ((< 2 3) 20) (else 30))").first
+
+    assert_equal BigDecimal("2"), @executer.evaluate(and_ast)
+    assert_equal BigDecimal("7"), @executer.evaluate(or_ast)
+    assert_equal BigDecimal("20"), @executer.evaluate(cond_ast)
+  end
+
+  def test_vm_mode_evaluates_define_function_and_lambda_call
+    define_ast = @parser.parse("(define (inc x) (+ x 1))").first
+    call_ast = @parser.parse("(inc 4)").first
+    immediate_lambda_ast = @parser.parse("((lambda (x) (+ x 2)) 3)").first
+
+    assert_equal "defined function inc(x)", @executer.evaluate(define_ast)
+    assert_equal BigDecimal("5"), @executer.evaluate(call_ast)
+    assert_equal BigDecimal("5"), @executer.evaluate(immediate_lambda_ast)
+  end
+
+  def test_vm_mode_evaluates_do_blocks
+    ast = @parser.parse("(do (define x 10) (define y 5) (+ x y))").first
+
+    assert_equal BigDecimal("15"), @executer.evaluate(ast)
+  end
+
+  def test_vm_mode_evaluates_namespace_blocks
+    ast = @parser.parse("(namespace crypto (define shared 5) (define (twice x) (+ x shared)) (twice 3))").first
+    call_ast = @parser.parse("(crypto.twice 4)").first
+
+    assert_equal BigDecimal("8"), @executer.evaluate(ast)
+    assert_equal BigDecimal("9"), @executer.evaluate(call_ast)
+  end
+
+  def test_vm_mode_loads_files
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "math.calc")
+      File.write(path, "(define (inc x) (+ x 1))\n")
+
+      result = @executer.evaluate_source(%((do (load "#{path}") (inc 4))))
+
+      assert_equal BigDecimal("5"), result
+    end
+  end
+
+  def test_vm_mode_load_supports_as_namespace_with_symbol
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "math.calc")
+      File.write(path, "(define (inc x) (+ x 1))\n")
+
+      result = @executer.evaluate_source(%((do (load "#{path}" :as tools) (tools.inc 4))))
+
+      assert_equal BigDecimal("5"), result
+    end
   end
 end
