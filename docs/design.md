@@ -1,53 +1,124 @@
 # Design
 
-## Main Components
-The program should be organized around these core parts:
+この文書は「現在の実装設計」を説明する。
+`spec.md` は Calc 言語仕様（文法・意味論・言語レベルのエラー）に限定する。
+インタプリタ実装/運用仕様（実行モード、CLI オプション、トレース、VM/tree 併存方針）はこの文書の対象とする。
 
-- `Parser`: converts source text into an abstract syntax tree
-- `Executer`: evaluates the syntax tree in an environment
-- `REPL`: reads input, invokes the parser and executer, and prints results
+## Positioning
 
-Additional useful components:
+- [docs/requirements.md](docs/requirements.md): 実装前の要件定義（歴史的資料）
+- [docs/design.md](docs/design.md): 現行コードベースの設計と責務分割
+- [docs/spec.md](docs/spec.md): Calc 言語仕様（インタプリタ運用仕様は含めない）
 
-- `Lexer`: optional helper for turning text into tokens before parsing
-- `Environment`: stores lexical bindings for variables and function parameters
-- `NamespaceRegistry`: resolves namespace-scoped variables and functions across the current namespace chain
-- `AST nodes`: represent numbers, symbols, calls, and special forms such as variable definition
-- `Error types`: separate syntax, name, and runtime errors
+## Spec Boundary
 
-## Syntax Tree Shape
-Represent expressions as small Ruby objects or plain structs. A practical minimal tree is:
+`spec.md` に書くもの:
 
-- `NumberNode(value)`
-- `SymbolNode(name)`
-- `ListNode(children)` for S-expressions
+- 言語構文（S式、リテラル、special form）
+- 評価意味論（truthiness、短絡評価、名前解決ルール）
+- 言語として観測されるエラー分類
 
-Numbers should normalize to `BigDecimal` as early as practical. This keeps arithmetic consistent and avoids mixing native integer and decimal behavior.
+`design.md` に書くもの:
 
-Comments beginning with `;` should be stripped during tokenization.
+- 実装構成（Parser/Executer/Compiler/VM/CLI）
+- 実行戦略（VM 既定、tree fallback）
+- 運用機能（`--trace-vm`、`:trace-vm`、CI モード）
 
-This keeps parsing simple and lets the executer decide whether a list is a function call or a special form such as `define` or `if`.
+## Runtime Architecture
 
-Namespaces should be treated as a runtime concern, not a parsing concern. The parser only needs to recognize the `namespace` special form as a list.
+Calc の評価系は「AST と bytecode VM の併存」構成。
 
-Namespace resolution should respect lexical scope first. `Environment` bindings for function parameters and local values must shadow namespace lookups. Functions and variables whose names start with `_` are local to their defining namespace and are not visible outside it.
+- 既定実行系は VM（`CALC_EXECUTER_MODE=vm`）
+- tree-walk は fallback として維持（`CALC_EXECUTER_MODE=tree`）
+- 次の大きな言語要素追加で tree-walk の保守が破綻するまで併存方針
 
-Function values should be represented explicitly so the language can support higher-order functions. `lambda` should create a closure that captures the current lexical environment together with the current namespace at definition time. `define` for functions is syntactic sugar over `lambda`, so users can continue to write named functions while the runtime still treats them as first-class values.
+主要パイプライン:
 
-Closures should evaluate their bodies eagerly. Delayed evaluation is not part of the initial design. Anonymous recursion is also out of scope for the first implementation. When a function value is printed for debugging or `:ast`, it should be rendered as structured AST-like data rather than as an opaque Ruby object.
+1. Source -> Parser -> AST
+2. AST -> Compiler -> Bytecode::CodeObject
+3. VM 実行（既定）または tree-walk 実行（fallback）
 
-## Evaluation Flow
-1. Read source text from stdin or a file
-2. Strip a leading shebang line if present
-3. Tokenize, ignoring `;` comments
-4. Parse text into AST nodes
-5. Evaluate each top-level form in a shared lexical environment
-6. Print the final result in REPL mode
+## Core Components
 
-## Notes
-- Keep parsing and evaluation separate
-- Special forms such as variable definition should be handled by the executer, not by the parser
-- `if` should be implemented as a special form, not a regular function
-- `namespace` should also be implemented as a special form, with resolution order of current namespace, parent namespaces, then `builtin`
-- Qualified names such as `crypto.twice` should resolve directly through `NamespaceRegistry`
-- Use `minitest` for unit and integration tests
+- Parser
+  - S式を AST に変換
+  - `;` コメントと shebang の処理
+  - 位置情報（line/column）を保持
+
+- AST Nodes
+  - `NumberNode`, `StringNode`, `KeywordNode`, `SymbolNode`, `ListNode`, `LambdaNode`
+
+- Executer
+  - 評価エントリポイント
+  - 実行モード切替（vm/tree）
+  - 共有ランタイム API（シンボル解決、lambda 呼び出し、namespace/load 操作）
+  - エラー文脈付与
+
+- Compiler
+  - AST を bytecode へ変換
+  - special form をジャンプ命令へ展開
+  - lambda の AST body / code body を併存メタで生成
+
+- Vm
+  - スタックマシンで命令実行
+  - `call`, `jump`, `store`, `make_closure`, `enter_ns`, `load_file` などを実装
+  - 命令トレース（`--trace-vm`, `:trace-vm`, `CALC_VM_TRACE`）
+
+- Environment
+  - 字句スコープ変数束縛
+  - snapshot によるクロージャ捕捉
+
+- NamespaceRegistry
+  - namespace 階層とローカル名（`_` 始まり）管理
+  - 修飾名/非修飾名の解決
+
+- Builtins
+  - 関数レジストリ
+  - 型カテゴリや説明などのメタ情報
+
+- CLI / REPL
+  - `bin/calc` 入口
+  - file 実行、test サブコマンド、bytecode 表示
+  - REPL 補助コマンド（`:ast`, `:bytecode`, `:trace-vm`, `:help`）
+
+## Lambda Representation
+
+`LambdaValue` は移行互換のために次を持つ:
+
+- `params`
+- `body`（AST body）
+- `environment`（定義時スナップショット）
+- `namespace`
+- `code_body`（VM 用 bytecode body）
+
+`code_body` がある場合は VM 実行、ない場合は tree-walk 実行。
+
+## Error Design
+
+例外分類は以下を維持:
+
+- `Calc::SyntaxError`
+- `Calc::NameError`
+- `Calc::RuntimeError`
+- `Calc::DivisionByZeroError`
+
+file 実行では source path と位置情報を使った文脈付与を行う。
+
+## Traceability and Debugging
+
+- `:ast` で AST 表示
+- `:bytecode` / `bin/calc bytecode` で逆アセンブル
+- VM trace は bytecode index（`bc[0001]`）を出力し、逆アセンブルと対応づけ可能
+- TTY では call/jump/store 等を色付き強調
+
+## Testing Strategy
+
+- 単体: parser, compiler, vm, namespace, builtins
+- 統合: file execution, loader, stdlib tests
+- 実行モード互換: CI で `vm` と `tree` の両モードを実行
+
+## Non-goals (Current)
+
+- JIT 導入（Ruby VM JIT の利用は任意運用であり、Calc 言語自体の JIT は未実装）
+- 並列実行
+- 遅延評価モデルへの拡張
