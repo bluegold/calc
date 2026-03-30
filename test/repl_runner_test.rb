@@ -13,11 +13,10 @@ class ReplRunnerTest < Minitest::Test
       io: { out: out, err: err }
     )
 
-    reline_singleton = class << Reline
-      self
-    end
-    original_readline = Reline.method(:readline)
+    reline_singleton = Reline.singleton_class
+    original_readline = reline_singleton.instance_method(:readline)
 
+    reline_singleton.send(:remove_method, :readline)
     reline_singleton.define_method(:readline) do |*_args|
       raise Interrupt
     end
@@ -27,6 +26,7 @@ class ReplRunnerTest < Minitest::Test
     assert_equal "\n", out.string
     assert_empty err.string
   ensure
+    reline_singleton.send(:remove_method, :readline) if reline_singleton.method_defined?(:readline)
     reline_singleton.define_method(:readline, original_readline)
   end
 end

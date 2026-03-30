@@ -23,6 +23,12 @@ module Calc
         return 1 unless options
 
         return TestRunner.run(executer, options.remaining_args, out: @out, err: @err) if options.subcommand == "test"
+
+        if options.subcommand == "bytecode"
+          compiler = Calc::Compiler.new(builtins)
+          return BytecodeRunner.run(parser, compiler, options.script_path, out: @out, err: @err)
+        end
+
         if options.script_path
           return FileRunner.run(
             executer,

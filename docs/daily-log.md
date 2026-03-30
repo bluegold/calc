@@ -1,6 +1,7 @@
 # Daily Log
 
 ## 2026-03-30
+- Added `bin/calc bytecode <file>` to compile a script file and print bytecode disassembly without executing it.
 - Handled `Interrupt` in the REPL loop so pressing Ctrl+C exits gracefully without an exception dump, and added `test/repl_runner_test.rb`.
 - Added Phase 1 bytecode scaffolding (`lib/calc/bytecode.rb`, `lib/calc/compiler.rb`) and `test/compiler_test.rb` without switching runtime execution from tree-walk.
 - Added REPL `:bytecode` command with disassembly output, command completion support, and tests (`test/repl_command_handler_test.rb`, `test/repl_completion_test.rb`).

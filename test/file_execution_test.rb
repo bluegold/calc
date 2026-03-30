@@ -138,6 +138,34 @@ class FileExecutionTest < Minitest::Test
     end
   end
 
+  def test_bytecode_subcommand_disassembles_file_successfully
+    _stdout, stderr, status = run_calc("bytecode", "samples/hanoi.calc")
+
+    assert_predicate status, :success?
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_bytecode_subcommand_disassembles_file_with_header
+    stdout, _stderr, _status = run_calc("bytecode", "samples/hanoi.calc")
+
+    assert_includes stdout, "=== "
+    assert_includes stdout, "samples/hanoi.calc"
+  end
+
+  def test_bytecode_subcommand_disassembles_file_with_instructions
+    stdout, _stderr, _status = run_calc("bytecode", "samples/hanoi.calc")
+
+    assert_includes stdout, "load_fn"
+  end
+
+  def test_bytecode_subcommand_requires_script_path
+    stdout, stderr, status = run_calc("bytecode")
+
+    refute_predicate status, :success?
+    assert_empty stdout
+    assert_includes scrub_stderr(stderr), "bytecode requires a script path"
+  end
+
   private
 
   def run_calc(...)

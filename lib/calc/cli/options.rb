@@ -2,6 +2,7 @@ module Calc
   module Cli
     module Options
       Result = Struct.new(:subcommand, :print_last_result, :script_path, :remaining_args)
+      SUBCOMMANDS = %w[test bytecode].freeze
 
       class InvalidOptionError < StandardError
         attr_reader :option
@@ -17,7 +18,7 @@ module Calc
       # Parses argv into a normalized option/result object.
       def parse(argv)
         args = argv.dup
-        subcommand = args.shift if args.first == "test"
+        subcommand = args.shift if SUBCOMMANDS.include?(args.first)
 
         print_last_result = false
         script_path = nil

@@ -11,7 +11,7 @@
 - `load` によるモジュール読み込み
 - `list` / `map` / `reduce` / `fold` / `select` などの高階関数
 - `hash` / `get` / `set` / `dig` などの辞書・コレクション操作
-- `:ast` と `:help` の REPL コマンド、タブ補完
+- `:ast` / `:bytecode` と `:help` の REPL コマンド、タブ補完
 - コメント `;` と shebang 行の無視
 
 ## Requirements
@@ -97,6 +97,7 @@ defined function fibonacci.fib(n)
 > :help
 Commands:
   :ast <expr>   Print the AST for an expression
+  :bytecode <expr>   Print bytecode for an expression
   :help         Show this help
 
 > :ast (+ 1 (* 2 3))
@@ -114,6 +115,15 @@ Commands:
       value: '2'
     - type: number
       value: '3'
+
+> :bytecode (lambda (x) (+ x 1))
+=== <repl> ===
+0000  make_closure params=["x"] ; L1
+  ; closure body
+    0000  load_fn "+" ; L1
+    0001  load "x" ; L1
+    0002  push_const 1 ; L1
+    0003  call 2 ; L1
 ```
 
 #### タブ補完
@@ -153,6 +163,14 @@ $ bin/calc --print-last-result samples/namespace.calc
 8
 16
 ```
+
+### File bytecode
+
+```bash
+bin/calc bytecode path/to/program.calc
+```
+
+プログラムを実行せず、ファイル全体をコンパイルした bytecode を逆アセンブル表示します。
 
 ## Samples by Feature
 
