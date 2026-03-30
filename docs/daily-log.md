@@ -1,6 +1,9 @@
 # Daily Log
 
 ## 2026-03-30
+- Handled `Interrupt` in the REPL loop so pressing Ctrl+C exits gracefully without an exception dump, and added `test/repl_runner_test.rb`.
+- Added Phase 1 bytecode scaffolding (`lib/calc/bytecode.rb`, `lib/calc/compiler.rb`) and `test/compiler_test.rb` without switching runtime execution from tree-walk.
+- Added REPL `:bytecode` command with disassembly output, command completion support, and tests (`test/repl_command_handler_test.rb`, `test/repl_completion_test.rb`).
 - Locked Phase 0 decisions for bytecode migration and added `test/phase0_semantic_lock_test.rb` to pin current `if`/`and`/`or`/`cond` semantics before VM work.
 - Added `docs/bytecode-migration.md` to document phased migration from tree-walk `Executer` to bytecode+VM, including compatibility requirements and risk mitigations.
 - Split `Calc::Builtins` helper responsibilities into `builtins/collection_helpers.rb` and `builtins/json_helpers.rb` while keeping the public API stable.

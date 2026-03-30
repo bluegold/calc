@@ -85,4 +85,13 @@ class CompilerTest < Minitest::Test
     assert_includes disassembly, "=== math ==="
     assert_includes disassembly, "0000  load_fn \"+\" ; L1"
   end
+
+  def test_disassemble_expands_closure_body
+    code = compile("(lambda (x) (+ x 1))", name: "closure")
+    disassembly = code.disassemble
+
+    assert_includes disassembly, "make_closure params=[\"x\"]"
+    assert_includes disassembly, "; closure body"
+    assert_includes disassembly, "0000  load_fn \"+\""
+  end
 end

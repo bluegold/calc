@@ -46,6 +46,9 @@ module Calc
           last_result = evaluate_source(source)
           @out.puts Calc.format_value(last_result) unless last_result.nil?
           @history << source
+        rescue Interrupt
+          @out.puts
+          break
         rescue StandardError => e
           @err.puts "#{e.class}: #{e.message}"
           buffer.clear

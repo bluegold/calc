@@ -39,16 +39,52 @@ module Calc
       end
 
       # Human-readable disassembly (for debugging).
-      def disassemble
-        lines = instructions.each_with_index.map do |instr, i|
-          loc = instr.line ? " ; L#{instr.line}" : ""
-          format("%<index>04d  %<instruction>s%<location>s",
-                 index: i,
-                 instruction: instr,
-                 location: loc)
+      def disassemble(indent: 0)
+        lines = instructions.each_with_index.flat_map do |instr, i|
+          render_instruction_lines(instr, i, indent)
         end
-        header = name ? "=== #{name} ===\n" : ""
+
+        prefix = " " * indent
+        header = name ? "#{prefix}=== #{name} ===\n" : ""
         header + lines.join("\n")
+      end
+
+      private
+
+      def render_instruction_lines(instr, index, indent)
+        lines = [format_instruction_line(instr, index, indent)]
+        code = closure_code(instr)
+        return lines unless code
+
+        lines << "#{' ' * (indent + 2)}; closure body"
+        lines.concat(code.instructions.each_with_index.map do |body_instr, body_index|
+          format_instruction_line(body_instr, body_index, indent + 4)
+        end)
+        lines
+      end
+
+      def format_instruction_line(instr, index, indent)
+        prefix = " " * indent
+        location = instr.line ? " ; L#{instr.line}" : ""
+        instruction = instruction_label(instr)
+        prefix + format("%<index>04d  %<instruction>s%<location>s",
+                        index: index,
+                        instruction: instruction,
+                        location: location)
+      end
+
+      def instruction_label(instr)
+        return instr.to_s unless instr.op == :make_closure && instr.a.is_a?(Hash)
+
+        params = instr.a[:params] || []
+        "make_closure params=#{params.inspect}"
+      end
+
+      def closure_code(instr)
+        return nil unless instr.op == :make_closure && instr.a.is_a?(Hash)
+
+        code = instr.a[:code]
+        code.is_a?(CodeObject) ? code : nil
       end
     end
   end
