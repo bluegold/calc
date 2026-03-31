@@ -25,7 +25,29 @@ namespace :spec do
 end
 
 desc "Generate YARD documentation"
-task doc: :yard
+task :doc do
+  Rake::Task[:yard].invoke
+
+  style_css = File.join(DOC_DIR, "css", "style.css")
+  dark_css = File.read("docs/yard/dark.css")
+  marker = "/* calc-dark-theme */"
+
+  unless File.exist?(style_css)
+    puts "Warning: #{style_css} was not generated."
+    next
+  end
+
+  existing = File.read(style_css)
+  return if existing.include?(marker)
+
+  File.open(style_css, "a") do |f|
+    f.puts
+    f.puts marker
+    f.puts dark_css
+  end
+
+  puts "Applied dark theme overrides to #{style_css}"
+end
 
 desc "Serve documentation with YARD server"
 task :doc_server do
