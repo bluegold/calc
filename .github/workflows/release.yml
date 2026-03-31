@@ -33,9 +33,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag_name="${GITHUB_REF_NAME}"
+          tag_type="$(git cat-file -t "refs/tags/${tag_name}" 2>/dev/null || true)"
+          has_annotated_tag=false
+          if [ "$tag_type" = "tag" ]; then
+            has_annotated_tag=true
+          fi
+
           if gh release view "$tag_name" >/dev/null 2>&1; then
             gh release upload "$tag_name" calc-*.gem --clobber
-            gh release edit "$tag_name" --draft=false
+            if [ "$has_annotated_tag" = true ]; then
+              tag_notes="$(git for-each-ref "refs/tags/${tag_name}" --format='%(contents)')"
+              gh release edit "$tag_name" --draft=false --notes "$tag_notes"
+            else
+              gh release edit "$tag_name" --draft=false
+            fi
           else
-            gh release create "$tag_name" calc-*.gem --title "$tag_name" --notes "Release ${tag_name}"
+            if [ "$has_annotated_tag" = true ]; then
+              gh release create "$tag_name" calc-*.gem --title "$tag_name" --notes-from-tag
+            else
+              gh release create "$tag_name" calc-*.gem --title "$tag_name" --generate-notes
+            fi
           fi

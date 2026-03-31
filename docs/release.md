@@ -13,12 +13,16 @@ This project ships releases from Git tags. The release workflow builds the gem a
 ## Cut the Tag
 
 ```bash
-git tag v0.3.1
+git tag -a v0.3.1 -m "v0.3.1\n\n## Summary of changes\n- Add X\n- Fix Y"
 git push origin master
 git push origin v0.3.1
 ```
 
 Use the version from `lib/calc/version.rb` when naming the tag.
+
+If you want a custom release comment with a short summary, always create an annotated tag (`-a -m ...`).
+The release workflow will use the tag annotation body as the GitHub Release notes.
+If you push a lightweight tag, the workflow falls back to GitHub auto-generated notes.
 
 ## What the Workflow Does
 
