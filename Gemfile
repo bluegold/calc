@@ -1,8 +1,8 @@
 source "https://rubygems.org"
 
-gem "minitest"
 gem "bigdecimal"
 gem "irb"
+gem "minitest"
 gem "rake"
 
 group :development do
@@ -10,4 +10,5 @@ group :development do
   gem "rubocop-minitest", require: false
   gem "rubocop-rake", require: false
   gem "webrick", require: false
+  gem "yard", require: false
 end

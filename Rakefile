@@ -1,24 +1,21 @@
 require "rake/testtask"
-require "rdoc/task"
+require "yard"
+require "yard/rake/yardoc_task"
 require "fileutils"
-require "webrick"
 
-DOC_DIR = ENV.fetch('RDOC_DIR', 'dist/doc')
+DOC_DIR = ENV.fetch("YARD_DIR", "dist/doc")
 
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"]
 end
 
-RDoc::Task.new do |rdoc|
-  rdoc.main = 'README.md'
-  rdoc.rdoc_dir = DOC_DIR
-  rdoc.rdoc_files.include('lib/**/*.rb', 'README.md')
-  rdoc.options << '--line-numbers' # Optional: Add line numbers to the generated HTML
-  rdoc.options << '--webcvs=https://github.com/your-org/calc' # Optional: Link to GitHub
+YARD::Rake::YardocTask.new do |yard|
+  yard.files = ["lib/**/*.rb"]
+  yard.options = ["--output-dir", DOC_DIR, "--readme", "README.md"]
 end
 
-task :default => [:test, :doc]
+task default: %i[test doc]
 
 namespace :spec do
   desc "Update docs/spec.md builtin list from runtime type map"
@@ -27,22 +24,15 @@ namespace :spec do
   end
 end
 
-desc "Generate RDoc documentation"
-task :doc => :rdoc
+desc "Generate YARD documentation"
+task doc: :yard
 
-desc "Serve RDoc with WEBrick"
+desc "Serve documentation with YARD server"
 task :doc_server do
   port = ENV.fetch("PORT", "8000").to_i
+  bind = ENV.fetch("HOST", "127.0.0.1")
 
-  server = WEBrick::HTTPServer.new(
-    Port: port,
-    DocumentRoot: File.expand_path(DOC_DIR)
-  )
-
-  trap("INT") { server.shutdown }
-
-  puts "Serving doc at http://localhost:#{port}"
-  server.start
+  sh "yard server --bind #{bind} --port #{port}"
 end
 
 desc "Build the gem and move it to the dist directory"
@@ -58,7 +48,7 @@ task :build_gem do
 
   # Get the name of the built gem file (e.g., calc-0.1.0.gem)
   # This assumes there's only one .gem file built, or we take the newest one.
-  built_gem_file = FileList.new("*.gem").sort_by { |f| File.mtime(f) }.last
+  built_gem_file = FileList.new("*.gem").max_by { |f| File.mtime(f) }
 
   unless built_gem_file
     puts "Error: Gem file not found after building."

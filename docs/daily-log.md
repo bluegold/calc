@@ -1,6 +1,9 @@
 # Daily Log
 
 ## 2026-03-31
+- Switched local API documentation tasks from RDoc to YARD and updated the README doc commands accordingly.
+- Replaced the custom `rake doc_server` WEBrick task with a thin wrapper around `yard server`.
+- Added a GitHub Actions workflow to publish generated YARD documentation to GitHub Pages on every push to `master`.
 - Bumped the project version to `0.7.1` and prepared release tag `v0.7.1`.
 - Consolidated all executer higher-order behavior tests into `test/executer_high_order_test.rb` and removed high-order cases from `test/executer_test.rb` to keep class size manageable.
 - Added higher-order builtins `find`, `any?`, `all?`, `none?`, `flat-map`, and `count` with tests at both builtin and executer levels.

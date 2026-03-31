@@ -20,7 +20,8 @@ module Calc
     # @param min_arity [Integer] The minimum number of arguments.
     # @param max_arity [Integer, nil] The maximum number of arguments, nil for variadic.
     # @param metadata [Hash] Additional metadata for the function (e.g., type, description, example).
-    # @param block [Proc] The Proc object implementing the function's logic.
+    # @yield [args] The builtin implementation.
+    # @yieldparam args [Array<Object>] Evaluated Calc arguments.
     def self.register(builtins, name, min_arity: 0, max_arity: nil, **metadata, &)
       builtin_metadata = begin
         Metadata.fetch(name)

@@ -284,6 +284,17 @@ bin/calc test modules/test
 bin/calc test samples/test
 ```
 
+## Documentation
+
+```bash
+rake doc
+rake doc_server
+```
+
+`rake doc` は YARD で API ドキュメントを `dist/doc` に生成します。`rake doc_server` はその内容をローカル配信します。
+
+`rake doc_server` は内部で `yard server` を使い、既定では `127.0.0.1:8000` で起動します。必要なら `HOST` と `PORT` を指定できます。
+
 ## Project layout
 
 - `bin/calc`: CLI エントリポイント（実体は `Calc::Cli::App` に委譲）
@@ -301,4 +312,5 @@ bin/calc test samples/test
 - AST 表示の `:ast` はデバッグ用です
 - Release 手順は [`docs/release.md`](docs/release.md) を参照してください
 - 言語仕様の参照先は [`docs/spec.md`](docs/spec.md) です
+- API ドキュメントは GitHub Pages で自動公開できます（`master` push 時の workflow）。設定後の公開先は `https://bluegold.github.io/calc/` です
 - ルートの `docs/TODO.md` に未実装項目をまとめています

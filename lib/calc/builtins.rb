@@ -132,7 +132,9 @@ module Calc
     #
     # @param name [String] The name of the function to call.
     # @param args [Array<Object>] An array of arguments for the function.
-    # @param block [Proc] An optional callable runner for higher-order functions.
+    # @yield [callable, call_values] Optional callable runner for higher-order functions.
+    # @yieldparam callable [Object] The callable object to invoke.
+    # @yieldparam call_values [Array<Object>] Evaluated arguments passed to the callable.
     # @return [Object] The result of the function call.
     # @raise [Calc::NameError] If the function is unknown.
     # @raise [Calc::RuntimeError] If the number of arguments is incorrect.
