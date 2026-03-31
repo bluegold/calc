@@ -119,8 +119,29 @@ class BuiltinsCoreTest < Minitest::Test
     assert_equal "x=2, list=[1, 2]", result
   end
 
+  def test_split_without_separator_splits_into_characters
+    assert_equal %w[h e l l o], @builtins.call("split", ["hello"])
+  end
+
+  def test_split_with_separator_splits_by_separator
+    assert_equal %w[a b c], @builtins.call("split", ["a,b,c", ","])
+  end
+
   def test_returns_string_length
     assert_equal 4, @builtins.call("length", ["calc"])
+  end
+
+  def test_returns_list_and_hash_length
+    assert_equal 3, @builtins.call("length", [[1, 2, 3]])
+    assert_equal 2, @builtins.call("length", [{ name: "taro", age: 20 }])
+  end
+
+  def test_length_rejects_non_collection_values
+    error = assert_raises(Calc::RuntimeError) do
+      @builtins.call("length", [BigDecimal("1")])
+    end
+
+    assert_equal "length expects a string, list, or hash", error.message
   end
 
   def test_prints_values_without_newline_and_returns_nil

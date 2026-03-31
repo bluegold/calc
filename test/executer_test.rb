@@ -21,6 +21,14 @@ class ExecuterTest < Minitest::Test
     assert_equal "hello", @executer.evaluate(ast)
   end
 
+  def test_split_supports_one_or_two_arguments
+    chars_ast = @parser.parse('(split "hello")').first
+    delimiter_ast = @parser.parse('(split "a,b,c" ",")').first
+
+    assert_equal %w[h e l l o], @executer.evaluate(chars_ast)
+    assert_equal %w[a b c], @executer.evaluate(delimiter_ast)
+  end
+
   def test_lambda_returns_callable_value
     ast = @parser.parse("(lambda (x) (+ x 1))").first
 

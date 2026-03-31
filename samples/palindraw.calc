@@ -1,0 +1,42 @@
+; palindrome.calc
+
+(define (my_reverse xs)
+  (if (== xs (list))
+      (list)
+      (concat-list
+        (my_reverse (rest xs))
+        (list (first xs)))))
+
+(define (palindrome? xs)
+  (== xs (reverse xs)))
+
+(define (palindrome2? xs)
+  (== xs (my_reverse xs)))
+
+(println "builtin reverse")
+(print "racecar: ")
+(println (palindrome? (list "r" "a" "c" "e" "c" "a" "r"))) ; true
+(print "noon: ")
+(println (palindrome? (list "n" "o" "o" "n")))             ; true
+(print "hello: ")
+(println (palindrome? (list "h" "e" "l" "l" "o")))         ; false
+(print "racecar: ")
+(println (palindrome? (split "racecar"))) ; true
+(print "noon: ")
+(println (palindrome? (split "noon")))    ; true
+(print "hello: ")
+(println (palindrome? (split "hello")))   ; false
+
+(println "my reverse")
+(print "racecar: ")
+(println (palindrome2? (list "r" "a" "c" "e" "c" "a" "r"))) ; true
+(print "noon: ")
+(println (palindrome2? (list "n" "o" "o" "n")))             ; true
+(print "hello: ")
+(println (palindrome2? (list "h" "e" "l" "l" "o")))         ; false
+(print "racecar: ")
+(println (palindrome2? (split "racecar"))) ; true
+(print "noon: ")
+(println (palindrome2? (split "noon")))    ; true
+(print "hello: ")
+(println (palindrome2? (split "hello")))   ; false

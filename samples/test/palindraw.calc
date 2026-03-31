@@ -1,0 +1,7 @@
+(do
+  (load "palindraw")
+  (assert-true (palindrome? (split "racecar")))
+  (assert-false (palindrome? (split "hello")))
+  (assert-true (palindrome? (split "r,a,c,e,c,a,r" ",")))
+  (assert-true (palindrome2? (split "noon")))
+  true)

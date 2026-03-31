@@ -3,8 +3,7 @@ require "bigdecimal"
 module Calc
   module Functions
     # This module registers core built-in functions for the Calc interpreter.
-    # It includes basic arithmetic operations, comparison operators, string manipulation,
-    # I/O, and list creation.
+    # It includes basic arithmetic operations, comparison operators, I/O, and list creation.
     module Core
       # Registers all core functions with the Builtins registry.
       #
@@ -68,10 +67,14 @@ module Calc
           value == false || value.nil?
         end
 
-        register_concat(builtins)
-        # String length: `(length "hello")`
+        # String/list/hash length: `(length "hello")` or `(length (list 1 2))`
         Functions.register(builtins, "length", min_arity: 1, max_arity: 1) do |args|
-          args.first.to_s.length
+          value = args.first
+          unless value.is_a?(String) || value.is_a?(Array) || value.is_a?(Hash)
+            raise Calc::RuntimeError, "length expects a string, list, or hash"
+          end
+
+          value.length
         end
 
         register_print(builtins)
@@ -79,13 +82,6 @@ module Calc
 
         # Creates a new list: `(list 1 2 "a")`
         Functions.register(builtins, "list", min_arity: 0) { |args| args }
-      end
-
-      def self.register_concat(builtins)
-        # String concatenation: `(concat "a" "b" 10)`
-        Functions.register(builtins, "concat", min_arity: 0) do |args|
-          args.map { |value| Calc.format_value(value) }.join
-        end
       end
 
       def self.register_print(builtins)
@@ -105,7 +101,7 @@ module Calc
         end
       end
 
-      private_class_method :register_concat, :register_print, :register_println
+      private_class_method :register_print, :register_println
     end
   end
 end
