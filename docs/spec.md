@@ -75,6 +75,10 @@ Rules:
 
 - Reserved literals cannot be redefined.
 - Names beginning with `_` are considered local to their namespace.
+- Function bodies may contain multiple expressions.
+- When multiple body expressions are provided, they are evaluated in order as if wrapped by `(do ...)`, and the last expression becomes the return value.
+- This implicit `(do ...)` behavior applies only to function bodies in `define` and does not change variable scoping rules.
+- In particular, names defined with `define` inside a function still follow existing namespace-based definition rules.
 
 ### 4.2 `if`
 
@@ -102,6 +106,12 @@ Rules:
 ### 4.4 `lambda`
 
 Creates an anonymous function and captures the current environment.
+
+Rules:
+
+- Lambda bodies may contain multiple expressions.
+- When multiple body expressions are provided, they are evaluated in order as if wrapped by `(do ...)`, and the last expression becomes the return value.
+- This implicit `(do ...)` behavior applies only to lambda bodies, not to top-level programs or other special forms.
 
 ### 4.5 `do`
 

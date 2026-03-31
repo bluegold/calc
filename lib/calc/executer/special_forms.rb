@@ -24,7 +24,8 @@ module Calc
       def define_variable(children)
         name_node = children[1]
         value_node = children[2]
-        raise Calc::SyntaxError, "invalid define" unless name_node.is_a?(SymbolNode) && value_node
+        raise Calc::SyntaxError, "invalid define: expected (define name value)" unless children.length == 3
+        raise Calc::SyntaxError, "invalid define: expected (define name value)" unless name_node.is_a?(SymbolNode) && value_node
         raise Calc::NameError, "cannot redefine reserved literal: #{name_node.name}" if @builtins.reserved?(name_node.name)
         raise Calc::NameError, "cannot modify reserved namespace: builtin" if @current_namespace == "builtin"
 
@@ -135,7 +136,9 @@ module Calc
         condition_node = children[1]
         then_node = children[2]
         else_node = children[3]
-        raise Calc::SyntaxError, "invalid if" unless children.length == 4 && condition_node && then_node && else_node
+        unless children.length == 4 && condition_node && then_node && else_node
+          raise Calc::SyntaxError, "invalid if: expected (if condition then-expr else-expr)"
+        end
 
         condition = evaluate(condition_node)
         truthy?(condition) ? evaluate(then_node) : evaluate(else_node)
@@ -186,16 +189,18 @@ module Calc
       # @raise [Calc::SyntaxError] If a clause has invalid shape or `else` is not the final clause.
       def evaluate_cond(children)
         clauses = children.drop(1)
-        raise Calc::SyntaxError, "invalid cond" if clauses.empty?
+        raise Calc::SyntaxError, "invalid cond: expected at least one clause" if clauses.empty?
 
         clauses.each_with_index do |clause_node, index|
-          raise Calc::SyntaxError, "invalid cond" unless clause_node.is_a?(ListNode) && clause_node.children.length == 2
+          unless clause_node.is_a?(ListNode) && clause_node.children.length == 2
+            raise Calc::SyntaxError, "invalid cond: each clause must be (test expr)"
+          end
 
           test_node, body_node = clause_node.children
           is_else_clause = test_node.is_a?(SymbolNode) && test_node.name == "else"
 
           if is_else_clause
-            raise Calc::SyntaxError, "invalid cond" unless index == clauses.length - 1
+            raise Calc::SyntaxError, "invalid cond: else must be the last clause" unless index == clauses.length - 1
 
             return evaluate(body_node)
           end
