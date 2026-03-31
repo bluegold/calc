@@ -169,7 +169,7 @@ module Calc
 
     def make_closure(metadata)
       params = metadata.fetch(:params)
-      ast_body = metadata.fetch(:ast_body)
+      ast_body = metadata[:ast_body]
       code_body = metadata.fetch(:code)
       @executer.send(:build_runtime_lambda, params, body_node: ast_body, code_body: code_body)
     end

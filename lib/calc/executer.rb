@@ -268,7 +268,10 @@ module Calc
       @namespace_stack << @current_namespace
       pushed_namespace = true
 
-      callable.code_body ? @vm.run(callable.code_body) : evaluate(callable.body)
+      return @vm.run(callable.code_body) if callable.code_body
+      return evaluate(callable.body) if callable.body
+
+      raise Calc::RuntimeError, "lambda body is missing"
     ensure
       @namespace_stack.pop if pushed_namespace
       @environment = previous_environment

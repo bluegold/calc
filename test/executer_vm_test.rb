@@ -126,6 +126,23 @@ class ExecuterVmTest < Minitest::Test
     end
   end
 
+  def test_vm_mode_runs_closure_without_ast_body_metadata
+    lambda_body = Calc::Bytecode::CodeObject.new(name: "lambda-body")
+    lambda_body.emit(:load_fn, "+")
+    lambda_body.emit(:load, "x")
+    lambda_body.emit(:push_const, BigDecimal("1"))
+    lambda_body.emit(:call, 2)
+
+    program = Calc::Bytecode::CodeObject.new(name: "no-ast-body")
+    program.emit(:make_closure, { params: ["x"], code: lambda_body })
+    program.emit(:push_const, BigDecimal("4"))
+    program.emit(:call, 1)
+
+    vm = @executer.instance_variable_get(:@vm)
+
+    assert_equal BigDecimal("5"), vm.run(program)
+  end
+
   def test_vm_trace_mode_writes_instruction_trace
     trace = StringIO.new
     executer = Calc::Executer.new(
