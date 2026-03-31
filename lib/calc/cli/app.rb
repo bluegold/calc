@@ -23,6 +23,17 @@ module Calc
           return BytecodeRunner.run(parser, compiler, options.script_path, out: @out, err: @err)
         end
 
+        if options.subcommand == "compile"
+          compiler = Calc::Compiler.new(Calc::Builtins.new)
+          return CompileRunner.run(
+            parser,
+            compiler,
+            options.script_path,
+            output_path: options.output_path,
+            io: { out: @out, err: @err }
+          )
+        end
+
         executer = build_executer(options)
         builtins = executer.builtins
 
@@ -61,7 +72,7 @@ module Calc
       # Parses CLI options and reports invalid options to stderr.
       def parse_options
         Options.parse(@argv)
-      rescue Options::InvalidOptionError => e
+      rescue Options::InvalidOptionError, Options::MissingOptionValueError => e
         @err.puts e.message
         nil
       end

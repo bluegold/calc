@@ -166,6 +166,62 @@ class FileExecutionTest < Minitest::Test
     assert_includes scrub_stderr(stderr), "bytecode requires a script path"
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
+  def test_compile_subcommand_saves_bytecode_file
+    Dir.mktmpdir do |dir|
+      source_path = File.join(dir, "math.calc")
+      File.write(source_path, "(+ 1 2)\n")
+
+      stdout, stderr, status = run_calc("compile", source_path)
+      output_path = stdout.strip
+
+      assert_predicate status, :success?
+      assert_empty scrub_stderr(stderr)
+      assert_equal ".calcbc", File.extname(output_path)
+      assert_path_exists output_path
+    end
+  end
+
+  def test_compile_subcommand_can_set_output_path
+    Dir.mktmpdir do |dir|
+      source_path = File.join(dir, "math.calc")
+      output_path = File.join(dir, "math.bc")
+      File.write(source_path, "(+ 1 2)\n")
+
+      stdout, stderr, status = run_calc("compile", source_path, "--output", output_path)
+
+      assert_predicate status, :success?
+      assert_empty scrub_stderr(stderr)
+      assert_equal "#{output_path}\n", stdout
+      assert_path_exists output_path
+    end
+  end
+
+  def test_compile_subcommand_requires_script_path
+    stdout, stderr, status = run_calc("compile")
+
+    refute_predicate status, :success?
+    assert_empty stdout
+    assert_includes scrub_stderr(stderr), "compile requires a script path"
+  end
+
+  def test_file_execution_can_run_saved_bytecode
+    Dir.mktmpdir do |dir|
+      source_path = File.join(dir, "calc.calc")
+      bytecode_path = File.join(dir, "calc.calcbc")
+      File.write(source_path, "(+ 1 2 3)\n")
+
+      _compile_stdout, compile_stderr, compile_status = run_calc("compile", source_path, "--output", bytecode_path)
+      stdout, stderr, status = run_calc("--print-last-result", bytecode_path)
+
+      assert_predicate compile_status, :success?, compile_stderr
+      assert_predicate status, :success?
+      assert_equal "6\n", stdout
+      assert_empty scrub_stderr(stderr)
+    end
+  end
+  # rubocop:enable Minitest/MultipleAssertions
+
   def test_file_execution_can_trace_vm_to_stderr
     stdout, stderr, status = run_calc_with_env(
       { "CALC_EXECUTER_MODE" => "vm" },

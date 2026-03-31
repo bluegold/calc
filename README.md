@@ -212,6 +212,17 @@ bin/calc bytecode path/to/program.calc
 
 プログラムを実行せず、ファイル全体をコンパイルした bytecode を逆アセンブル表示します。
 
+### Compile and run bytecode files
+
+```bash
+bin/calc compile path/to/program.calc
+bin/calc compile path/to/program.calc --output path/to/program.calcbc
+bin/calc --print-last-result path/to/program.calcbc
+```
+
+`compile` は `CodeObject` を bytecode ファイルとして保存します。`--output` を省略した場合は入力ファイルと同じディレクトリに `.calcbc` 拡張子で保存されます。
+保存済み `.calcbc` ファイルは通常のファイル実行と同様に `bin/calc` で直接実行できます。
+
 ## Samples by Feature
 
 サンプルは [`samples/`](samples/) にあります。機能の種類ごとに選びやすいように整理すると次の通りです。

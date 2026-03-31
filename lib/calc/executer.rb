@@ -130,6 +130,11 @@ module Calc
       end
     end
 
+    # Executes a precompiled bytecode code object.
+    def evaluate_bytecode(code)
+      @vm.run(code)
+    end
+
     def vm_trace=(enabled)
       @vm.trace_enabled = enabled
     end

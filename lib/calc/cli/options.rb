@@ -1,8 +1,8 @@
 module Calc
   module Cli
     module Options
-      Result = Struct.new(:subcommand, :print_last_result, :trace_vm, :script_path, :remaining_args)
-      SUBCOMMANDS = %w[test bytecode].freeze
+      Result = Struct.new(:subcommand, :print_last_result, :trace_vm, :script_path, :remaining_args, :output_path)
+      SUBCOMMANDS = %w[test bytecode compile].freeze
 
       class InvalidOptionError < StandardError
         attr_reader :option
@@ -10,6 +10,12 @@ module Calc
         def initialize(option)
           @option = option
           super("unknown option: #{option}")
+        end
+      end
+
+      class MissingOptionValueError < StandardError
+        def initialize(option)
+          super("missing value for option: #{option}")
         end
       end
 
@@ -24,13 +30,22 @@ module Calc
         trace_vm = false
         script_path = nil
         remaining_args = []
+        output_path = nil
 
-        args.each do |arg|
+        index = 0
+        while index < args.length
+          arg = args[index]
           case arg
           when "--print-last-result"
             print_last_result = true
           when "--trace-vm"
             trace_vm = true
+          when "--output"
+            value = args[index + 1]
+            raise MissingOptionValueError, "--output" if value.nil? || value.start_with?("-")
+
+            output_path = value
+            index += 1
           when /^-/
             raise InvalidOptionError, arg
           else
@@ -40,6 +55,7 @@ module Calc
               script_path ||= arg
             end
           end
+          index += 1
         end
 
         Result.new(
@@ -47,7 +63,8 @@ module Calc
           print_last_result: print_last_result,
           trace_vm: trace_vm,
           script_path: script_path,
-          remaining_args: remaining_args
+          remaining_args: remaining_args,
+          output_path: output_path
         )
       end
     end
