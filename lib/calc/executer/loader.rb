@@ -13,7 +13,7 @@ module Calc
       # Detects cyclic dependencies and skips already loaded files.
       #
       # @param children [Array<Calc::Node>] An array of child nodes of the `load` expression.
-      # @return [Object, nil] The result of the last expression evaluated in the loaded file, or nil.
+      # @return [nil] Always nil for successful loads.
       # @raise [Calc::SyntaxError] If the syntax is invalid.
       # @raise [Calc::RuntimeError] If a cyclic dependency is detected or the file is not found.
       def evaluate_load(children)
@@ -27,19 +27,33 @@ module Calc
 
         raise Calc::RuntimeError, "cyclic load detected: #{resolved_path}" if @loading_stack.include?(resolved_path)
 
-        source = File.read(resolved_path)
         @loading_stack << resolved_path
 
-        result = if namespace
-                   with_namespace(namespace_path(namespace)) { evaluate_source(source, source_path: resolved_path) }
-                 else
-                   evaluate_source(source, source_path: resolved_path)
-                 end
+        evaluate_loaded_path(resolved_path, namespace: namespace)
 
         @loaded_files[resolved_path] = true
-        result
+        nil
       ensure
         @loading_stack.pop if @loading_stack.last == resolved_path
+      end
+
+      # Evaluates a resolved path as source (.calc) or precompiled bytecode (.calcbc).
+      def evaluate_loaded_path(resolved_path, namespace: nil)
+        runner = if File.extname(resolved_path) == Calc::Bytecode::FILE_EXTENSION
+                   proc do
+                     code = Calc::Bytecode.load(resolved_path)
+                     with_source_path(resolved_path) { evaluate_bytecode(code) }
+                   end
+                 else
+                   source = File.read(resolved_path)
+                   proc { evaluate_source(source, source_path: resolved_path) }
+                 end
+
+        if namespace
+          with_namespace(namespace_path(namespace)) { runner.call }
+        else
+          runner.call
+        end
       end
 
       # Executes a block within a specified namespace and restores the original
@@ -132,7 +146,7 @@ module Calc
         if File.extname(path).empty?
           search_roots.flat_map do |root|
             base = File.join(root, path)
-            [base, "#{base}.calc"]
+            [base, "#{base}#{Calc::Bytecode::FILE_EXTENSION}", "#{base}.calc"]
           end
         elsif Pathname.new(path).absolute?
           [path]

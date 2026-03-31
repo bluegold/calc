@@ -9,6 +9,7 @@ module Calc
       @builtins = builtins
       @trace_enabled = trace_enabled
       @trace_io = trace_io
+      @last_loaded_file_trace = nil
     end
 
     def trace_enabled?
@@ -44,6 +45,8 @@ module Calc
 
     # rubocop:disable Metrics/CyclomaticComplexity
     def execute_instruction(instruction, stack, namespace_frames, ip)
+      @last_loaded_file_trace = nil
+
       case instruction.op
       when :push_const
         push_const(stack, instruction.a)
@@ -179,7 +182,9 @@ module Calc
     end
 
     def load_file(metadata)
-      @executer.send(:load_runtime_file, metadata.fetch(:path), namespace: metadata[:namespace])
+      result = @executer.send(:load_runtime_file, metadata.fetch(:path), namespace: metadata[:namespace])
+      @last_loaded_file_trace = @executer.send(:consume_last_loaded_file_trace)
+      result
     end
 
     def trace_header(code)
@@ -247,7 +252,17 @@ module Calc
         colorize("function call executed", :call)
       when :make_closure
         colorize("closure created", :call)
+      when :load_file
+        format_load_file_flow
       end
+    end
+
+    def format_load_file_flow
+      trace = @last_loaded_file_trace
+      return nil unless trace
+
+      action = trace[:status] == :cached ? "reused" : "loaded"
+      colorize("#{action} #{trace[:kind]} file #{trace[:resolved_path]}", :call)
     end
 
     def format_trace_value(value)

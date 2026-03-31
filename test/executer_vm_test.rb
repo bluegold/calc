@@ -217,6 +217,55 @@ class ExecuterVmTest < Minitest::Test
     assert_includes trace.string, "=> 3"
   end
 
+  def test_vm_trace_mode_shows_calc_load_source_kind
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "math.calc")
+      File.write(path, "(define (inc x) (+ x 1))\n")
+      trace = StringIO.new
+      executer = Calc::Executer.new(
+        Calc::Environment.new,
+        Calc::Builtins.new,
+        Calc::NamespaceRegistry.new,
+        execution_mode: "vm",
+        vm_trace: true,
+        vm_trace_io: trace
+      )
+
+      result = executer.evaluate_source(%((do (load "#{path}") (inc 4))))
+
+      assert_equal BigDecimal("5"), result
+      assert_includes trace.string, "loaded calc file #{path}"
+    end
+  end
+
+  def test_vm_trace_mode_shows_calcbc_load_source_kind
+    Dir.mktmpdir do |dir|
+      source_path = File.join(dir, "math.calc")
+      bytecode_path = File.join(dir, "math#{Calc::Bytecode::FILE_EXTENSION}")
+      File.write(source_path, "(define (inc x) (+ x 1))\n")
+
+      parser = Calc::Parser.new
+      compiler = Calc::Compiler.new(Calc::Builtins.new)
+      code = compiler.compile_program(parser.parse(File.read(source_path)), name: source_path)
+      Calc::Bytecode.save(code, bytecode_path)
+
+      trace = StringIO.new
+      executer = Calc::Executer.new(
+        Calc::Environment.new,
+        Calc::Builtins.new,
+        Calc::NamespaceRegistry.new,
+        execution_mode: "vm",
+        vm_trace: true,
+        vm_trace_io: trace
+      )
+
+      result = executer.evaluate_source(%((do (load "#{bytecode_path}") (inc 4))))
+
+      assert_equal BigDecimal("5"), result
+      assert_includes trace.string, "loaded calcbc file #{bytecode_path}"
+    end
+  end
+
   def test_vm_trace_mode_can_be_toggled
     trace = StringIO.new
     executer = Calc::Executer.new(

@@ -20,6 +20,7 @@ module Calc
   # Manages the environment, built-in functions, and namespace registry,
   # and provides evaluation logic for various node types.
   # Delegates responsibilities to Formatter, SpecialForms, Loader, and Completion modules.
+  # rubocop:disable Metrics/ClassLength
   class Executer
     include Formatter
     include SpecialForms
@@ -56,6 +57,7 @@ module Calc
       @current_file = nil
       @loaded_files = {}
       @loading_stack = []
+      @last_loaded_file_trace = nil
       @execution_mode = execution_mode
     end
     # rubocop:enable Metrics/ParameterLists
@@ -374,23 +376,38 @@ module Calc
 
     def load_runtime_file(path, namespace: nil)
       resolved_path = resolve_load_path(path)
-      return nil if @loaded_files[resolved_path]
+      if @loaded_files[resolved_path]
+        @last_loaded_file_trace = {
+          requested_path: path,
+          resolved_path: resolved_path,
+          kind: loaded_file_kind(resolved_path),
+          status: :cached
+        }
+        return nil
+      end
 
       raise Calc::RuntimeError, "cyclic load detected: #{resolved_path}" if @loading_stack.include?(resolved_path)
 
-      source = File.read(resolved_path)
       @loading_stack << resolved_path
 
-      result = if namespace
-                 with_namespace(namespace_path(namespace)) { evaluate_source(source, source_path: resolved_path) }
-               else
-                 evaluate_source(source, source_path: resolved_path)
-               end
+      evaluate_loaded_path(resolved_path, namespace: namespace)
 
       @loaded_files[resolved_path] = true
-      result
+      @last_loaded_file_trace = {
+        requested_path: path,
+        resolved_path: resolved_path,
+        kind: loaded_file_kind(resolved_path),
+        status: :loaded
+      }
+      nil
     ensure
       @loading_stack.pop if defined?(resolved_path) && @loading_stack.last == resolved_path
+    end
+
+    def consume_last_loaded_file_trace
+      trace = @last_loaded_file_trace
+      @last_loaded_file_trace = nil
+      trace
     end
 
     def vm_enabled?
@@ -414,5 +431,10 @@ module Calc
         false
       end
     end
+
+    def loaded_file_kind(path)
+      File.extname(path) == Calc::Bytecode::FILE_EXTENSION ? "calcbc" : "calc"
+    end
   end
+  # rubocop:enable Metrics/ClassLength
 end

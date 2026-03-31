@@ -8,6 +8,13 @@ class ExecuterLoaderTest < Minitest::Test
     @executer = Calc::Executer.new
   end
 
+  def compile_to_bytecode(path, source)
+    parser = Calc::Parser.new
+    compiler = Calc::Compiler.new(Calc::Builtins.new)
+    code = compiler.compile_program(parser.parse(source), name: path)
+    Calc::Bytecode.save(code, path)
+  end
+
   def test_load_finds_bundled_stdlib_outside_project_directory
     Dir.mktmpdir do |dir|
       result = Dir.chdir(dir) do
@@ -44,6 +51,92 @@ class ExecuterLoaderTest < Minitest::Test
       result = @executer.evaluate_source(source, source_path: File.join(dir, "stdlib", "test", "runner.calc"))
 
       assert_equal BigDecimal("1"), result
+    end
+  end
+
+  def test_load_finds_calcbc_when_extension_is_omitted
+    Dir.mktmpdir do |dir|
+      module_root = File.join(dir, "calc", "modules")
+      FileUtils.mkdir_p(module_root)
+      bytecode_path = File.join(module_root, "math#{Calc::Bytecode::FILE_EXTENSION}")
+      compile_to_bytecode(bytecode_path, "(namespace math (define (inc x) (+ x 1)))")
+
+      original = ENV.fetch("XDG_CONFIG_HOME", nil)
+      ENV["XDG_CONFIG_HOME"] = dir
+      result = @executer.evaluate_source('(do (load "math") (math.inc 2))')
+
+      assert_equal BigDecimal("3"), result
+    ensure
+      ENV["XDG_CONFIG_HOME"] = original
+    end
+  end
+
+  def test_load_can_read_explicit_calcbc_path_in_tree_mode
+    Dir.mktmpdir do |dir|
+      source_path = File.join(dir, "runner.calc")
+      bytecode_path = File.join(dir, "math#{Calc::Bytecode::FILE_EXTENSION}")
+      compile_to_bytecode(bytecode_path, "(namespace math (define (inc x) (+ x 1)))")
+
+      executer = Calc::Executer.new(execution_mode: "tree")
+      result = executer.evaluate_source(
+        %((do (load "#{bytecode_path}") (math.inc 2))),
+        source_path: source_path
+      )
+
+      assert_equal BigDecimal("3"), result
+    end
+  end
+
+  def test_load_prefers_calcbc_when_calc_and_calcbc_both_exist
+    Dir.mktmpdir do |dir|
+      module_root = File.join(dir, "calc", "modules")
+      FileUtils.mkdir_p(module_root)
+
+      calc_path = File.join(module_root, "math.calc")
+      bytecode_path = File.join(module_root, "math#{Calc::Bytecode::FILE_EXTENSION}")
+      File.write(calc_path, "(namespace math (define (inc x) 100))")
+      compile_to_bytecode(bytecode_path, "(namespace math (define (inc x) (+ x 1)))")
+
+      original = ENV.fetch("XDG_CONFIG_HOME", nil)
+      ENV["XDG_CONFIG_HOME"] = dir
+      result = @executer.evaluate_source('(do (load "math") (math.inc 2))')
+
+      assert_equal BigDecimal("3"), result
+    ensure
+      ENV["XDG_CONFIG_HOME"] = original
+    end
+  end
+
+  def test_load_returns_nil_for_calc_library
+    Dir.mktmpdir do |dir|
+      module_root = File.join(dir, "calc", "modules")
+      FileUtils.mkdir_p(module_root)
+      File.write(File.join(module_root, "math.calc"), "(namespace math (define (inc x) (+ x 1)))")
+
+      original = ENV.fetch("XDG_CONFIG_HOME", nil)
+      ENV["XDG_CONFIG_HOME"] = dir
+      result = @executer.evaluate_source('(load "math")')
+
+      assert_nil result
+    ensure
+      ENV["XDG_CONFIG_HOME"] = original
+    end
+  end
+
+  def test_load_returns_nil_for_calcbc_library
+    Dir.mktmpdir do |dir|
+      module_root = File.join(dir, "calc", "modules")
+      FileUtils.mkdir_p(module_root)
+      bytecode_path = File.join(module_root, "math#{Calc::Bytecode::FILE_EXTENSION}")
+      compile_to_bytecode(bytecode_path, "(namespace math (define (inc x) (+ x 1)))")
+
+      original = ENV.fetch("XDG_CONFIG_HOME", nil)
+      ENV["XDG_CONFIG_HOME"] = dir
+      result = @executer.evaluate_source('(load "math")')
+
+      assert_nil result
+    ensure
+      ENV["XDG_CONFIG_HOME"] = original
     end
   end
 

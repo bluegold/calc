@@ -223,6 +223,21 @@ bin/calc --print-last-result path/to/program.calcbc
 `compile` は `CodeObject` を bytecode ファイルとして保存します。`--output` を省略した場合は入力ファイルと同じディレクトリに `.calcbc` 拡張子で保存されます。
 保存済み `.calcbc` ファイルは通常のファイル実行と同様に `bin/calc` で直接実行できます。
 
+ライブラリとして使う場合は、先に `.calcbc` を作ってから `load` できます。
+
+```bash
+bin/calc compile stdlib/math/stats.calc
+bin/calc
+```
+
+```text
+> :trace-vm on
+VM trace: ON
+> (load "math/stats")
+```
+
+`load "math/stats"` は拡張子省略時に `.calcbc` を優先して探索するため、対応する bytecode があればそれを読み込みます。
+
 ## Samples by Feature
 
 サンプルは [`samples/`](samples/) にあります。機能の種類ごとに選びやすいように整理すると次の通りです。
