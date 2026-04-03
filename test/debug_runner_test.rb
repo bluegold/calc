@@ -164,7 +164,7 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
   end
 
   def test_debug_subcommand_run_runtime_error_keeps_prompt_alive
-    stdout = stderr = status = nil
+    _stdout = stderr = status = nil
 
     Dir.mktmpdir do |dir|
       path = File.join(dir, "run_error.calc")

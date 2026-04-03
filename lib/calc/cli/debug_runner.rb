@@ -16,6 +16,7 @@ module Calc
         @script_path = script_path
         @source = nil
         @nodes = []
+        @cursor = 0
         @breakpoints = []
         @breakpoint_seq = 0
         @state = Calc::DebuggerState.new
@@ -74,6 +75,7 @@ module Calc
       end
 
       def handle_run_command
+        @cursor = 0 if @state.idle? || @state.terminated?
         execute_until_breakpoint
       rescue StandardError => e
         @err.puts e.message
@@ -84,7 +86,13 @@ module Calc
         case command
         when "break"
           create_breakpoint(payload)
-        when "continue", "step", "next", "finish", "bt", "locals", "print", "list"
+        when "continue"
+          resume_execution
+        when "step", "next"
+          step_execution
+        when "finish"
+          finish_execution
+        when "bt", "locals", "print", "list"
           print_not_implemented(command, payload)
         end
       end
@@ -111,18 +119,70 @@ module Calc
       def execute_until_breakpoint
         pause_reason = nil
 
-        @nodes.each do |node|
+        while @cursor < @nodes.length
+          node = @nodes[@cursor]
           if breakpoint_hit?(node)
             pause_reason = :breakpoint
             @out.puts format_breakpoint_hit(node)
+            @cursor += 1
             break
           end
 
           result = @executer.evaluate_nodes([node], source_path: @script_path)
           @out.puts Calc.format_value(result) unless result.nil?
+          @cursor += 1
         end
 
         @state.pause!(reason: pause_reason || :run_complete)
+      end
+
+      def resume_execution
+        return print_not_implemented("continue", nil) unless @state.paused?
+
+        @state.resume!
+        execute_until_breakpoint
+      end
+
+      def step_execution
+        return print_not_implemented("step", nil) unless @state.paused? || @state.running?
+
+        @state.resume! if @state.paused?
+        run_single_node(reason: :step_complete)
+      end
+
+      def finish_execution
+        return print_not_implemented("finish", nil) unless @state.paused? || @state.running?
+
+        @state.resume! if @state.paused?
+        execute_remaining_nodes
+      end
+
+      def run_single_node(reason:)
+        if @cursor < @nodes.length
+          node = @nodes[@cursor]
+          result = @executer.evaluate_nodes([node], source_path: @script_path)
+          @out.puts Calc.format_value(result) unless result.nil?
+          @cursor += 1
+        end
+
+        @state.pause!(reason: reason)
+      rescue StandardError => e
+        @err.puts e.message
+        @state.pause!(reason: :run_failed)
+      end
+
+      def execute_remaining_nodes
+        while @cursor < @nodes.length
+          node = @nodes[@cursor]
+          result = @executer.evaluate_nodes([node], source_path: @script_path)
+          @out.puts Calc.format_value(result) unless result.nil?
+          @cursor += 1
+        end
+
+        @state.pause!(reason: :run_complete)
+      rescue StandardError => e
+        @err.puts e.message
+        @state.pause!(reason: :run_failed)
       end
 
       def breakpoint_hit?(node)
