@@ -185,6 +185,52 @@ class DebugRunnerTest < Minitest::Test
     assert_includes stdout, "(calcdb)"
   end
 
+  def test_debug_subcommand_line_breakpoint_stops_run
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_line.calc")
+      File.write(path, "(+ 1 2)\n(+ 3 4)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break 3"
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "Breakpoint 1 set"
+    assert_includes stdout, "Breakpoint hit at L3"
+  end
+
+  def test_debug_subcommand_function_breakpoint_stops_run
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_function.calc")
+      File.write(path, "(define (inc x) (+ x 1))\n(inc 2)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break inc"
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "Breakpoint 1 set"
+    assert_includes stdout, "Breakpoint hit"
+  end
+
   def test_debug_subcommand_continue_is_placeholder
     stdout = stderr = status = nil
 
@@ -202,11 +248,12 @@ class DebugRunnerTest < Minitest::Test
     assert_empty scrub_stderr(stderr)
   end
 
-  def test_debug_subcommand_break_with_target_is_placeholder
+  def test_debug_subcommand_unknown_function_breakpoint_sets_breakpoint
     stdout = stderr = status = nil
 
     Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
       i.puts "break foo"
+      i.puts "run"
       i.puts "quit"
       i.close
       stdout = o.read
@@ -215,8 +262,8 @@ class DebugRunnerTest < Minitest::Test
     end
 
     assert_predicate status, :success?
-    assert_includes stdout, "break foo is not implemented yet"
-    assert_empty scrub_stderr(stderr)
+    assert_includes stdout, "Breakpoint 1 set"
+    refute_includes stdout, "Breakpoint hit"
   end
 
   def test_debug_subcommand_list_with_count_is_placeholder

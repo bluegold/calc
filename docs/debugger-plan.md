@@ -399,7 +399,7 @@ Create a dedicated debug command and interactive debug shell without full steppi
 * [ ] Instantiate VM + debugger objects
 * [x] Implement debug prompt loop
 * [x] Implement `quit`
-* [x] Implement placeholder `run`
+* [x] Implement `run`
 * [x] Add user-friendly startup banner/help summary
 * [x] Decide behavior for missing filename / missing file / parse error
 
@@ -430,12 +430,12 @@ Make compiled VM programs debuggable by attaching source/function metadata.
 
 ## TODO
 
-* [ ] Extend compiled code object to carry source filename
-* [ ] Extend compiled code object to carry instruction offset -> line mapping
-* [ ] Extend compiled code object to carry function/lambda metadata
+* [x] Extend compiled code object to carry source filename
+* [x] Extend compiled code object to carry instruction offset -> line mapping
+* [x] Extend compiled code object to carry function/lambda metadata
 * [ ] Add line lookup structure for resolving line breakpoints
 * [ ] Add function name lookup structure for resolving function breakpoints
-* [ ] Ensure lambda/function entrypoints are distinguishable
+* [x] Ensure lambda/function entrypoints are distinguishable
 * [ ] Expose current instruction offset from VM execution state
 * [ ] Expose call stack/frame metadata from VM
 * [ ] Expose locals/arguments access path for current frame
@@ -469,7 +469,7 @@ Allow the debugger to stop and resume execution safely.
 * [ ] Add debugger hook/callback entrypoints in VM dispatch loop
 * [ ] Define stoppable execution points
 * [ ] Trigger debugger check at each stoppable boundary
-* [ ] Support pausing on breakpoint hit
+* [x] Support pausing on breakpoint hit
 * [ ] Support pausing on step
 * [ ] Support pausing on next
 * [ ] Support pausing on finish
@@ -505,12 +505,12 @@ Implement function and line breakpoints.
 
 ## TODO
 
-* [ ] Create `Calc::Breakpoint` model
-* [ ] Implement `break <function>`
-* [ ] Implement `break <line>`
+* [x] Create `Calc::Breakpoint` model
+* [x] Implement `break <function>`
+* [x] Implement `break <line>`
 * [ ] Resolve line breakpoints against current source metadata
 * [ ] Resolve function breakpoints against function entry metadata
-* [ ] Assign stable breakpoint ids
+* [x] Assign stable breakpoint ids
 * [ ] Implement `delete <id>`
 * [ ] Implement `info break`
 * [ ] Handle duplicate breakpoint definitions sensibly
@@ -540,7 +540,7 @@ Implement the core debugger workflow.
 
 ## TODO
 
-* [ ] Implement `run`
+* [x] Implement `run`
 * [ ] Implement `continue`
 * [ ] Implement `step`
 * [ ] Implement `next`
@@ -610,6 +610,7 @@ Improve debugger usability and failure handling.
 * [x] Improve startup instructions
 * [x] Ensure clean exit on EOF / Ctrl-C in debugger prompt
 * [ ] Ensure clean exit on program termination
+* [x] Ensure clean exit on program failure
 * [ ] Review command naming consistency
 
 ## Checkpoint
@@ -738,15 +739,15 @@ The debugger should be tested at three levels:
 ## CLI lifecycle
 
 * [x] `bin/calc debug <filename>` starts debugger prompt
-* [ ] missing file reports clear error
-* [ ] parse error reports clear error
+* [x] missing file reports clear error
+* [x] parse error reports clear error
 * [x] `quit` exits cleanly
 * [x] EOF exits cleanly
 
 ## Breakpoint workflow
 
-* [ ] set breakpoint before `run`
-* [ ] `run` stops at breakpoint
+* [x] set breakpoint before `run`
+* [x] `run` stops at breakpoint
 * [ ] `continue` resumes to next breakpoint or termination
 * [ ] `info break` shows current breakpoints
 * [ ] `delete` updates breakpoint list

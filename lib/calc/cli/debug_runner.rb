@@ -15,6 +15,9 @@ module Calc
         @executer = executer
         @script_path = script_path
         @source = nil
+        @nodes = []
+        @breakpoints = []
+        @breakpoint_seq = 0
         @state = Calc::DebuggerState.new
         @out = io.fetch(:out)
         @err = io.fetch(:err)
@@ -23,8 +26,8 @@ module Calc
 
       def run
         @source = File.read(@script_path)
-        nodes = @parser.parse(@source)
-        code = @compiler.compile_program(nodes, name: @script_path)
+        @nodes = @parser.parse(@source)
+        code = @compiler.compile_program(@nodes, name: @script_path)
 
         @state.start!
         @out.puts "debugger scaffold loaded for #{@script_path}"
@@ -61,7 +64,7 @@ module Calc
             handle_run_command
             return if @state.terminated?
           when "continue", "step", "next", "finish", "break", "bt", "locals", "print", "list"
-            handle_placeholder_command(command_name, payload)
+            handle_debugger_command(command_name, payload)
           when "help"
             print_help
           else
@@ -71,21 +74,82 @@ module Calc
       end
 
       def handle_run_command
-        result = @executer.evaluate_source(@source, source_path: @script_path)
-        @out.puts Calc.format_value(result) unless result.nil?
-        @state.pause!(reason: :run_complete)
+        execute_until_breakpoint
       rescue StandardError => e
         @err.puts "#{e.class}: #{e.message}"
         @state.pause!(reason: :run_failed)
       end
 
-      def handle_placeholder_command(command, payload)
-        if @state.paused?
-          @state.resume!
-          @state.pause!(reason: :"#{command}_placeholder")
+      def handle_debugger_command(command, payload)
+        case command
+        when "break"
+          create_breakpoint(payload)
+        when "continue", "step", "next", "finish", "bt", "locals", "print", "list"
+          print_not_implemented(command, payload)
+        end
+      end
+
+      def create_breakpoint(payload)
+        kind, target = parse_breakpoint_target(payload)
+        @breakpoint_seq += 1
+        breakpoint = Calc::Breakpoint.new(id: @breakpoint_seq, kind: kind, target: target)
+        @breakpoints << breakpoint
+        @out.puts "Breakpoint #{@breakpoint_seq} set"
+      rescue ArgumentError => e
+        @err.puts e.message
+      end
+
+      def parse_breakpoint_target(payload)
+        raise ArgumentError, "usage: break <line>|<function>" if payload.to_s.strip.empty?
+
+        text = payload.strip
+        return [:line, Integer(text, 10)] if text.match?(/\A\d+\z/)
+
+        [:function, text]
+      end
+
+      def execute_until_breakpoint
+        @nodes.each do |node|
+          if breakpoint_hit?(node)
+            @state.pause!(reason: :breakpoint)
+            @out.puts format_breakpoint_hit(node)
+            break
+          end
+
+          result = @executer.evaluate(node)
+          @out.puts Calc.format_value(result) unless result.nil?
         end
 
-        print_not_implemented(command, payload)
+        @state.pause!(reason: :run_complete)
+      end
+
+      def breakpoint_hit?(node)
+        @breakpoints.any? do |breakpoint|
+          if breakpoint.line?
+            breakpoint.target == node.line
+          else
+            function_breakpoint_hit?(breakpoint, node)
+          end
+        end
+      end
+
+      def function_breakpoint_hit?(breakpoint, node)
+        return false unless node.is_a?(Calc::ListNode) && node.children.first.is_a?(Calc::SymbolNode)
+
+        head = node.children.first
+        head.name == breakpoint.target || define_function_breakpoint_hit?(breakpoint, node, head)
+      end
+
+      def define_function_breakpoint_hit?(breakpoint, node, head)
+        return false unless head.name == "define" && node.children[1].is_a?(Calc::ListNode)
+
+        signature = node.children[1]
+        signature.children.first.is_a?(Calc::SymbolNode) && signature.children.first.name == breakpoint.target
+      end
+
+      def format_breakpoint_hit(node)
+        line = node.line || 0
+        "Breakpoint hit at L#{line}"
       end
 
       def print_not_implemented(command, payload)
