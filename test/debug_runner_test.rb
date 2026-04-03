@@ -48,6 +48,23 @@ class DebugRunnerTest < Minitest::Test
     assert_empty scrub_stderr(stderr)
   end
 
+  def test_debug_subcommand_reports_unknown_command
+    stdout = stderr = status = nil
+
+    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
+      i.puts "bogus"
+      i.puts "quit"
+      i.close
+      stdout = o.read
+      stderr = e.read
+      status = t.value
+    end
+
+    assert_predicate status, :success?
+    assert_includes stderr, "unknown debugger command: bogus"
+    assert_includes stdout, "(calcdb)"
+  end
+
   private
 
   def run_calc(...)
