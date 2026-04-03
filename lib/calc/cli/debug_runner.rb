@@ -46,13 +46,40 @@ module Calc
           command = line.strip
           next if command.empty?
 
-          case command
+          command_name, payload = command.split(/\s+/, 2)
+
+          case command_name
           when "quit"
             return
+          when "run", "continue", "step", "next", "finish", "break", "bt", "locals", "print", "list"
+            print_not_implemented(command_name, payload)
+          when "help"
+            print_help
           else
-            @err.puts "unknown debugger command: #{command}"
+            @err.puts "unknown debugger command: #{command_name}"
           end
         end
+      end
+
+      def print_not_implemented(command, payload)
+        command_text = payload ? "#{command} #{payload}" : command
+        @out.puts "#{command_text} is not implemented yet"
+      end
+
+      def print_help
+        @out.puts "Commands:"
+        @out.puts "  run              Start program execution"
+        @out.puts "  continue         Resume execution after a pause"
+        @out.puts "  step             Step into the next stoppable instruction"
+        @out.puts "  next             Step over the current frame"
+        @out.puts "  finish           Run until the current frame returns"
+        @out.puts "  break <target>   Set a breakpoint by function or line"
+        @out.puts "  bt               Show the current backtrace"
+        @out.puts "  locals           Show locals for the selected frame"
+        @out.puts "  print <expr>     Evaluate an expression in the paused context"
+        @out.puts "  list             Show nearby source lines"
+        @out.puts "  help             Show this help"
+        @out.puts "  quit             Exit the debugger"
       end
     end
   end
