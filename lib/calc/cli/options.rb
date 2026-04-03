@@ -2,7 +2,7 @@ module Calc
   module Cli
     module Options
       Result = Struct.new(:subcommand, :print_last_result, :trace_vm, :script_path, :remaining_args, :output_path)
-      SUBCOMMANDS = %w[test bytecode compile].freeze
+      SUBCOMMANDS = %w[test bytecode compile debug].freeze
 
       class InvalidOptionError < StandardError
         attr_reader :option

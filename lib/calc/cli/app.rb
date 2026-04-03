@@ -34,6 +34,18 @@ module Calc
           )
         end
 
+        if options.subcommand == "debug"
+          compiler = Calc::Compiler.new(Calc::Builtins.new)
+          executer = build_executer(options)
+          return DebugRunner.run(
+            parser,
+            compiler,
+            executer,
+            options.script_path,
+            io: { out: @out, err: @err }
+          )
+        end
+
         executer = build_executer(options)
         builtins = executer.builtins
 
