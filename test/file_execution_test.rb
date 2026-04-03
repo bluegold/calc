@@ -171,7 +171,7 @@ class FileExecutionTest < Minitest::Test
 
     refute_predicate status, :success?
     assert_empty stdout
-    assert_includes scrub_stderr(stderr), "missing script path for debug"
+    assert_includes scrub_stderr(stderr), "debug requires a script path"
   end
 
   def test_debug_subcommand_loads_script_and_disassembles_it

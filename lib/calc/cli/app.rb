@@ -35,8 +35,13 @@ module Calc
         end
 
         if options.subcommand == "debug"
-          compiler = Calc::Compiler.new(Calc::Builtins.new)
+          unless options.script_path
+            @err.puts "debug requires a script path"
+            return 1
+          end
+
           executer = build_executer(options)
+          compiler = Calc::Compiler.new(executer.builtins)
           return DebugRunner.run(
             parser,
             compiler,

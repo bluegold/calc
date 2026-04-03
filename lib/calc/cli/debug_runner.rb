@@ -18,11 +18,6 @@ module Calc
       end
 
       def run
-        unless @script_path
-          @err.puts "missing script path for debug"
-          return 1
-        end
-
         source = File.read(@script_path)
         nodes = @parser.parse(source)
         code = @compiler.compile_program(nodes, name: @script_path)
