@@ -1,14 +1,16 @@
 module Calc
   # Stack-based virtual machine for executing Calc bytecode.
   # Phase 2 supports a safe subset (literals, symbol load, builtin function call).
+  # rubocop:disable Metrics/ClassLength
   class Vm
     attr_writer :trace_enabled
 
-    def initialize(executer:, builtins:, trace_enabled: false, trace_io: $stderr)
+    def initialize(executer:, builtins:, trace_enabled: false, trace_io: $stderr, debugger: nil)
       @executer = executer
       @builtins = builtins
       @trace_enabled = trace_enabled
       @trace_io = trace_io
+      @debugger = debugger
       @last_loaded_file_trace = nil
     end
 
@@ -28,6 +30,7 @@ module Calc
       while ip < code.instructions.length
         instruction = code.instructions[ip]
         stack_before = stack.dup
+        check_debugger_pause(code, ip, instruction, stack_before)
         next_ip = execute_instruction(instruction, stack, namespace_frames, ip)
         trace_instruction(code, ip, instruction, stack_before, stack, next_ip)
         ip = next_ip
@@ -39,6 +42,15 @@ module Calc
       namespace_frames.reverse_each do |previous_namespace|
         @executer.send(:leave_runtime_namespace, previous_namespace)
       end
+    end
+
+    def check_debugger_pause(code, ip, instruction, stack)
+      return unless @debugger
+
+      pause_reason = @debugger.send(:pause_reason_for, code, ip, instruction, stack)
+      return unless pause_reason
+
+      raise Calc::DebugPause.new(reason: pause_reason, code: code, ip: ip, instruction: instruction)
     end
 
     private
@@ -308,4 +320,5 @@ module Calc
       @trace_io.respond_to?(:tty?) && @trace_io.tty?
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

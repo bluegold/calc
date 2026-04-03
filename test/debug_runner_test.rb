@@ -3,7 +3,7 @@ require "open3"
 require "rbconfig"
 require "tmpdir"
 
-class DebugRunnerTest < Minitest::Test
+class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
   def test_debug_subcommand_loads_script_and_shows_prompt
     stdout, _stderr, status = run_calc("debug", "samples/basic.calc")
 
@@ -181,7 +181,28 @@ class DebugRunnerTest < Minitest::Test
     end
 
     assert_predicate status, :success?
-    assert_includes stderr, "TypeError"
+    assert_includes stderr, "while evaluating"
+    refute_includes stderr, "TypeError: TypeError"
+  end
+
+  def test_debug_subcommand_run_runtime_error_keeps_prompt_alive_after_error
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "run_error.calc")
+      File.write(path, "(+ 1 nil)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
     assert_includes stdout, "(calcdb)"
   end
 

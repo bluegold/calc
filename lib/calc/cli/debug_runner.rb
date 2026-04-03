@@ -76,7 +76,7 @@ module Calc
       def handle_run_command
         execute_until_breakpoint
       rescue StandardError => e
-        @err.puts "#{e.class}: #{e.message}"
+        @err.puts e.message
         @state.pause!(reason: :run_failed)
       end
 
@@ -109,18 +109,20 @@ module Calc
       end
 
       def execute_until_breakpoint
+        pause_reason = nil
+
         @nodes.each do |node|
           if breakpoint_hit?(node)
-            @state.pause!(reason: :breakpoint)
+            pause_reason = :breakpoint
             @out.puts format_breakpoint_hit(node)
             break
           end
 
-          result = @executer.evaluate(node)
+          result = @executer.evaluate_nodes([node], source_path: @script_path)
           @out.puts Calc.format_value(result) unless result.nil?
         end
 
-        @state.pause!(reason: :run_complete)
+        @state.pause!(reason: pause_reason || :run_complete)
       end
 
       def breakpoint_hit?(node)

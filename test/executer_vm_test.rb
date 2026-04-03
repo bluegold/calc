@@ -7,6 +7,7 @@ require "tmpdir"
 class ExecuterVmTest < Minitest::Test
   def setup
     @parser = Calc::Parser.new
+    @compiler = Calc::Compiler.new(Calc::Builtins.new)
     @executer = Calc::Executer.new(
       Calc::Environment.new,
       Calc::Builtins.new,
@@ -141,6 +142,35 @@ class ExecuterVmTest < Minitest::Test
     vm = @executer.instance_variable_get(:@vm)
 
     assert_equal BigDecimal("5"), vm.run(program)
+  end
+
+  def test_vm_invokes_debugger_hook_before_instruction
+    debugger = Class.new do
+      attr_reader :calls
+
+      def initialize
+        @calls = []
+      end
+
+      def pause_reason_for(code, ip, instruction, stack)
+        @calls << [code.name, ip, instruction.op, stack.dup]
+        :breakpoint
+      end
+    end.new
+
+    vm = Calc::Vm.new(
+      executer: @executer,
+      builtins: @executer.builtins,
+      debugger: debugger
+    )
+    program = @compiler.compile(@parser.parse("(+ 1 2)").first)
+
+    error = assert_raises(Calc::DebugPause) do
+      vm.run(program)
+    end
+
+    assert_equal :breakpoint, error.reason
+    assert_equal [["<expr>", 0, :load_fn, []]], debugger.calls
   end
 
   def test_vm_trace_mode_writes_instruction_trace
