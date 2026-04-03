@@ -1,6 +1,7 @@
 require_relative "test_helper"
 require "open3"
 require "rbconfig"
+require "tmpdir"
 
 class DebugRunnerTest < Minitest::Test
   def test_debug_subcommand_loads_script_and_shows_prompt
@@ -116,21 +117,72 @@ class DebugRunnerTest < Minitest::Test
     assert_empty scrub_stderr(stderr)
   end
 
-  def test_debug_subcommand_run_is_placeholder
+  def test_debug_subcommand_run_executes_program
     stdout = stderr = status = nil
 
-    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
-      i.puts "run"
-      i.puts "quit"
-      i.close
-      stdout = o.read
-      stderr = e.read
-      status = t.value
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "run.calc")
+      File.write(path, "(+ 1 2)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "run"
+        i.puts "help"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
     end
 
     assert_predicate status, :success?
-    assert_includes stdout, "run is not implemented yet"
+    assert_includes stdout, "3"
     assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_run_keeps_prompt_alive
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "run.calc")
+      File.write(path, "(+ 1 2)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "run"
+        i.puts "help"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "Commands:"
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_run_runtime_error_keeps_prompt_alive
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "run_error.calc")
+      File.write(path, "(+ 1 nil)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stderr, "TypeError"
+    assert_includes stdout, "(calcdb)"
   end
 
   def test_debug_subcommand_continue_is_placeholder

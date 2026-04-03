@@ -14,21 +14,26 @@ module Calc
         @compiler = compiler
         @executer = executer
         @script_path = script_path
+        @source = nil
+        @state = Calc::DebuggerState.new
         @out = io.fetch(:out)
         @err = io.fetch(:err)
         @in = io.fetch(:in, $stdin)
       end
 
       def run
-        source = File.read(@script_path)
-        nodes = @parser.parse(source)
+        @source = File.read(@script_path)
+        nodes = @parser.parse(@source)
         code = @compiler.compile_program(nodes, name: @script_path)
 
+        @state.start!
         @out.puts "debugger scaffold loaded for #{@script_path}"
         @out.puts code.disassemble
         run_prompt_loop
+        @state.terminate! unless @state.terminated?
         0
       rescue StandardError => e
+        @state.terminate! unless @state.terminated?
         @err.puts e.message
         1
       end
@@ -50,15 +55,37 @@ module Calc
 
           case command_name
           when "quit"
+            @state.terminate!
             return
-          when "run", "continue", "step", "next", "finish", "break", "bt", "locals", "print", "list"
-            print_not_implemented(command_name, payload)
+          when "run"
+            handle_run_command
+            return if @state.terminated?
+          when "continue", "step", "next", "finish", "break", "bt", "locals", "print", "list"
+            handle_placeholder_command(command_name, payload)
           when "help"
             print_help
           else
             @err.puts "unknown debugger command: #{command_name}"
           end
         end
+      end
+
+      def handle_run_command
+        result = @executer.evaluate_source(@source, source_path: @script_path)
+        @out.puts Calc.format_value(result) unless result.nil?
+        @state.pause!(reason: :run_complete)
+      rescue StandardError => e
+        @err.puts "#{e.class}: #{e.message}"
+        @state.pause!(reason: :run_failed)
+      end
+
+      def handle_placeholder_command(command, payload)
+        if @state.paused?
+          @state.resume!
+          @state.pause!(reason: :"#{command}_placeholder")
+        end
+
+        print_not_implemented(command, payload)
       end
 
       def print_not_implemented(command, payload)
