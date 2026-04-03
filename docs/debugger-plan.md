@@ -664,6 +664,7 @@ The debugger is usable for normal programs and for debugging crashes.
 ### `list`
 
 * show source around current selected frame location
+* accept an optional line count and optional bytecode display mode
 
 ---
 

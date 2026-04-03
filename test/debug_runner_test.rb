@@ -167,6 +167,40 @@ class DebugRunnerTest < Minitest::Test
     assert_empty scrub_stderr(stderr)
   end
 
+  def test_debug_subcommand_list_with_count_is_placeholder
+    stdout = stderr = status = nil
+
+    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
+      i.puts "list 5"
+      i.puts "quit"
+      i.close
+      stdout = o.read
+      stderr = e.read
+      status = t.value
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "list 5 is not implemented yet"
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_list_with_bytecode_is_placeholder
+    stdout = stderr = status = nil
+
+    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
+      i.puts "list 5 bytecode"
+      i.puts "quit"
+      i.close
+      stdout = o.read
+      stderr = e.read
+      status = t.value
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "list 5 bytecode is not implemented yet"
+    assert_empty scrub_stderr(stderr)
+  end
+
   private
 
   def run_calc(...)

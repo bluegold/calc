@@ -77,7 +77,7 @@ module Calc
         @out.puts "  bt               Show the current backtrace"
         @out.puts "  locals           Show locals for the selected frame"
         @out.puts "  print <expr>     Evaluate an expression in the paused context"
-        @out.puts "  list             Show nearby source lines"
+        @out.puts "  list [n] [bytecode]  Show nearby source lines, optionally with bytecode"
         @out.puts "  help             Show this help"
         @out.puts "  quit             Exit the debugger"
       end
