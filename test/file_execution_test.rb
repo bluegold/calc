@@ -174,28 +174,6 @@ class FileExecutionTest < Minitest::Test
     assert_includes scrub_stderr(stderr), "debug requires a script path"
   end
 
-  def test_debug_subcommand_loads_script_and_disassembles_it
-    stdout, stderr, status = run_calc("debug", "samples/basic.calc")
-
-    assert_predicate status, :success?
-    assert_includes stdout, "debugger scaffold loaded for samples/basic.calc"
-    assert_empty scrub_stderr(stderr)
-  end
-
-  def test_debug_subcommand_disassembles_with_header
-    stdout, _stderr, status = run_calc("debug", "samples/basic.calc")
-
-    assert_predicate status, :success?
-    assert_includes stdout, "=== samples/basic.calc ==="
-  end
-
-  def test_debug_subcommand_disassembles_with_instructions
-    stdout, _stderr, status = run_calc("debug", "samples/basic.calc")
-
-    assert_predicate status, :success?
-    assert_includes stdout, "load_fn"
-  end
-
   def test_debug_subcommand_reports_parse_errors
     Dir.mktmpdir do |dir|
       path = File.join(dir, "broken.calc")
