@@ -11,10 +11,10 @@ module Calc
         @script_path = context.script_path
         @out = context.io.fetch(:out)
         @err = context.io.fetch(:err)
-        
+
         @breakpoint_manager = Calc::Cli::DebugBreakpointManager.new
         @state = Calc::DebuggerState.new
-        
+
         @source = nil
         @nodes = []
         @code = nil
@@ -66,7 +66,7 @@ module Calc
         reason = @state.pause_reason
         @state.resume! if paused?
         @skip_breakpoint_once = true if reason == :breakpoint
-        
+
         result = run_single_node(reason: :step_complete)
         @skip_breakpoint_once = false
         result
