@@ -799,7 +799,7 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
     end
 
     assert_predicate status, :success?
-    assert_includes stdout, "continue is not implemented yet"
+    assert_includes stdout, "continue is only available when paused"
     assert_empty scrub_stderr(stderr)
   end
 
