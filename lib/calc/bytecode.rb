@@ -78,17 +78,32 @@ module Calc
       end
 
       def instruction_label(instr)
-        return instr.to_s unless instr.op == :make_closure && instr.a.is_a?(Hash)
+        return instr.to_s unless instr.op == :make_closure
 
-        params = instr.a[:params] || []
+        params = closure_params(instr)
         "make_closure params=#{params.inspect}"
       end
 
       def closure_code(instr)
-        return nil unless instr.op == :make_closure && instr.a.is_a?(Hash)
+        return nil unless instr.op == :make_closure
 
-        code = instr.a[:code]
+        code = closure_metadata_value(instr, :code)
         code.is_a?(CodeObject) ? code : nil
+      end
+
+      def closure_params(instr)
+        Array(closure_metadata_value(instr, :params))
+      end
+
+      def closure_metadata_value(instr, key)
+        metadata = instr.a
+        if metadata.respond_to?(:[]) && metadata.respond_to?(:key?) && metadata.key?(key)
+          return metadata[key]
+        end
+
+        return metadata.public_send(key) if metadata.respond_to?(key)
+
+        nil
       end
     end
 

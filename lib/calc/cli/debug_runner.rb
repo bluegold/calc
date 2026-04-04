@@ -1,39 +1,44 @@
+require "reline"
+
 module Calc
   module Cli
     # Entry point for the first VM debugger CLI flow.
     # This version establishes the debug command wiring and a minimal prompt loop.
     class DebugRunner
       PROMPT = "(calcdb) ".freeze
+      Context = Struct.new(:parser, :compiler, :executer, :script_path, :io, :history)
 
-      def self.run(parser, compiler, executer, script_path, io:)
-        new(parser, compiler, executer, script_path, io: io).run
+      def self.run(context)
+        new(context).run
       end
 
-      def initialize(parser, compiler, executer, script_path, io:)
-        @parser = parser
-        @compiler = compiler
-        @executer = executer
-        @script_path = script_path
+      def initialize(context)
+        @parser = context.parser
+        @compiler = context.compiler
+        @executer = context.executer
+        @script_path = context.script_path
         @source = nil
+        @code = nil
         @nodes = []
         @cursor = 0
         @skip_breakpoint_once = false
-        @breakpoints = []
-        @breakpoint_seq = 0
+        @breakpoint_manager = Calc::Cli::DebugBreakpointManager.new
         @state = Calc::DebuggerState.new
-        @out = io.fetch(:out)
-        @err = io.fetch(:err)
-        @in = io.fetch(:in, $stdin)
+        @out = context.io.fetch(:out)
+        @err = context.io.fetch(:err)
+        @in = context.io.fetch(:in, $stdin)
+        @history = context.history || Reline::HISTORY
+        @last_command = nil
       end
 
       def run
         @source = File.read(@script_path)
         @nodes = @parser.parse(@source)
-        code = @compiler.compile_program(@nodes, name: @script_path)
+        @code = @compiler.compile_program(@nodes, name: @script_path)
 
         @state.start!
         @out.puts "debugger scaffold loaded for #{@script_path}"
-        @out.puts code.disassemble
+        @out.puts @code.disassemble
         run_prompt_loop
         @state.terminate! unless @state.terminated?
         0
@@ -47,14 +52,14 @@ module Calc
 
       def run_prompt_loop
         loop do
-          @out.print PROMPT
-          @out.flush
-
-          line = @in.gets
+          line = read_command
           break if line.nil?
 
           command = line.strip
           next if command.empty?
+
+          @history << command if command != @last_command
+          @last_command = command
 
           command_name, payload = command.split(/\s+/, 2)
 
@@ -72,6 +77,16 @@ module Calc
           else
             @err.puts "unknown debugger command: #{command_name}"
           end
+        end
+      end
+
+      def read_command
+        if @in.tty?
+          Reline.readline(PROMPT, true)
+        else
+          @out.print PROMPT
+          @out.flush
+          @in.gets&.chomp
         end
       end
 
@@ -96,28 +111,18 @@ module Calc
           step_execution
         when "finish"
           finish_execution
-        when "bt", "locals", "print", "list"
+        when "list"
+          render_list(payload)
+        when "bt", "locals", "print"
           print_not_implemented(command, payload)
         end
       end
 
       def create_breakpoint(payload)
-        kind, target = parse_breakpoint_target(payload)
-        @breakpoint_seq += 1
-        breakpoint = Calc::Breakpoint.new(id: @breakpoint_seq, kind: kind, target: target)
-        @breakpoints << breakpoint
-        @out.puts "Breakpoint #{@breakpoint_seq} set"
+        breakpoint = @breakpoint_manager.create(payload, valid_lines: @nodes.map(&:line))
+        @out.puts "Breakpoint #{breakpoint.id} set"
       rescue ArgumentError => e
         @err.puts e.message
-      end
-
-      def parse_breakpoint_target(payload)
-        raise ArgumentError, "usage: break <line>|<function>" if payload.to_s.strip.empty?
-
-        text = payload.strip
-        return [:line, Integer(text, 10)] if text.match?(/\A\d+\z/)
-
-        [:function, text]
       end
 
       def execute_until_breakpoint
@@ -127,9 +132,9 @@ module Calc
           node = @nodes[@cursor]
           if @skip_breakpoint_once
             @skip_breakpoint_once = false
-          elsif breakpoint_hit?(node)
+          elsif @breakpoint_manager.hit?(node)
             pause_reason = :breakpoint
-            @out.puts format_breakpoint_hit(node)
+            @out.puts @breakpoint_manager.hit_message(node)
             break
           end
 
@@ -148,6 +153,9 @@ module Calc
         @state.resume!
         @skip_breakpoint_once = true if pause_reason == :breakpoint
         execute_until_breakpoint
+      rescue StandardError => e
+        @err.puts e.message
+        @state.pause!(reason: :run_failed)
       end
 
       def step_execution
@@ -157,6 +165,8 @@ module Calc
         @state.resume! if @state.paused?
         @skip_breakpoint_once = true if pause_reason == :breakpoint
         run_single_node(reason: :step_complete)
+        @skip_breakpoint_once = false
+        @out.puts "Reached end of program" if @cursor >= @nodes.length
       end
 
       def finish_execution
@@ -166,6 +176,11 @@ module Calc
         @state.resume! if @state.paused?
         @skip_breakpoint_once = true if pause_reason == :breakpoint
         execute_remaining_nodes
+        @skip_breakpoint_once = false
+      rescue StandardError => e
+        @err.puts e.message
+        @state.pause!(reason: :run_failed)
+        @skip_breakpoint_once = false
       end
 
       def run_single_node(reason:)
@@ -196,33 +211,20 @@ module Calc
         @state.pause!(reason: :run_failed)
       end
 
-      def breakpoint_hit?(node)
-        @breakpoints.any? do |breakpoint|
-          if breakpoint.line?
-            breakpoint.target == node.line
-          else
-            function_breakpoint_hit?(breakpoint, node)
-          end
-        end
-      end
-
-      def function_breakpoint_hit?(breakpoint, node)
-        return false unless node.is_a?(Calc::ListNode) && node.children.first.is_a?(Calc::SymbolNode)
-
-        head = node.children.first
-        head.name == breakpoint.target || define_function_breakpoint_hit?(breakpoint, node, head)
-      end
-
-      def define_function_breakpoint_hit?(breakpoint, node, head)
-        return false unless head.name == "define" && node.children[1].is_a?(Calc::ListNode)
-
-        signature = node.children[1]
-        signature.children.first.is_a?(Calc::SymbolNode) && signature.children.first.name == breakpoint.target
-      end
-
-      def format_breakpoint_hit(node)
-        line = node.line || 0
-        "Breakpoint hit at L#{line}"
+      def render_list(payload)
+        DebugListCommand.new(
+          context: DebugListCommand::Context.new(
+            @source,
+            @code,
+            @nodes,
+            @cursor,
+            @breakpoint_manager.line_breakpoint_targets,
+            DebugSourceLineMapper.new(@source, @nodes)
+          ),
+          out: @out
+        ).call(payload)
+      rescue ArgumentError => e
+        @err.puts e.message
       end
 
       def print_not_implemented(command, payload)

@@ -4,7 +4,10 @@ module Calc
   module Cli
     class App
       # Builds a CLI app runner with injectable I/O and argv for tests.
-      def initialize(argv: ARGV, out: $stdout, err: $stderr, history_path: File.join(Dir.home, ".calc_history"))
+      def initialize(argv: ARGV,
+                     out: $stdout,
+                     err: $stderr,
+                     history_path: File.join(Dir.home, ".calc_history"))
         @argv = argv
         @out = out
         @err = err
@@ -42,13 +45,19 @@ module Calc
 
           executer = build_executer(options)
           compiler = Calc::Compiler.new(executer.builtins)
-          return DebugRunner.run(
-            parser,
-            compiler,
-            executer,
-            options.script_path,
-            io: { out: @out, err: @err }
-          )
+          configure_debug_completion
+          return History.with_session(history_path("debug"), warning_io: @err) do
+            DebugRunner.run(
+              DebugRunner::Context.new(
+                parser,
+                compiler,
+                executer,
+                options.script_path,
+                { out: @out, err: @err },
+                Reline::HISTORY
+              )
+            )
+          end
         end
 
         executer = build_executer(options)
@@ -96,6 +105,21 @@ module Calc
 
       def build_executer(options)
         Calc::Executer.new(vm_trace: options.trace_vm, vm_trace_io: @err)
+      end
+
+      def configure_debug_completion
+        completion = Calc::Cli::DebugCompletion.new
+
+        Reline.completion_proc = proc do |fragment|
+          completion.candidates(fragment, Reline.line_buffer.to_s, Reline.point || 0)
+        end
+        Reline.autocompletion = true
+      end
+
+      def history_path(subcommand = nil)
+        return "#{@history_path}.debug" if subcommand == "debug"
+
+        @history_path
       end
 
       # Runs the interactive loop with history lifecycle management.
