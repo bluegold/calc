@@ -433,8 +433,8 @@ Make compiled VM programs debuggable by attaching source/function metadata.
 * [x] Extend compiled code object to carry source filename
 * [x] Extend compiled code object to carry instruction offset -> line mapping
 * [x] Extend compiled code object to carry function/lambda metadata
-* [ ] Add line lookup structure for resolving line breakpoints
-* [ ] Add function name lookup structure for resolving function breakpoints
+* [x] Add line lookup structure for resolving line breakpoints
+* [x] Add function name lookup structure for resolving function breakpoints
 * [x] Ensure lambda/function entrypoints are distinguishable
 * [ ] Expose current instruction offset from VM execution state
 * [ ] Expose call stack/frame metadata from VM
@@ -470,9 +470,9 @@ Allow the debugger to stop and resume execution safely.
 * [ ] Define stoppable execution points
 * [ ] Trigger debugger check at each stoppable boundary
 * [x] Support pausing on breakpoint hit
-* [ ] Support pausing on step
-* [ ] Support pausing on next
-* [ ] Support pausing on finish
+* [x] Support pausing on step
+* [x] Support pausing on next
+* [x] Support pausing on finish
 * [ ] Preserve VM state across pause/resume
 * [ ] Represent terminated program distinctly from paused program
 * [ ] Ensure debugger hook overhead is acceptable when enabled
@@ -508,8 +508,8 @@ Implement function and line breakpoints.
 * [x] Create `Calc::Breakpoint` model
 * [x] Implement `break <function>`
 * [x] Implement `break <line>`
-* [ ] Resolve line breakpoints against current source metadata
-* [ ] Resolve function breakpoints against function entry metadata
+* [x] Resolve line breakpoints against current source metadata
+* [x] Resolve function breakpoints against function entry metadata
 * [x] Assign stable breakpoint ids
 * [ ] Implement `delete <id>`
 * [ ] Implement `info break`
@@ -541,10 +541,10 @@ Implement the core debugger workflow.
 ## TODO
 
 * [x] Implement `run`
-* [ ] Implement `continue`
-* [ ] Implement `step`
-* [ ] Implement `next`
-* [ ] Implement `finish`
+* [x] Implement `continue`
+* [x] Implement `step`
+* [x] Implement `next`
+* [x] Implement `finish`
 * [ ] Track frame depth correctly for `next`
 * [ ] Track return target correctly for `finish`
 * [ ] Implement `bt`
@@ -748,15 +748,15 @@ The debugger should be tested at three levels:
 
 * [x] set breakpoint before `run`
 * [x] `run` stops at breakpoint
-* [ ] `continue` resumes to next breakpoint or termination
+* [x] `continue` resumes to next breakpoint or termination
 * [ ] `info break` shows current breakpoints
 * [ ] `delete` updates breakpoint list
 
 ## Stepping workflow
 
-* [ ] `step` enters called function
-* [ ] `next` stays in current frame
-* [ ] `finish` returns to caller
+* [x] `step` enters called function
+* [x] `next` stays in current frame
+* [x] `finish` returns to caller
 * [ ] `bt` reflects recursive calls correctly
 
 ## Inspection workflow

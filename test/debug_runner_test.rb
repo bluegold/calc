@@ -174,7 +174,7 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
         i.puts "run"
         i.puts "quit"
         i.close
-        stdout = o.read
+        _stdout = o.read
         stderr = e.read
         status = t.value
       end
@@ -227,6 +227,103 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
     assert_predicate status, :success?
     assert_includes stdout, "Breakpoint 1 set"
     assert_includes stdout, "Breakpoint hit at L3"
+  end
+
+  def test_debug_subcommand_continue_after_breakpoint_resumes_execution
+    _stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_line.calc")
+      File.write(path, "(+ 1 2)\n(+ 3 4)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break 3"
+        i.puts "run"
+        i.puts "continue"
+        i.puts "quit"
+        i.close
+        _stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_continue_after_breakpoint_prints_final_result
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_line.calc")
+      File.write(path, "(+ 1 2)\n(+ 3 4)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break 3"
+        i.puts "run"
+        i.puts "continue"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "7"
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_run_can_restart_after_continue_prints_first_result
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_line.calc")
+      File.write(path, "(+ 1 2)\n(+ 3 4)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break 3"
+        i.puts "run"
+        i.puts "continue"
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "3"
+    assert_empty scrub_stderr(stderr)
+  end
+
+  def test_debug_subcommand_run_can_restart_after_continue_prints_second_result
+    stdout = stderr = status = nil
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "break_line.calc")
+      File.write(path, "(+ 1 2)\n(+ 3 4)\n")
+
+      Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", path) do |i, o, e, t|
+        i.puts "break 3"
+        i.puts "run"
+        i.puts "continue"
+        i.puts "run"
+        i.puts "quit"
+        i.close
+        stdout = o.read
+        stderr = e.read
+        status = t.value
+      end
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "7"
+    assert_empty scrub_stderr(stderr)
   end
 
   def test_debug_subcommand_function_breakpoint_stops_run

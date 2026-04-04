@@ -17,6 +17,7 @@ module Calc
         @source = nil
         @nodes = []
         @cursor = 0
+        @skip_breakpoint_once = false
         @breakpoints = []
         @breakpoint_seq = 0
         @state = Calc::DebuggerState.new
@@ -75,7 +76,10 @@ module Calc
       end
 
       def handle_run_command
-        @cursor = 0 if @state.idle? || @state.terminated?
+        @cursor = 0
+        @skip_breakpoint_once = false
+        @state.resume! if @state.paused?
+        @state.start! if @state.idle?
         execute_until_breakpoint
       rescue StandardError => e
         @err.puts e.message
@@ -121,10 +125,11 @@ module Calc
 
         while @cursor < @nodes.length
           node = @nodes[@cursor]
-          if breakpoint_hit?(node)
+          if @skip_breakpoint_once
+            @skip_breakpoint_once = false
+          elsif breakpoint_hit?(node)
             pause_reason = :breakpoint
             @out.puts format_breakpoint_hit(node)
-            @cursor += 1
             break
           end
 
@@ -139,21 +144,27 @@ module Calc
       def resume_execution
         return print_not_implemented("continue", nil) unless @state.paused?
 
+        pause_reason = @state.pause_reason
         @state.resume!
+        @skip_breakpoint_once = true if pause_reason == :breakpoint
         execute_until_breakpoint
       end
 
       def step_execution
         return print_not_implemented("step", nil) unless @state.paused? || @state.running?
 
+        pause_reason = @state.pause_reason
         @state.resume! if @state.paused?
+        @skip_breakpoint_once = true if pause_reason == :breakpoint
         run_single_node(reason: :step_complete)
       end
 
       def finish_execution
         return print_not_implemented("finish", nil) unless @state.paused? || @state.running?
 
+        pause_reason = @state.pause_reason
         @state.resume! if @state.paused?
+        @skip_breakpoint_once = true if pause_reason == :breakpoint
         execute_remaining_nodes
       end
 
