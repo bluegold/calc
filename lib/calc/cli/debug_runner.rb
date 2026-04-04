@@ -28,7 +28,6 @@ module Calc
         @err = context.io.fetch(:err)
         @in = context.io.fetch(:in, $stdin)
         @history = context.history || Reline::HISTORY
-        @last_command = nil
       end
 
       def run
@@ -57,9 +56,6 @@ module Calc
 
           command = line.strip
           next if command.empty?
-
-          @history << command if command != @last_command
-          @last_command = command
 
           command_name, payload = command.split(/\s+/, 2)
 

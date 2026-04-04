@@ -821,33 +821,6 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
     refute_includes stdout, "Breakpoint hit"
   end
 
-  def test_debug_subcommand_deduplicates_repeated_commands_in_history
-    Dir.mktmpdir do |dir|
-      script_path = File.join(dir, "history.calc")
-      history_path = File.join(dir, "history.json")
-      File.write(script_path, "(+ 1 2)\n")
-
-      _stdout, stderr, status = Open3.capture3(
-        RbConfig.ruby,
-        "-Ilib",
-        "-e",
-        <<~RUBY,
-          require "calc"
-          app = Calc::Cli::App.new(argv: ["debug", #{script_path.inspect}], history_path: #{history_path.inspect})
-          exit app.run
-        RUBY
-        stdin_data: "step\nstep\nquit\n"
-      )
-
-      assert_predicate status, :success?
-      assert_empty scrub_stderr(stderr)
-      history = JSON.parse(File.read("#{history_path}.debug"))
-      step_count = history.count { |entry| entry == "step" }
-
-      assert_equal 1, step_count
-    end
-  end
-
   private
 
   def run_calc(...)
