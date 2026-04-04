@@ -821,6 +821,44 @@ class DebugRunnerTest < Minitest::Test # rubocop:disable Metrics/ClassLength
     refute_includes stdout, "Breakpoint hit"
   end
 
+  def test_debug_subcommand_info_break_lists_breakpoints
+    stdout = stderr = status = nil
+
+    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
+      i.puts "break 1"
+      i.puts "break foo"
+      i.puts "info break"
+      i.puts "quit"
+      i.close
+      stdout = o.read
+      stderr = e.read
+      status = t.value
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "Breakpoints:"
+    assert_includes stdout, "1: line 1"
+  end
+
+  def test_debug_subcommand_delete_breakpoint_removes_it
+    stdout = stderr = status = nil
+
+    Open3.popen3(RbConfig.ruby, "-Ilib", "bin/calc", "debug", "samples/basic.calc") do |i, o, e, t|
+      i.puts "break 1"
+      i.puts "delete 1"
+      i.puts "info break"
+      i.puts "quit"
+      i.close
+      stdout = o.read
+      stderr = e.read
+      status = t.value
+    end
+
+    assert_predicate status, :success?
+    assert_includes stdout, "Deleted breakpoint 1"
+    refute_includes stdout, "1: line 1"
+  end
+
   private
 
   def run_calc(...)

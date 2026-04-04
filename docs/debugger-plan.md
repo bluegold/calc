@@ -358,12 +358,12 @@ Clarify the debugger architecture and identify the VM/compiler metadata required
 ## TODO
 
 * [x] Decide final CLI shape for `bin/calc debug <filename>`
-* [ ] Decide debugger prompt format
-* [ ] Decide debugger command syntax
-* [ ] Decide whether debugger pause is represented by exception or result object
-* [ ] Identify current VM resumable boundaries for stepping
-* [ ] Identify where compiler can emit source mapping metadata
-* [ ] Identify where function/lambda entry metadata can be emitted
+* [x] Decide debugger prompt format
+* [x] Decide debugger command syntax
+* [x] Decide whether debugger pause is represented by exception or result object
+* [x] Identify current VM resumable boundaries for stepping
+* [x] Identify where compiler can emit source mapping metadata
+* [x] Identify where function/lambda entry metadata can be emitted
 * [ ] Identify how locals can be read from VM frames
 * [x] Decide initial semantics of `print <expr>`
 
@@ -396,7 +396,7 @@ Create a dedicated debug command and interactive debug shell without full steppi
 * [x] Add CLI dispatch for `debug`
 * [x] Create `Calc::Cli::DebugRunner`
 * [x] Load source file and compile debug target
-* [ ] Instantiate VM + debugger objects
+* [x] Instantiate VM + debugger objects
 * [x] Implement debug prompt loop
 * [x] Implement `quit`
 * [x] Implement `run`
@@ -436,7 +436,7 @@ Make compiled VM programs debuggable by attaching source/function metadata.
 * [x] Add line lookup structure for resolving line breakpoints
 * [x] Add function name lookup structure for resolving function breakpoints
 * [x] Ensure lambda/function entrypoints are distinguishable
-* [ ] Expose current instruction offset from VM execution state
+* [x] Expose current instruction offset from VM execution state
 * [ ] Expose call stack/frame metadata from VM
 * [ ] Expose locals/arguments access path for current frame
 
@@ -466,15 +466,15 @@ Allow the debugger to stop and resume execution safely.
 
 ## TODO
 
-* [ ] Add debugger hook/callback entrypoints in VM dispatch loop
-* [ ] Define stoppable execution points
-* [ ] Trigger debugger check at each stoppable boundary
+* [x] Add debugger hook/callback entrypoints in VM dispatch loop
+* [x] Define stoppable execution points
+* [x] Trigger debugger check at each stoppable boundary
 * [x] Support pausing on breakpoint hit
 * [x] Support pausing on step
 * [x] Support pausing on next
 * [x] Support pausing on finish
-* [ ] Preserve VM state across pause/resume
-* [ ] Represent terminated program distinctly from paused program
+* [x] Preserve VM state across pause/resume
+* [x] Represent terminated program distinctly from paused program
 * [ ] Ensure debugger hook overhead is acceptable when enabled
 
 ## Checkpoint
@@ -513,7 +513,7 @@ Implement function and line breakpoints.
 * [x] Assign stable breakpoint ids
 * [ ] Implement `delete <id>`
 * [ ] Implement `info break`
-* [ ] Handle duplicate breakpoint definitions sensibly
+* [x] Handle duplicate breakpoint definitions sensibly
 * [ ] Produce clear error messages for unknown line/function targets
 
 ## Checkpoint
@@ -602,14 +602,14 @@ Improve debugger usability and failure handling.
 
 ## TODO
 
-* [ ] Pause on uncaught runtime exception
-* [ ] Show exception class, message, and paused location
+* [x] Pause on uncaught runtime exception
+* [x] Show exception class, message, and paused location
 * [ ] Show debugger backtrace on exception
 * [x] Add `help` command
 * [x] Improve command parse error messages
 * [x] Improve startup instructions
 * [x] Ensure clean exit on EOF / Ctrl-C in debugger prompt
-* [ ] Ensure clean exit on program termination
+* [x] Ensure clean exit on program termination
 * [x] Ensure clean exit on program failure
 * [ ] Review command naming consistency
 
@@ -763,7 +763,7 @@ The debugger should be tested at three levels:
 
 * [ ] `locals` shows expected bindings at breakpoint
 * [ ] `print` returns expected value
-* [ ] `list` shows current source region with marker
+* [x] `list` shows current source region with marker
 * [ ] `frame` changes the inspection target
 
 ## Exception workflow

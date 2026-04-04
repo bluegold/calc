@@ -66,7 +66,7 @@ module Calc
           when "run"
             handle_run_command
             return if @state.terminated?
-          when "continue", "step", "next", "finish", "break", "bt", "locals", "print", "list"
+          when "continue", "step", "next", "finish", "break", "delete", "bt", "locals", "print", "list", "info"
             handle_debugger_command(command_name, payload)
           when "help"
             print_help
@@ -101,6 +101,10 @@ module Calc
         case command
         when "break"
           create_breakpoint(payload)
+        when "delete"
+          delete_breakpoint(payload)
+        when "info"
+          print_info(payload)
         when "continue"
           resume_execution
         when "step", "next"
@@ -111,6 +115,33 @@ module Calc
           render_list(payload)
         when "bt", "locals", "print"
           print_not_implemented(command, payload)
+        end
+      end
+
+      def print_info(payload)
+        case payload.to_s.strip
+        when "break", "breaks", "breakpoints", ""
+          print_breakpoints
+        else
+          @err.puts "usage: info break"
+        end
+      end
+
+      def print_breakpoints
+        if @breakpoint_manager.breakpoints.empty?
+          @out.puts "No breakpoints set"
+          return
+        end
+
+        @out.puts "Breakpoints:"
+        @breakpoint_manager.lines.each { |line| @out.puts line }
+      end
+
+      def delete_breakpoint(payload)
+        if @breakpoint_manager.delete(payload)
+          @out.puts "Deleted breakpoint #{payload}"
+        else
+          @err.puts "no such breakpoint: #{payload}"
         end
       end
 

@@ -97,9 +97,7 @@ module Calc
 
       def closure_metadata_value(instr, key)
         metadata = instr.a
-        if metadata.respond_to?(:[]) && metadata.respond_to?(:key?) && metadata.key?(key)
-          return metadata[key]
-        end
+        return metadata[key] if metadata.respond_to?(:[]) && metadata.respond_to?(:key?) && metadata.key?(key)
 
         return metadata.public_send(key) if metadata.respond_to?(key)
 

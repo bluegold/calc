@@ -16,6 +16,14 @@ module Calc
         breakpoint
       end
 
+      def delete(id)
+        numeric_id = Integer(id, 10)
+        removed = @breakpoints.reject! { |breakpoint| breakpoint.id == numeric_id }
+        !removed.nil?
+      rescue ArgumentError, TypeError
+        false
+      end
+
       def hit?(node)
         @breakpoints.any? do |breakpoint|
           if breakpoint.line?
@@ -33,6 +41,14 @@ module Calc
 
       def line_breakpoint_targets
         @breakpoints.select(&:line?).map(&:target)
+      end
+
+      def lines
+        @breakpoints.map do |breakpoint|
+          label = breakpoint.line? ? "line" : "function"
+          target = breakpoint.target
+          "#{breakpoint.id}: #{label} #{target}"
+        end
       end
 
       private
